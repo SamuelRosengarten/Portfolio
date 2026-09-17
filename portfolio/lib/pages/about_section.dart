@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 // ignore: implementation_imports
 import 'package:icons_plus/src/brand.dart';
 
+import '../theme/palette.dart';
 import '../widgets/golden_gate_background.dart';
 import '../widgets/section_layout.dart';
 
@@ -48,8 +49,8 @@ class _AboutBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _AboutIntro(),
-              SizedBox(height: 32),
-              Center(child: _LanguageMarquee()),
+              SizedBox(height: 48),
+              Center(child: _LanguagePanel()),
             ],
           ),
         ),
@@ -69,7 +70,7 @@ class _AboutIntro extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 15),
+        const SizedBox(height: 14),
         SizedBox(
           height: 80,
           child: FadeAnimationDelayed(
@@ -89,17 +90,17 @@ class _AboutIntro extends StatelessWidget {
             ),
           ),
         ),
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 620),
-            child: Text(
-              'A place to put the thing I am building right now. Swap this copy '
-              'for the real story once there is a screenshot worth showing.',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                height: 1.6,
-                color: const Color.fromARGB(255, 255, 255, 255),
-              ),
+        const SizedBox(height: 16),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Text(
+            'A place to put the thing I am building right now. Swap this copy '
+            'for the real story once there is a screenshot worth showing.',
+            style: GoogleFonts.inter(
+              fontSize: 17,
+              height: 1.6,
+              letterSpacing: -0.2,
+              color: Colors.white.withValues(alpha: 0.75),
             ),
           ),
         ),
@@ -134,13 +135,52 @@ const _languages = [
   _Language('CSS3', Brands.css3),
 ];
 
+/// The frosted card that frames the marquee: a small eyebrow label sitting
+/// over the three scrolling rows, echoing the glass-panel language the rest
+/// of the site uses over this animated backdrop.
+class _LanguagePanel extends StatelessWidget {
+  const _LanguagePanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 820),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.035),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'LANGUAGES & TOOLS',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.4,
+                color: kBlue,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const _LanguageMarquee(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Three stacked [_LanguageMarqueeRow]s, each carrying its own slice of
 /// [_languages] and scrolling at its own speed so the rows drift out of
 /// phase with each other instead of ticking past in lockstep.
 class _LanguageMarquee extends StatelessWidget {
   const _LanguageMarquee();
 
-  static const List<double> _rowSpeeds = [36, 24, 44];
+  static const List<double> _rowSpeeds = [30, 20, 38];
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +198,7 @@ class _LanguageMarquee extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < rows.length; i++) ...[
-          if (i > 0) const SizedBox(height: 16),
+          if (i > 0) const SizedBox(height: 18),
           _LanguageMarqueeRow(
             languages: rows[i],
             pixelsPerSecond: _rowSpeeds[i],
@@ -242,7 +282,7 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
     final items = [...widget.languages, ...widget.languages];
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 640),
+      constraints: const BoxConstraints(maxWidth: 780),
       child: ShaderMask(
         blendMode: BlendMode.dstIn,
         shaderCallback: (bounds) => const LinearGradient(
@@ -270,8 +310,10 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
               alignment: Alignment.centerLeft,
               child: ValueListenableBuilder<double>(
                 valueListenable: _offset,
-                builder: (context, offset, child) =>
-                    Transform.translate(offset: Offset(-offset, 0), child: child),
+                builder: (context, offset, child) => Transform.translate(
+                  offset: Offset(-offset, 0),
+                  child: child,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -300,16 +342,30 @@ class _LanguageChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.07),
+            Colors.white.withValues(alpha: 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Brand(language.icon, size: 22),
+          Brand(language.icon, size: 20),
           const SizedBox(width: 10),
           Flexible(
             child: Text(
@@ -318,8 +374,9 @@ class _LanguageChip extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.1,
+                color: Colors.white.withValues(alpha: 0.88),
               ),
             ),
           ),
