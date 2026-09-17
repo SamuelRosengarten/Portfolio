@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/palette.dart';
+import '../widgets/golden_gate_background.dart';
 import '../widgets/section_layout.dart';
 import '../widgets/terminal/terminal_window.dart';
 
@@ -10,24 +11,29 @@ class AboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SectionShell(
-      background: kLightBg,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionIntro(
-            eyebrow: 'About',
-            headline: "Hi, I'm Samuel.",
-            subhead:
-                'A developer in training who likes building things that feel '
-                'considered — clean interfaces, code that reads well, and '
-                'details most people never notice but always feel.',
-          ),
-          SizedBox(height: 48),
-          _TerminalPanel(),
-          SizedBox(height: 56),
-          _TraitGrid(),
-        ],
+    // The animated backdrop paints the section, so the shell stays transparent
+    // on top of it and the copy switches to the site's dark treatment.
+    return const GoldenGateBackground(
+      child: SectionShell(
+        background: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionIntro(
+              eyebrow: 'About',
+              headline: "Hi, I'm Samuel.",
+              subhead:
+                  'A developer in training who likes building things that feel '
+                  'considered — clean interfaces, code that reads well, and '
+                  'details most people never notice but always feel.',
+              dark: true,
+            ),
+            SizedBox(height: 48),
+            _TerminalPanel(),
+            SizedBox(height: 56),
+            _TraitGrid(),
+          ],
+        ),
       ),
     );
   }
@@ -117,14 +123,15 @@ class _TraitCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: kPanelBg,
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 26, color: kInk),
+          Icon(icon, size: 26, color: kBlue),
           const SizedBox(height: 18),
           Text(
             title,
@@ -132,7 +139,7 @@ class _TraitCard extends StatelessWidget {
               fontSize: 19,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.3,
-              color: kInk,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 8),

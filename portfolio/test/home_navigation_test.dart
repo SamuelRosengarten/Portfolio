@@ -12,7 +12,9 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(const MaterialApp(home: Home()));
-    await tester.pumpAndSettle();
+    // The about section's animated backdrop never stops ticking, so settle by
+    // pumping past each scroll animation instead of waiting for an idle frame.
+    await tester.pump();
 
     final scrollable = find.byType(Scrollable).first;
     final controller = tester.widget<Scrollable>(scrollable).controller!;
@@ -23,7 +25,8 @@ void main() {
       'Hobbies': find.byType(HobbiesSection),
     }.entries) {
       await tester.tap(find.text(probe.key).first);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
       expect(
         tester.getTopLeft(probe.value).dy,
         moreOrLessEquals(kSiteHeaderHeight, epsilon: 1),
@@ -33,11 +36,13 @@ void main() {
 
     // The last section clamps at the bottom of the scroll extent.
     await tester.tap(find.text('Contact').first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
     expect(controller.offset, controller.position.maxScrollExtent);
 
     await tester.tap(find.text('About').first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
     expect(controller.offset, 0);
   });
 }
