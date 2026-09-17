@@ -86,6 +86,13 @@ class _ContactCard extends StatefulWidget {
 class _ContactCardState extends State<_ContactCard> {
   bool _hovering = false;
 
+  // This MouseRegion + setState + AnimatedContainer trio is the site's
+  // standard hover pattern, repeated with small variations in
+  // site_header.dart, hobbies_section.dart and elsewhere: MouseRegion just
+  // reports enter/exit, a bool in State tracks whether the pointer is
+  // currently over the widget, and AnimatedContainer/AnimatedScale smoothly
+  // tweens between the "resting" and "hovering" look whenever that bool
+  // flips (rather than snapping instantly).
   @override
   Widget build(BuildContext context) {
     return MouseRegion(

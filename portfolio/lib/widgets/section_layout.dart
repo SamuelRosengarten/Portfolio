@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/palette.dart';
 
+/// Responsive font size for every [SectionIntro] headline: smaller on phones,
+/// larger on desktop. `MediaQuery`'s width (not a `LayoutBuilder` constraint)
+/// is what's passed in here — see [SectionIntro.build] below.
 double _headlineSize(double width) {
   if (width < 600) return 34;
   if (width < 900) return 44;
@@ -11,6 +14,18 @@ double _headlineSize(double width) {
 
 /// Full-bleed band of colour holding one section's content, centred and capped
 /// so the copy never runs wider than it reads well.
+///
+/// Setting `minHeight` and `maxHeight` to the *same* value (the full screen
+/// height) is what makes every section that uses this shell occupy exactly
+/// one screen's worth of scrolling, regardless of how much content it has —
+/// scrolling the page therefore advances roughly one section at a time.
+/// Content inside still has to fit that fixed height on its own (usually via
+/// `Expanded` soaking up the leftover space below the intro text); nothing
+/// here makes the child scrollable if it's too tall.
+///
+/// The hobbies section intentionally does *not* use this shell — it wants a
+/// full-bleed, edge-to-edge layout with no side padding or 980px cap, so it
+/// builds its own sizing from scratch instead.
 class SectionShell extends StatelessWidget {
   const SectionShell({
     super.key,
@@ -35,6 +50,9 @@ class SectionShell extends StatelessWidget {
       ),
       child: Center(
         child: ConstrainedBox(
+          // Caps the readable content width even on very wide monitors —
+          // without this, body text on a 2000px-wide window would stretch
+          // into unreadably long lines.
           constraints: const BoxConstraints(maxWidth: 980),
           child: child,
         ),
@@ -105,6 +123,13 @@ class SectionIntro extends StatelessWidget {
 
 /// Lays children out in equal-width columns sized from the real available
 /// width, with every card in a row sharing the tallest card's height.
+///
+/// This exists instead of a plain [Wrap] or [GridView] because neither of
+/// those stretches items in the same row to a shared height by default — a
+/// short "About" card next to a tall "Contact" card would otherwise look
+/// misaligned. The trick is `IntrinsicHeight` + `CrossAxisAlignment.stretch`:
+/// `IntrinsicHeight` measures the row's children once to find the tallest
+/// one, then `stretch` makes every child in that `Row` match it.
 class CardGrid extends StatelessWidget {
   const CardGrid({
     super.key,
@@ -114,6 +139,10 @@ class CardGrid extends StatelessWidget {
   });
 
   final List<Widget> children;
+
+  /// Given the grid's available width, returns how many columns to use —
+  /// each call site defines its own breakpoints (see about/contact/hobbies
+  /// sections for examples).
   final int Function(double width) columnsFor;
   final double spacing;
 
@@ -122,9 +151,15 @@ class CardGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = columnsFor(constraints.maxWidth);
+        // Divide the remaining width (total width minus the gaps between
+        // columns) evenly, rather than giving each card a fixed width —
+        // this is what lets the grid fill whatever space it's given instead
+        // of leaving a gap or overflowing.
         final cardWidth =
             (constraints.maxWidth - spacing * (columns - 1)) / columns;
 
+        // Chop the flat list of children into `columns`-sized rows, e.g.
+        // 6 children over 4 columns -> [[0,1,2,3], [4,5]].
         final rows = <List<Widget>>[];
         for (var i = 0; i < children.length; i += columns) {
           final end = i + columns;

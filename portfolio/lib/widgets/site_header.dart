@@ -28,6 +28,12 @@ class SiteHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final compact = MediaQuery.sizeOf(context).width < 600;
 
+    // BackdropFilter blurs whatever is *behind* this widget (the scrolling
+    // page content), which combined with the translucent white container
+    // below is what gives the header its frosted-glass look as content
+    // scrolls underneath it. ClipRect is required because BackdropFilter
+    // blurs its entire layer, including past this widget's own bounds —
+    // without it the blur would bleed outside the header.
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
@@ -42,6 +48,11 @@ class SiteHeader extends StatelessWidget {
               ),
             ),
           ),
+          // FittedBox + scaleDown is a safety net for very narrow screens:
+          // if the row of nav items would overflow the header's width, this
+          // shrinks the whole row down to fit instead of clipping it or
+          // throwing an overflow error. `compact` above already shrinks the
+          // text/padding at <600px, so this rarely has to do much.
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Row(

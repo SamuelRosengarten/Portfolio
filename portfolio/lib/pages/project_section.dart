@@ -34,6 +34,9 @@ class ProjectSection extends StatelessWidget {
 /// The placeholder image is wrapped in Expanded rather than sized from an
 /// aspect ratio, so it shrinks to whatever room is left under the copy
 /// instead of pushing the section past one screen on wide, short viewports.
+/// (Recall from section_layout.dart that [SectionShell] fixes the section to
+/// exactly one screen's height — this is how content living inside that
+/// fixed height stays flexible instead of overflowing.)
 class _ProjectShowcase extends StatelessWidget {
   const _ProjectShowcase();
 
@@ -54,25 +57,33 @@ class _ProjectShowcase extends StatelessWidget {
               ),
               border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
+            // FittedBox + scaleDown is the same overflow safety net used in
+            // site_header.dart: the Expanded box above can be squeezed down
+            // by a tall SectionIntro on a short/narrow viewport, and without
+            // this, the icon-and-caption column's fixed intrinsic height
+            // would overflow it instead of gracefully shrinking to fit.
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.construction_outlined,
-                    size: 40,
-                    color: Colors.white.withValues(alpha: 0.35),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'In development',
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.45),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.construction_outlined,
+                      size: 40,
+                      color: Colors.white.withValues(alpha: 0.35),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Text(
+                      'In development',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
