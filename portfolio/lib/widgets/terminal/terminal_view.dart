@@ -8,7 +8,11 @@ import 'terminal_entry.dart';
 const String _kPrompt = 'visitor@portfolio ~ % ';
 
 class TerminalView extends StatefulWidget {
-  const TerminalView({super.key});
+  const TerminalView({super.key, this.autofocus = false});
+
+  /// Grab the keyboard as soon as the terminal mounts. Off by default so an
+  /// embedded terminal does not yank the page scroll to itself on load.
+  final bool autofocus;
 
   @override
   State<TerminalView> createState() => _TerminalViewState();
@@ -24,7 +28,9 @@ class _TerminalViewState extends State<TerminalView> {
   void initState() {
     super.initState();
     _entries.add(TerminalEntry.output('Welcome to my portfolio terminal.'));
-    _entries.add(TerminalEntry.output('Type "help" to see available commands.'));
+    _entries.add(
+      TerminalEntry.output('Type "help" to see available commands.'),
+    );
   }
 
   @override
@@ -96,7 +102,7 @@ class _TerminalViewState extends State<TerminalView> {
             child: TextField(
               controller: _inputController,
               focusNode: _focusNode,
-              autofocus: true,
+              autofocus: widget.autofocus,
               autocorrect: false,
               enableSuggestions: false,
               cursorWidth: 8,

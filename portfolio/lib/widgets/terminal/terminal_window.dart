@@ -6,19 +6,34 @@ import 'package:google_fonts/google_fonts.dart';
 import 'terminal_view.dart';
 
 class TerminalWindow extends StatelessWidget {
-  const TerminalWindow({super.key});
+  const TerminalWindow({
+    super.key,
+    this.width,
+    this.height,
+    this.autofocus = false,
+  });
+
+  /// Explicit size; when null the window sizes itself from the screen.
+  final double? width;
+  final double? height;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
-    final width =
+    final resolvedWidth =
+        width ??
         (screen.width < 700 ? screen.width * 0.92 : 680.0).clamp(280.0, 680.0);
-    final height = (screen.height < 700 ? screen.height * 0.70 : 460.0)
-        .clamp(320.0, 520.0);
+    final resolvedHeight =
+        height ??
+        (screen.height < 700 ? screen.height * 0.70 : 460.0).clamp(
+          320.0,
+          520.0,
+        );
 
     return SizedBox(
-      width: width,
-      height: height,
+      width: resolvedWidth,
+      height: resolvedHeight,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
         child: BackdropFilter(
@@ -35,11 +50,15 @@ class TerminalWindow extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Column(
+            child: Column(
               children: [
-                _TitleBar(),
-                Divider(height: 1, thickness: 1, color: Color(0x14FFFFFF)),
-                Expanded(child: TerminalView()),
+                const _TitleBar(),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0x14FFFFFF),
+                ),
+                Expanded(child: TerminalView(autofocus: autofocus)),
               ],
             ),
           ),
