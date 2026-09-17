@@ -20,19 +20,38 @@ class AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The animated backdrop paints the section, so the shell stays transparent
-    // on top of it and the copy switches to the site's dark treatment. The
-    // language marquee is wrapped in Expanded so it absorbs whatever room is
-    // left under the intro instead of pushing the section past one screen.
+    // on top of it and the copy switches to the site's dark treatment.
+    // SectionShell pins the whole section to exactly one screen height, so on
+    // a short/cropped window the intro plus the marquee's three rows may not
+    // fit. mainAxisAlignment.center (rather than an Expanded spacer) lets the
+    // block sit centered when there's room to spare, and LayoutBuilder +
+    // SingleChildScrollView let it scroll instead of overflowing when there
+    // isn't — a flex spacer can't do that, since Expanded needs a bounded
+    // height and a scroll view can't offer one.
     return const GoldenGateBackground(
-      child: SectionShell(
-        background: Colors.transparent,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _AboutIntro(),
-            SizedBox(height: 32),
-            Expanded(child: Center(child: _LanguageMarquee())),
-          ],
+      child: SectionShell(background: Colors.transparent, child: _AboutBody()),
+    );
+  }
+}
+
+class _AboutBody extends StatelessWidget {
+  const _AboutBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _AboutIntro(),
+              SizedBox(height: 32),
+              Center(child: _LanguageMarquee()),
+            ],
+          ),
         ),
       ),
     );
@@ -115,24 +134,70 @@ const _languages = [
   _Language('CSS3', Brands.css3),
 ];
 
-/// A row of language logos that scrolls itself sideways forever, fading out
-/// at both edges so it reads as a strip rather than a hard-cropped list.
-class _LanguageMarquee extends StatefulWidget {
+/// Three stacked [_LanguageMarqueeRow]s, each carrying its own slice of
+/// [_languages] and scrolling at its own speed so the rows drift out of
+/// phase with each other instead of ticking past in lockstep.
+class _LanguageMarquee extends StatelessWidget {
   const _LanguageMarquee();
 
+  static const List<double> _rowSpeeds = [36, 24, 44];
+
   @override
-  State<_LanguageMarquee> createState() => _LanguageMarqueeState();
+  Widget build(BuildContext context) {
+    // Dealt round-robin across the rows so each one still cycles through a
+    // mix of languages rather than three copies of the same strip.
+    final rows = List.generate(
+      _rowSpeeds.length,
+      (i) => [
+        for (var j = i; j < _languages.length; j += _rowSpeeds.length)
+          _languages[j],
+      ],
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < rows.length; i++) ...[
+          if (i > 0) const SizedBox(height: 16),
+          _LanguageMarqueeRow(
+            languages: rows[i],
+            pixelsPerSecond: _rowSpeeds[i],
+          ),
+        ],
+      ],
+    );
+  }
 }
 
-class _LanguageMarqueeState extends State<_LanguageMarquee>
+/// A row of language logos that scrolls itself sideways forever, fading out
+/// at both edges so it reads as a strip rather than a hard-cropped list.
+class _LanguageMarqueeRow extends StatefulWidget {
+  const _LanguageMarqueeRow({
+    required this.languages,
+    required this.pixelsPerSecond,
+  });
+
+  final List<_Language> languages;
+  final double pixelsPerSecond;
+
+  @override
+  State<_LanguageMarqueeRow> createState() => _LanguageMarqueeRowState();
+}
+
+class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
     with SingleTickerProviderStateMixin {
   static const double _chipWidth = 172;
-  static const double _pixelsPerSecond = 36;
 
-  final _scrollController = ScrollController();
+  // Driven by hand with a Transform rather than a ScrollController: jumpTo
+  // on a controller still runs the platform's ballistic scroll physics
+  // (bounce-back on macOS/iOS), which throws once the offset is reset to
+  // loop the strip. A raw offset sidesteps scroll physics entirely.
+  final _offset = ValueNotifier<double>(0);
   late final Ticker _ticker;
   Duration _lastElapsed = Duration.zero;
   bool _reduceMotion = false;
+
+  double get _loopWidth => _chipWidth * widget.languages.length;
 
   @override
   void initState() {
@@ -155,28 +220,26 @@ class _LanguageMarqueeState extends State<_LanguageMarquee>
   @override
   void dispose() {
     _ticker.dispose();
-    _scrollController.dispose();
+    _offset.dispose();
     super.dispose();
   }
 
   void _onTick(Duration elapsed) {
-    if (!_scrollController.hasClients) return;
     final dt =
         (elapsed - _lastElapsed).inMicroseconds /
         Duration.microsecondsPerSecond;
     _lastElapsed = elapsed;
 
-    final loopWidth = _chipWidth * _languages.length;
-    var next = _scrollController.offset + _pixelsPerSecond * dt;
-    if (next >= loopWidth) next -= loopWidth;
-    _scrollController.jumpTo(next);
+    var next = _offset.value + widget.pixelsPerSecond * dt;
+    if (next >= _loopWidth) next -= _loopWidth;
+    _offset.value = next;
   }
 
   @override
   Widget build(BuildContext context) {
     // Repeated twice so the strip can scroll a full loop's width and jump
     // back to zero without ever showing a gap.
-    final items = [..._languages, ..._languages];
+    final items = [...widget.languages, ...widget.languages];
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 640),
@@ -195,13 +258,32 @@ class _LanguageMarqueeState extends State<_LanguageMarquee>
         ).createShader(bounds),
         child: SizedBox(
           height: 68,
-          child: ListView.builder(
-            controller: _scrollController,
-            scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
-            itemBuilder: (context, i) =>
-                SizedBox(width: _chipWidth, child: _LanguageChip(items[i])),
+          child: ClipRect(
+            // The strip of chips is far wider than the viewport by design —
+            // OverflowBox lets it lay out at its full natural width instead
+            // of being clamped (and flagged as a RenderFlex overflow) to
+            // whatever width this row is cropped to; the ClipRect above
+            // still trims the paint to that width.
+            child: OverflowBox(
+              minWidth: 0,
+              maxWidth: double.infinity,
+              alignment: Alignment.centerLeft,
+              child: ValueListenableBuilder<double>(
+                valueListenable: _offset,
+                builder: (context, offset, child) =>
+                    Transform.translate(offset: Offset(-offset, 0), child: child),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final language in items)
+                      SizedBox(
+                        width: _chipWidth,
+                        child: _LanguageChip(language),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
