@@ -75,26 +75,39 @@ class _TitleBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 36,
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Positioned(
-            left: 12,
-            child: Row(
-              children: const [
-                _TrafficLight(color: Color(0xFFFF5F56), glyph: '×'),
-                SizedBox(width: 8),
-                _TrafficLight(color: Color(0xFFFFBD2E), glyph: '−'),
-                SizedBox(width: 8),
-                _TrafficLight(color: Color(0xFF27C93F), glyph: '+'),
-              ],
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  _TrafficLight(color: Color(0xFFFF5F56), glyph: '×'),
+                  SizedBox(width: 8),
+                  _TrafficLight(color: Color(0xFFFFBD2E), glyph: '−'),
+                  SizedBox(width: 8),
+                  _TrafficLight(color: Color(0xFF27C93F), glyph: '+'),
+                ],
+              ),
             ),
           ),
-          Text(
-            '~/portfolio',
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.5),
+
+          Expanded(
+            flex: 5,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '~/portfolio',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
