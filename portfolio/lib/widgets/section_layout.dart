@@ -23,13 +23,14 @@ class SectionShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
+    final size = MediaQuery.sizeOf(context);
 
     return Container(
       width: double.infinity,
       color: background,
+      constraints: BoxConstraints(minHeight: size.height),
       padding: EdgeInsets.symmetric(
-        vertical: width < 600 ? 80 : 120,
+        vertical: size.width < 600 ? 80 : 120,
         horizontal: 24,
       ),
       child: Center(

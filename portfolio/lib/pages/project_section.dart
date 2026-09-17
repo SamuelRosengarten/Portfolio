@@ -23,7 +23,7 @@ class ProjectSection extends StatelessWidget {
                 'deserves until it earns a screenshot.',
             dark: true,
           ),
-          SizedBox(height: 48),
+          SizedBox(height: 32),
           _ProjectShowcase(),
         ],
       ),
@@ -42,7 +42,7 @@ class _ProjectShowcase extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          aspectRatio: width < 700 ? 4 / 3 : 16 / 9,
+          aspectRatio: width < 700 ? 16 / 9 : 21 / 9,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
@@ -76,7 +76,7 @@ class _ProjectShowcase extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
         Text(
           'Untitled project',
           style: GoogleFonts.inter(

@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/palette.dart';
 import '../widgets/golden_gate_background.dart';
 import '../widgets/section_layout.dart';
-import '../widgets/terminal/terminal_window.dart';
+
+import 'package:particle_text/particle_text.dart';
 
 class AboutSection extends StatelessWidget {
   const AboutSection({super.key});
@@ -18,23 +19,43 @@ class AboutSection extends StatelessWidget {
         background: Colors.transparent,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SectionIntro(
-              eyebrow: 'About',
-              headline: "Hi, I'm Samuel.",
-              subhead:
-                  'A developer in training who likes building things that feel '
-                  'considered — clean interfaces, code that reads well, and '
-                  'details most people never notice but always feel.',
-              dark: true,
-            ),
-            SizedBox(height: 48),
-            _TerminalPanel(),
-            SizedBox(height: 56),
-            _TraitGrid(),
-          ],
+          children: [_AboutIntro(), _TraitGrid()],
         ),
       ),
+    );
+  }
+}
+
+/// This section's own take on [SectionIntro]: same eyebrow-and-subhead frame,
+/// but the headline is rendered as interactive particles instead of text.
+class _AboutIntro extends StatelessWidget {
+  const _AboutIntro();
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 600;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        SizedBox(
+          height: compact ? 130 : 160,
+          child: ParticleText(
+            text: "Hi, I'm Samuel",
+            config: ParticleConfig(
+              fontSize: compact ? 48 : 72,
+              textAlign: TextAlign.left,
+              particleColor: const Color(0xFF8CAADE),
+              displacedColor: const Color(0xFFDCE5FF),
+              drawBackground: false,
+              mouseRadius: 80,
+              repelForce: 8.0,
+              returnSpeed: 0.04,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -62,7 +83,6 @@ class _TerminalPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          TerminalWindow(width: double.infinity, height: compact ? 320 : 400),
           const SizedBox(height: 18),
           Text(
             'Click the window and type "help" — it is a real shell, not a GIF.',
