@@ -23,27 +23,28 @@ class ProjectSection extends StatelessWidget {
                 'deserves until it earns a screenshot.',
             dark: true,
           ),
-          SizedBox(height: 32),
-          _ProjectShowcase(),
+          SizedBox(height: 24),
+          Expanded(child: _ProjectShowcase()),
         ],
       ),
     );
   }
 }
 
+/// The placeholder image is wrapped in Expanded rather than sized from an
+/// aspect ratio, so it shrinks to whatever room is left under the copy
+/// instead of pushing the section past one screen on wide, short viewports.
 class _ProjectShowcase extends StatelessWidget {
   const _ProjectShowcase();
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AspectRatio(
-          aspectRatio: width < 700 ? 16 / 9 : 21 / 9,
+        Expanded(
           child: Container(
+            width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
               gradient: const LinearGradient(

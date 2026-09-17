@@ -28,7 +28,7 @@ class SectionShell extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: background,
-      constraints: BoxConstraints(minHeight: size.height),
+      constraints: BoxConstraints(minHeight: size.height, maxHeight: size.height),
       padding: EdgeInsets.symmetric(
         vertical: size.width < 600 ? 80 : 120,
         horizontal: 24,
@@ -134,6 +134,7 @@ class CardGrid extends StatelessWidget {
         }
 
         return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var r = 0; r < rows.length; r++) ...[

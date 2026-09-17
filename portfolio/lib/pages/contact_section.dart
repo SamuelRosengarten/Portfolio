@@ -22,8 +22,8 @@ class ContactSection extends StatelessWidget {
                 'something you are building.',
             dark: true,
           ),
-          SizedBox(height: 48),
-          _ContactGrid(),
+          SizedBox(height: 32),
+          Expanded(child: Center(child: _ContactGrid())),
         ],
       ),
     );

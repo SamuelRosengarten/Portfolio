@@ -13,13 +13,19 @@ class AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The animated backdrop paints the section, so the shell stays transparent
-    // on top of it and the copy switches to the site's dark treatment.
+    // on top of it and the copy switches to the site's dark treatment. The
+    // trait grid is wrapped in Expanded so it absorbs whatever room is left
+    // under the intro instead of pushing the section past one screen.
     return const GoldenGateBackground(
       child: SectionShell(
         background: Colors.transparent,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_AboutIntro(), _TraitGrid()],
+          children: [
+            _AboutIntro(),
+            SizedBox(height: 32),
+            Expanded(child: Center(child: _TraitGrid())),
+          ],
         ),
       ),
     );
@@ -37,6 +43,7 @@ class _AboutIntro extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 12),
         SizedBox(
@@ -56,44 +63,6 @@ class _AboutIntro extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// The interactive terminal, framed in a dark panel so the glass window keeps
-/// its contrast against the light section background.
-class _TerminalPanel extends StatelessWidget {
-  const _TerminalPanel();
-
-  @override
-  Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 700;
-
-    return Container(
-      padding: EdgeInsets.all(compact ? 16 : 28),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1C1C1E), Color(0xFF2C2C2E)],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 18),
-          Text(
-            'Click the window and type "help" — it is a real shell, not a GIF.',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              height: 1.5,
-              color: Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

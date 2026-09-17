@@ -21,8 +21,8 @@ class HobbiesSection extends StatelessWidget {
                 'Craft off the screen keeps the work on it honest. Patience, '
                 'repetition, and the willingness to cut a piece again.',
           ),
-          SizedBox(height: 48),
-          _FeatureTiles(),
+          SizedBox(height: 32),
+          Expanded(child: Center(child: _FeatureTiles())),
         ],
       ),
     );
