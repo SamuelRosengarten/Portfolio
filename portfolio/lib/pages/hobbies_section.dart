@@ -26,17 +26,25 @@ class HobbiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 900;
+        // Only the diagonal layout needs pinning to exactly one screen's
+        // height — its two halves are laid out from that shared height via
+        // Positioned(top: 0, bottom: 0). The stacked layout below sizes
+        // itself to its own content instead: two content-heavy halves
+        // rarely fit one shared screen on a phone, especially once mobile
+        // Safari's address bar eats into the usable viewport height, so it
+        // scrolls as part of the page like every other section.
+        if (!wide) return const _StackedSplit();
 
-    return SizedBox(
-      width: double.infinity,
-      height: height,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 900;
-          return wide ? const _DiagonalSplit() : const _StackedSplit();
-        },
-      ),
+        final height = MediaQuery.sizeOf(context).height;
+        return SizedBox(
+          width: double.infinity,
+          height: height,
+          child: const _DiagonalSplit(),
+        );
+      },
     );
   }
 }
@@ -164,11 +172,20 @@ class _DiagonalSplit extends StatelessWidget {
 class _StackedSplit extends StatelessWidget {
   const _StackedSplit();
 
+  // A fixed budget per half — generous enough to fit each half's headline,
+  // subhead and card/carousel content without the _HoverPop scroll fallback
+  // ever having to kick in in practice — rather than dividing whatever
+  // screen height happens to be available, which is what let the content
+  // get clipped on shorter mobile viewports.
+  static const double _halfHeight = 640;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Expanded(
+        SizedBox(
+          width: double.infinity,
+          height: _halfHeight,
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -189,7 +206,9 @@ class _StackedSplit extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(
+        SizedBox(
+          width: double.infinity,
+          height: _halfHeight,
           child: Stack(
             fit: StackFit.expand,
             children: [
