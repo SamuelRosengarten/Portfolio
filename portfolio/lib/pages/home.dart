@@ -27,10 +27,53 @@ class _HomeState extends State<Home> {
     for (final section in SiteSection.values) section: GlobalKey(),
   };
 
+  // Each section's animated backdrop keeps its own Ticker running for as
+  // long as the section widget is mounted — which, since every section sits
+  // in one plain Column rather than a lazily-built list, is the whole time
+  // the page is open, regardless of scroll position. With four continuously
+  // animating canvas backdrops (plus the About marquee) all ticking at once,
+  // that's real main-thread paint work competing with touch/scroll handling,
+  // especially on a phone. TickerMode(enabled: false) is what actually
+  // pauses a subtree's Tickers, so each section below is wrapped in one,
+  // flipped by how close that section currently is to the viewport.
+  late final _sectionVisible = {
+    for (final section in SiteSection.values) section: ValueNotifier<bool>(true),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateSectionVisibility);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _updateSectionVisibility(),
+    );
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
+    for (final notifier in _sectionVisible.values) {
+      notifier.dispose();
+    }
     super.dispose();
+  }
+
+  /// Compares each section's current on-screen position against the
+  /// viewport, with a margin of one extra screen height above and below so
+  /// a section's backdrop is already animating by the time it scrolls into
+  /// view rather than visibly waking up mid-scroll.
+  void _updateSectionVisibility() {
+    if (!mounted) return;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final margin = screenHeight;
+    for (final entry in _sectionKeys.entries) {
+      final box = entry.value.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.attached) continue;
+      final top = box.localToGlobal(Offset.zero).dy;
+      final bottom = top + box.size.height;
+      final visible = bottom > -margin && top < screenHeight + margin;
+      _sectionVisible[entry.key]!.value = visible;
+    }
   }
 
   /// Scrolls the section's top edge just below the pinned header.
@@ -55,6 +98,15 @@ class _HomeState extends State<Home> {
       target.clamp(position.minScrollExtent, position.maxScrollExtent),
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeInOutCubic,
+    );
+  }
+
+  Widget _sectionTickerMode(SiteSection section, Widget child) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _sectionVisible[section]!,
+      builder: (context, visible, child) =>
+          TickerMode(enabled: visible, child: child!),
+      child: child,
     );
   }
 
@@ -85,11 +137,26 @@ class _HomeState extends State<Home> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Each section gets the GlobalKey matching its SiteSection
-                  // value — that's the link _scrollTo uses to find it.
-                  AboutSection(key: _sectionKeys[SiteSection.about]),
-                  ProjectSection(key: _sectionKeys[SiteSection.projects]),
-                  HobbiesSection(key: _sectionKeys[SiteSection.hobbies]),
-                  ContactSection(key: _sectionKeys[SiteSection.contact]),
+                  // value — that's the link _scrollTo (and
+                  // _updateSectionVisibility) uses to find it — wrapped in a
+                  // TickerMode that pauses its backdrop animation once it's
+                  // scrolled well out of view.
+                  _sectionTickerMode(
+                    SiteSection.about,
+                    AboutSection(key: _sectionKeys[SiteSection.about]),
+                  ),
+                  _sectionTickerMode(
+                    SiteSection.projects,
+                    ProjectSection(key: _sectionKeys[SiteSection.projects]),
+                  ),
+                  _sectionTickerMode(
+                    SiteSection.hobbies,
+                    HobbiesSection(key: _sectionKeys[SiteSection.hobbies]),
+                  ),
+                  _sectionTickerMode(
+                    SiteSection.contact,
+                    ContactSection(key: _sectionKeys[SiteSection.contact]),
+                  ),
                 ],
               ),
             ),
