@@ -9,12 +9,12 @@ class ContactSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SectionShell(
+    return SectionShell(
       background: kDarkBg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionIntro(
+          const SectionIntro(
             eyebrow: 'Contact',
             headline: "Let's talk.",
             subhead:
@@ -22,8 +22,22 @@ class ContactSection extends StatelessWidget {
                 'something you are building.',
             dark: true,
           ),
-          SizedBox(height: 32),
-          Expanded(child: Center(child: _ContactGrid())),
+          const SizedBox(height: 32),
+          // LayoutBuilder + SingleChildScrollView safety net (same pattern as
+          // about_section.dart's _AboutBody): on a short/narrow viewport —
+          // e.g. mobile Safari, where the address bar shrinks the usable
+          // height — four stacked contact cards may not fit the section's
+          // fixed one-screen height. Scrolling beats silently overflowing.
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: const Center(child: _ContactGrid()),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

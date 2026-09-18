@@ -550,7 +550,10 @@ class _LeatherContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        SizedBox(width: 380, child: const _LeatherCarousel()),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: const _LeatherCarousel(),
+        ),
       ],
     );
   }
@@ -694,6 +697,7 @@ class _LeatherCarouselState extends State<_LeatherCarousel> {
       children: [
         SizedBox(
           height: 140,
+          width: double.infinity,
           child: Stack(
             alignment: Alignment.center,
             children: [
