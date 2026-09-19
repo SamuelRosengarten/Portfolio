@@ -71,23 +71,11 @@ class _AboutIntro extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 14),
-        SizedBox(
+        const SizedBox(
           height: 80,
           child: FadeAnimationDelayed(
             delay: Duration(seconds: 1),
-            child: ParticleText(
-              text: "Hi, I'm Samuel",
-              config: ParticleConfig(
-                fontSize: 70,
-                textAlign: TextAlign.left,
-                particleColor: const Color.fromARGB(255, 255, 255, 255),
-                displacedColor: const Color.fromARGB(255, 255, 255, 255),
-                drawBackground: false,
-                mouseRadius: 80,
-                repelForce: 0.5,
-                returnSpeed: 0.04,
-              ),
-            ),
+            child: _ParticleHeadline(),
           ),
         ),
         const SizedBox(height: 16),
@@ -105,6 +93,63 @@ class _AboutIntro extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Wraps [ParticleText] with a one-shot, self-healing retry.
+///
+/// `ParticleText` samples its headline by rasterizing it to an offscreen
+/// [dart:ui.Image] and reading the pixels back (`Picture.toImage` then
+/// `Image.toByteData`), the moment it first mounts — which, since
+/// `AboutSection` is the very first thing on the page, is also the app's
+/// very first frame. On Flutter Web that GPU readback can race the
+/// browser's renderer starting up: if it resolves before anything has
+/// actually been rasterized, it silently gets back a blank image, so no
+/// particles ever sample from the text and the headline just never
+/// appears — with no error and nothing to trigger a retry. Chromium and
+/// Firefox's WASM/engine startup is scheduled differently from Safari's,
+/// which is why this shows up as "works in Safari, not the others" rather
+/// than failing everywhere.
+///
+/// Changing `ParticleText`'s key forces Flutter to dispose the old one and
+/// mount a fresh instance, which re-runs that sampling step from scratch.
+/// Doing that once, a beat after the first frame, gives the retry a
+/// rasterizer that has definitely finished starting up, so it can't lose
+/// the same race twice.
+class _ParticleHeadline extends StatefulWidget {
+  const _ParticleHeadline();
+
+  @override
+  State<_ParticleHeadline> createState() => _ParticleHeadlineState();
+}
+
+class _ParticleHeadlineState extends State<_ParticleHeadline> {
+  int _attempt = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) setState(() => _attempt++);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ParticleText(
+      key: ValueKey(_attempt),
+      text: "Hi, I'm Samuel",
+      config: ParticleConfig(
+        fontSize: 70,
+        textAlign: TextAlign.left,
+        particleColor: const Color.fromARGB(255, 255, 255, 255),
+        displacedColor: const Color.fromARGB(255, 255, 255, 255),
+        drawBackground: false,
+        mouseRadius: 80,
+        repelForce: 0.5,
+        returnSpeed: 0.04,
+      ),
     );
   }
 }
