@@ -59,6 +59,19 @@ class _AboutBody extends StatelessWidget {
   }
 }
 
+/// Responsive font size for the particle "Hi, I'm Samuel" headline. Unlike
+/// [SectionIntro]'s plain [Text] headlines, `ParticleText` samples its shape
+/// from a fixed-height offscreen canvas rather than reflowing like normal
+/// text — so at the old fixed 70px size, the headline ran wider than an
+/// iPhone's screen and got sampled straight past the edge of that canvas
+/// instead of wrapping or shrinking to fit.
+double _particleHeadlineSize(double width) {
+  if (width < 400) return 32;
+  if (width < 600) return 40;
+  if (width < 900) return 56;
+  return 70;
+}
+
 /// This section's own take on [SectionIntro]: same eyebrow-and-subhead frame,
 /// but the headline is rendered as interactive particles instead of text.
 class _AboutIntro extends StatelessWidget {
@@ -66,16 +79,18 @@ class _AboutIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 14),
-        const SizedBox(
-          height: 80,
+        SizedBox(
+          height: headlineSize + 12,
           child: FadeAnimationDelayed(
-            delay: Duration(seconds: 1),
-            child: _ParticleHeadline(),
+            delay: const Duration(seconds: 1),
+            child: _ParticleHeadline(fontSize: headlineSize),
           ),
         ),
         const SizedBox(height: 16),
@@ -118,7 +133,9 @@ class _AboutIntro extends StatelessWidget {
 /// rasterizer that has definitely finished starting up, so it can't lose
 /// the same race twice.
 class _ParticleHeadline extends StatefulWidget {
-  const _ParticleHeadline();
+  const _ParticleHeadline({required this.fontSize});
+
+  final double fontSize;
 
   @override
   State<_ParticleHeadline> createState() => _ParticleHeadlineState();
@@ -141,7 +158,7 @@ class _ParticleHeadlineState extends State<_ParticleHeadline> {
       key: ValueKey(_attempt),
       text: "Hi, I'm Samuel",
       config: ParticleConfig(
-        fontSize: 70,
+        fontSize: widget.fontSize,
         textAlign: TextAlign.left,
         particleColor: const Color.fromARGB(255, 255, 255, 255),
         displacedColor: const Color.fromARGB(255, 255, 255, 255),
