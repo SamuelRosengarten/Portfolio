@@ -554,7 +554,7 @@ class _LeatherContent extends StatelessWidget {
         // width screen this half's available width is well under 380px, and
         // a fixed width there would push the carousel past the edge of the
         // screen instead of shrinking to fit it.
-        const ConstrainedBox(
+        ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 380),
           child: SizedBox(width: double.infinity, child: _LeatherCarousel()),
         ),
@@ -755,7 +755,10 @@ class _LeatherCarouselState extends State<_LeatherCarousel> {
                 // the dots look.
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 4,
+                  ),
                   child: _CarouselDot(active: (_page.round() == i)),
                 ),
               ),
@@ -798,7 +801,11 @@ class _CarouselArrow extends StatelessWidget {
           width: 44,
           height: 44,
           child: Center(
-            child: Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.85)),
+            child: Icon(
+              icon,
+              size: 20,
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
           ),
         ),
       ),
