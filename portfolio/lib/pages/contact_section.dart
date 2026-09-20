@@ -9,8 +9,9 @@ class ContactSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SectionShell(
-      background: kDarkBg,
+    final dark = paletteOf(context).dark;
+    return SectionShell(
+      background: paletteOf(context).bg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -20,10 +21,10 @@ class ContactSection extends StatelessWidget {
             subhead:
                 'Open to internships, collaborations, or a conversation about '
                 'something you are building.',
-            dark: true,
+            dark: dark,
           ),
-          SizedBox(height: 32),
-          Expanded(child: Center(child: _ContactGrid())),
+          const SizedBox(height: 32),
+          const Expanded(child: Center(child: _ContactGrid())),
         ],
       ),
     );
@@ -95,6 +96,7 @@ class _ContactCardState extends State<_ContactCard> {
   // flips (rather than snapping instantly).
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
@@ -102,11 +104,9 @@ class _ContactCardState extends State<_ContactCard> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: _hovering ? 0.08 : 0.05),
+          color: palette.surface(_hovering ? 0.08 : 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: _hovering ? 0.2 : 0.1),
-          ),
+          border: Border.all(color: palette.surface(_hovering ? 0.2 : 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class _ContactCardState extends State<_ContactCard> {
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: Colors.white,
+                color: palette.ink,
               ),
             ),
           ],

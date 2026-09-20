@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/palette.dart';
+import '../theme/theme_controller.dart';
+
 const double kSiteHeaderHeight = 48;
 
 /// Below this width the header switches from the centered row of nav links
@@ -31,29 +34,35 @@ class SiteHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mobile = MediaQuery.sizeOf(context).width < kMobileNavBreakpoint;
+    final palette = paletteOf(context);
 
     // BackdropFilter blurs whatever is *behind* this widget (the scrolling
-    // page content), which combined with the translucent white container
-    // below is what gives the header its frosted-glass look as content
-    // scrolls underneath it. ClipRect is required because BackdropFilter
-    // blurs its entire layer, including past this widget's own bounds —
-    // without it the blur would bleed outside the header.
+    // page content), which combined with the translucent container below is
+    // what gives the header its frosted-glass look as content scrolls
+    // underneath it — white glass in light mode, dark glass in dark mode.
+    // ClipRect is required because BackdropFilter blurs its entire layer,
+    // including past this widget's own bounds — without it the blur would
+    // bleed outside the header.
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           height: kSiteHeaderHeight,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.7),
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.black.withValues(alpha: 0.08),
-                width: 0.5,
-              ),
-            ),
+            color: palette.dark
+                ? Colors.black.withValues(alpha: 0.55)
+                : Colors.white.withValues(alpha: 0.7),
+            border: Border(bottom: BorderSide(color: palette.surface(0.08), width: 0.5)),
           ),
-          alignment: mobile ? Alignment.centerLeft : Alignment.center,
-          child: mobile ? const _MenuButton() : _DesktopNav(onSelected: onSelected),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (!mobile) _DesktopNav(onSelected: onSelected),
+              if (mobile)
+                const Positioned(left: 4, child: _MenuButton()),
+              const Positioned(right: 4, child: _ThemeToggleButton()),
+            ],
+          ),
         ),
       ),
     );
@@ -68,9 +77,33 @@ class _MenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.menu, color: Colors.black87),
+      icon: Icon(Icons.menu, color: paletteOf(context).ink.withValues(alpha: 0.87)),
       tooltip: 'Open navigation',
       onPressed: () => Scaffold.of(context).openDrawer(),
+    );
+  }
+}
+
+/// Sun/moon switch, shown top-right in both the desktop and mobile header —
+/// tapping it flips [ThemeController.isDark] for the whole site. The icon
+/// shown is the mode a tap switches *to*, not the current one (a sun while
+/// dark, a moon while light), which is the more common convention for this
+/// kind of control.
+class _ThemeToggleButton extends StatelessWidget {
+  const _ThemeToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = AppTheme.of(context);
+    final palette = paletteOf(context);
+    return IconButton(
+      icon: Icon(
+        controller.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        color: palette.ink.withValues(alpha: 0.87),
+        size: 20,
+      ),
+      tooltip: controller.isDark ? 'Switch to light mode' : 'Switch to dark mode',
+      onPressed: controller.toggle,
     );
   }
 }
@@ -115,6 +148,7 @@ class _HeaderItemState extends State<_HeaderItem> {
 
   @override
   Widget build(BuildContext context) {
+    final ink = paletteOf(context).ink;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
@@ -129,7 +163,7 @@ class _HeaderItemState extends State<_HeaderItem> {
               fontSize: 13,
               letterSpacing: -0.1,
               fontWeight: FontWeight.w400,
-              color: Colors.black.withValues(alpha: _hovering ? 0.9 : 0.65),
+              color: ink.withValues(alpha: _hovering ? 0.9 : 0.65),
             ),
             child: Text(widget.label),
           ),
@@ -152,8 +186,9 @@ class NavDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: palette.dark ? kDarkPanelBg : Colors.white,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +202,7 @@ class NavDrawer extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.4,
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: palette.ink.withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -180,6 +215,7 @@ class NavDrawer extends StatelessWidget {
                     fontSize: 19,
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.2,
+                    color: palette.ink,
                   ),
                 ),
                 onTap: () {

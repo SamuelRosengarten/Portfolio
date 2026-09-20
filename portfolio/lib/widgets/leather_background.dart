@@ -17,7 +17,12 @@ import 'package:google_fonts/google_fonts.dart';
 /// pointer-trailing glow) so all three backdrops read as one family, each
 /// in its own palette.
 class LeatherBackground extends StatefulWidget {
-  const LeatherBackground({super.key});
+  const LeatherBackground({super.key, required this.dark});
+
+  /// Picks between the dark-hide look this was designed around and a light,
+  /// vegetable-tanned take on the same seams/embers for the site's light
+  /// mode — see [_LeatherPalette].
+  final bool dark;
 
   @override
   State<LeatherBackground> createState() => _LeatherBackgroundState();
@@ -136,8 +141,13 @@ class _LeatherBackgroundState extends State<LeatherBackground>
               child: RepaintBoundary(
                 child: ValueListenableBuilder<_Field>(
                   valueListenable: _field,
-                  builder: (context, field, _) =>
-                      CustomPaint(painter: _HideFieldPainter(field, _grain)),
+                  builder: (context, field, _) => CustomPaint(
+                    painter: _HideFieldPainter(
+                      field,
+                      _grain,
+                      _LeatherPalette.of(widget.dark),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -146,8 +156,10 @@ class _LeatherBackgroundState extends State<LeatherBackground>
                 child: RepaintBoundary(
                   child: ValueListenableBuilder<_Field>(
                     valueListenable: _field,
-                    builder: (context, field, _) =>
-                        _LabelLayer(field: field),
+                    builder: (context, field, _) => _LabelLayer(
+                      field: field,
+                      palette: _LeatherPalette.of(widget.dark),
+                    ),
                   ),
                 ),
               ),
@@ -255,7 +267,9 @@ const List<_Ember> _embers = [
   ),
 ];
 
-const LinearGradient _hideGradient = LinearGradient(
+/// Dark-hide leather. [_hideGradientLight] is the same shape lifted into a
+/// light, vegetable-tanned hide for light mode.
+const LinearGradient _hideGradientDark = LinearGradient(
   begin: Alignment(-0.6, -1),
   end: Alignment(0.6, 1),
   colors: [
@@ -263,6 +277,18 @@ const LinearGradient _hideGradient = LinearGradient(
     Color(0xFF3A2010),
     Color(0xFF24120A),
     Color(0xFF1C0E07),
+  ],
+  stops: [0, 0.4, 0.7, 1],
+);
+
+const LinearGradient _hideGradientLight = LinearGradient(
+  begin: Alignment(-0.6, -1),
+  end: Alignment(0.6, 1),
+  colors: [
+    Color(0xFFE9D4B2),
+    Color(0xFFDFC494),
+    Color(0xFFD4B37F),
+    Color(0xFFC9A56E),
   ],
   stops: [0, 0.4, 0.7, 1],
 );
@@ -311,7 +337,74 @@ const List<_StitchSeam> _seams = [
   ),
 ];
 
-const Color _kStitchThread = Color(0xFFE7C27A);
+/// Everything about the hide, embers, stitching and label text that
+/// differs between the site's light and dark modes, picked once per paint
+/// via [of].
+@immutable
+class _LeatherPalette {
+  const _LeatherPalette({
+    required this.hideGradient,
+    required this.emberBlendMode,
+    required this.emberOpacityScale,
+    required this.stitchThread,
+    required this.spotlightBlendMode,
+    required this.spotlightColor,
+    required this.vignetteShadow,
+    required this.vignetteClear,
+    required this.labelScript,
+    required this.labelMono,
+  });
+
+  final LinearGradient hideGradient;
+
+  /// Dark mode screens the embers over near-black hide, which is how they
+  /// read as glowing light. That doesn't work on a light hide — screening
+  /// bright colour over pale tan just washes it toward white — so light
+  /// mode paints them normally instead, at a lower opacity so they read as
+  /// warm colour blooms rather than solid discs (the same trade [
+  /// GoldenGateBackground]'s orbs make).
+  final BlendMode emberBlendMode;
+  final double emberOpacityScale;
+
+  final Color stitchThread;
+
+  final BlendMode spotlightBlendMode;
+  final Color spotlightColor;
+
+  final Color vignetteShadow;
+  final Color vignetteClear;
+
+  final Color labelScript;
+  final Color labelMono;
+
+  static _LeatherPalette get _dark => const _LeatherPalette(
+    hideGradient: _hideGradientDark,
+    emberBlendMode: BlendMode.screen,
+    emberOpacityScale: 1,
+    stitchThread: Color(0xFFE7C27A),
+    spotlightBlendMode: BlendMode.screen,
+    spotlightColor: _kEmberGold,
+    vignetteShadow: Color(0x991A0D06),
+    vignetteClear: Color(0x001A0D06),
+    labelScript: Color(0xB3F1E2C9), // rgba(241,226,201,0.7)
+    labelMono: Color(0x99E8B98A), // rgba(232,185,138,0.6)
+  );
+
+  static _LeatherPalette get _light => const _LeatherPalette(
+    hideGradient: _hideGradientLight,
+    emberBlendMode: BlendMode.srcOver,
+    emberOpacityScale: 0.55,
+    stitchThread: Color(0xFF6B4322),
+    spotlightBlendMode: BlendMode.srcOver,
+    spotlightColor: Color(0xFFB8791E),
+    vignetteShadow: Color(0x33241206),
+    vignetteClear: Color(0x00241206),
+    labelScript: Color(0xB3573A20), // dark brown ink, script weight
+    labelMono: Color(0x996B4423),
+  );
+
+  static _LeatherPalette of(bool dark) => dark ? _dark : _light;
+}
 
 /// A point a given fraction of the way along a multi-segment polyline —
 /// this is what makes the "needle-pull" glow in [_HideFieldPainter._paintSeam]
@@ -354,15 +447,19 @@ Offset _pointAtFraction(List<Offset> points, double t) {
 // ---------------------------------------------------------------------------
 
 class _HideFieldPainter extends CustomPainter {
-  _HideFieldPainter(this.field, this.grain);
+  _HideFieldPainter(this.field, this.grain, this.palette);
 
   final _Field field;
   final ui.Image? grain;
+  final _LeatherPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    canvas.drawRect(rect, Paint()..shader = _hideGradient.createShader(rect));
+    canvas.drawRect(
+      rect,
+      Paint()..shader = palette.hideGradient.createShader(rect),
+    );
 
     for (final ember in _embers) {
       _paintEmber(canvas, size, ember);
@@ -408,9 +505,10 @@ class _HideFieldPainter extends CustomPainter {
           field.pointer.dy * ember.parallax * 180,
         );
 
+    final scaledOpacity = ember.opacity * palette.emberOpacityScale;
     final stops = [
-      ember.colors[0].withValues(alpha: ember.opacity),
-      ember.colors[1].withValues(alpha: ember.opacity * 0.7),
+      ember.colors[0].withValues(alpha: scaledOpacity),
+      ember.colors[1].withValues(alpha: scaledOpacity * 0.7),
       ember.colors[1].withValues(alpha: 0),
     ];
 
@@ -418,7 +516,7 @@ class _HideFieldPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..blendMode = BlendMode.screen
+        ..blendMode = palette.emberBlendMode
         ..shader = RadialGradient(colors: stops, stops: const [0, 0.55, 1])
             .createShader(Rect.fromCircle(center: center, radius: radius))
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, ember.size * 0.12),
@@ -431,7 +529,7 @@ class _HideFieldPainter extends CustomPainter {
         .toList();
 
     final paint = Paint()
-      ..color = _kStitchThread.withValues(alpha: 0.35)
+      ..color = palette.stitchThread.withValues(alpha: 0.35)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
@@ -471,7 +569,7 @@ class _HideFieldPainter extends CustomPainter {
       pulse,
       3.4,
       Paint()
-        ..color = _kStitchThread.withValues(alpha: 0.9 * fade)
+        ..color = palette.stitchThread.withValues(alpha: 0.9 * fade)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5),
     );
   }
@@ -490,19 +588,19 @@ class _HideFieldPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..blendMode = BlendMode.screen
+        ..blendMode = palette.spotlightBlendMode
         ..shader = RadialGradient(
           colors: [
-            _kEmberGold.withValues(alpha: 0.12),
-            _kEmberGold.withValues(alpha: 0),
+            palette.spotlightColor.withValues(alpha: 0.12),
+            palette.spotlightColor.withValues(alpha: 0),
           ],
         ).createShader(Rect.fromCircle(center: center, radius: radius)),
     );
   }
 
   void _paintVignettes(Canvas canvas, Size size) {
-    const shadow = Color(0x991A0D06);
-    const clear = Color(0x001A0D06);
+    final shadow = palette.vignetteShadow;
+    final clear = palette.vignetteClear;
     final third = size.height / 3;
     if (third <= 0) return;
 
@@ -510,7 +608,7 @@ class _HideFieldPainter extends CustomPainter {
     canvas.drawRect(
       top,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [shadow, clear],
@@ -521,7 +619,7 @@ class _HideFieldPainter extends CustomPainter {
     canvas.drawRect(
       bottom,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [shadow, clear],
@@ -533,7 +631,8 @@ class _HideFieldPainter extends CustomPainter {
   bool shouldRepaint(covariant _HideFieldPainter oldDelegate) =>
       oldDelegate.field.time != field.time ||
       oldDelegate.field.pointer != field.pointer ||
-      oldDelegate.grain != grain;
+      oldDelegate.grain != grain ||
+      oldDelegate.palette != palette;
 }
 
 // ---------------------------------------------------------------------------
@@ -617,13 +716,11 @@ const List<_Label> _labels = [
   _Label(text: 'oil, then wax', x: 30, y: 96, delay: 1.9, duration: 24, strength: 0.02),
 ];
 
-const Color _kLabelScript = Color(0xB3F1E2C9); // rgba(241,226,201,0.7)
-const Color _kLabelMono = Color(0x99E8B98A); // rgba(232,185,138,0.6)
-
 class _LabelLayer extends StatelessWidget {
-  const _LabelLayer({required this.field});
+  const _LabelLayer({required this.field, required this.palette});
 
   final _Field field;
+  final _LeatherPalette palette;
 
   @override
   Widget build(BuildContext context) {
@@ -648,12 +745,16 @@ class _LabelLayer extends StatelessWidget {
     final style = label.mono
         ? GoogleFonts.jetBrainsMono(
             fontSize: 11,
-            color: _kLabelMono.withValues(alpha: _kLabelMono.a * opacity),
+            color: palette.labelMono.withValues(
+              alpha: palette.labelMono.a * opacity,
+            ),
           )
         : GoogleFonts.caveat(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: _kLabelScript.withValues(alpha: _kLabelScript.a * opacity),
+            color: palette.labelScript.withValues(
+              alpha: palette.labelScript.a * opacity,
+            ),
           );
 
     return Positioned(

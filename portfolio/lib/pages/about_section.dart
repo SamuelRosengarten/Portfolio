@@ -20,17 +20,20 @@ class AboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The animated backdrop paints the section, so the shell stays transparent
-    // on top of it and the copy switches to the site's dark treatment.
-    // SectionShell pins the whole section to exactly one screen height, so on
-    // a short/cropped window the intro plus the marquee's three rows may not
-    // fit. mainAxisAlignment.center (rather than an Expanded spacer) lets the
-    // block sit centered when there's room to spare, and LayoutBuilder +
-    // SingleChildScrollView let it scroll instead of overflowing when there
-    // isn't — a flex spacer can't do that, since Expanded needs a bounded
-    // height and a scroll view can't offer one.
-    return const GoldenGateBackground(
-      child: SectionShell(background: Colors.transparent, child: _AboutBody()),
+    // The animated backdrop paints the section, so the shell stays
+    // transparent on top of it. SectionShell pins the whole section to
+    // exactly one screen height, so on a short/cropped window the intro plus
+    // the marquee's three rows may not fit. mainAxisAlignment.center (rather
+    // than an Expanded spacer) lets the block sit centered when there's room
+    // to spare, and LayoutBuilder + SingleChildScrollView let it scroll
+    // instead of overflowing when there isn't — a flex spacer can't do that,
+    // since Expanded needs a bounded height and a scroll view can't offer one.
+    return GoldenGateBackground(
+      dark: paletteOf(context).dark,
+      child: const SectionShell(
+        background: Colors.transparent,
+        child: _AboutBody(),
+      ),
     );
   }
 }
@@ -80,6 +83,7 @@ class _AboutIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width);
+    final ink = paletteOf(context).ink;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +107,7 @@ class _AboutIntro extends StatelessWidget {
               fontSize: 17,
               height: 1.6,
               letterSpacing: -0.2,
-              color: Colors.white.withValues(alpha: 0.75),
+              color: ink.withValues(alpha: 0.75),
             ),
           ),
         ),
@@ -154,14 +158,20 @@ class _ParticleHeadlineState extends State<_ParticleHeadline> {
 
   @override
   Widget build(BuildContext context) {
+    // Solid ink, not the translucent `palette.ink` used elsewhere — the
+    // particle sampler needs a fully opaque source image to read a clean
+    // shape from.
+    final particleColor = paletteOf(context).dark
+        ? const Color.fromARGB(255, 255, 255, 255)
+        : const Color.fromARGB(255, 40, 28, 20);
     return ParticleText(
       key: ValueKey(_attempt),
       text: "Hi, I'm Samuel",
       config: ParticleConfig(
         fontSize: widget.fontSize,
         textAlign: TextAlign.left,
-        particleColor: const Color.fromARGB(255, 255, 255, 255),
-        displacedColor: const Color.fromARGB(255, 255, 255, 255),
+        particleColor: particleColor,
+        displacedColor: particleColor,
         drawBackground: false,
         mouseRadius: 80,
         repelForce: 0.5,
@@ -205,15 +215,16 @@ class _LanguagePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 820),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.035),
+          color: palette.surface(0.035),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: palette.surface(0.08)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -402,6 +413,7 @@ class _LanguageChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -409,13 +421,10 @@ class _LanguageChip extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.07),
-            Colors.white.withValues(alpha: 0.03),
-          ],
+          colors: [palette.surface(0.07), palette.surface(0.03)],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: palette.surface(0.1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.18),
@@ -438,7 +447,7 @@ class _LanguageChip extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.1,
-                color: Colors.white.withValues(alpha: 0.88),
+                color: palette.ink.withValues(alpha: 0.88),
               ),
             ),
           ),

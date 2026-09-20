@@ -9,8 +9,9 @@ class ProjectSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SectionShell(
-      background: kDarkBg,
+    final dark = paletteOf(context).dark;
+    return SectionShell(
+      background: paletteOf(context).bg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -21,10 +22,10 @@ class ProjectSection extends StatelessWidget {
                 'My first real project is still on the bench. The shape is '
                 'there, the details are not — so here is the placeholder it '
                 'deserves until it earns a screenshot.',
-            dark: true,
+            dark: dark,
           ),
-          SizedBox(height: 24),
-          Expanded(child: _ProjectShowcase()),
+          const SizedBox(height: 24),
+          const Expanded(child: _ProjectShowcase()),
         ],
       ),
     );
@@ -42,6 +43,7 @@ class _ProjectShowcase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,12 +52,14 @@ class _ProjectShowcase extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF1C1C1E), Color(0xFF2C2C2E)],
+                colors: palette.dark
+                    ? const [Color(0xFF1C1C1E), Color(0xFF2C2C2E)]
+                    : const [Color(0xFFF0F0F3), Color(0xFFE4E4E9)],
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              border: Border.all(color: palette.surface(0.08)),
             ),
             // FittedBox + scaleDown is the same overflow safety net used in
             // site_header.dart: the Expanded box above can be squeezed down
@@ -71,7 +75,7 @@ class _ProjectShowcase extends StatelessWidget {
                     Icon(
                       Icons.construction_outlined,
                       size: 40,
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: palette.ink.withValues(alpha: 0.35),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -79,7 +83,7 @@ class _ProjectShowcase extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.45),
+                        color: palette.ink.withValues(alpha: 0.45),
                       ),
                     ),
                   ],
@@ -95,7 +99,7 @@ class _ProjectShowcase extends StatelessWidget {
             fontSize: 24,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.4,
-            color: Colors.white,
+            color: palette.ink,
           ),
         ),
         const SizedBox(height: 10),
@@ -108,10 +112,14 @@ class _ProjectShowcase extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        const Wrap(
+        Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: [_Tag('Flutter'), _Tag('Dart'), _Tag('In progress')],
+          children: [
+            _Tag('Flutter', palette: palette),
+            _Tag('Dart', palette: palette),
+            _Tag('In progress', palette: palette),
+          ],
         ),
       ],
     );
@@ -119,25 +127,26 @@ class _ProjectShowcase extends StatelessWidget {
 }
 
 class _Tag extends StatelessWidget {
-  const _Tag(this.label);
+  const _Tag(this.label, {required this.palette});
 
   final String label;
+  final AppPalette palette;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: palette.surface(0.08),
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: palette.surface(0.12)),
       ),
       child: Text(
         label,
         style: GoogleFonts.inter(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: Colors.white.withValues(alpha: 0.8),
+          color: palette.ink.withValues(alpha: 0.8),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:portfolio/pages/home.dart';
+import 'package:portfolio/theme/theme_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,25 +9,48 @@ void main() {
 /// The app's single entry point: a `MaterialApp` wrapping [Home], which is
 /// where the actual page (header + scrolling sections) lives.
 ///
-/// Note: the `theme` below is Flutter's default starter-project theme and
-/// is mostly vestigial — every section paints itself with an explicit
-/// colour from `lib/theme/palette.dart` (kLightBg, kDarkBg, kBlue, ...)
-/// rather than pulling colours from this `ColorScheme`. The one exception
-/// is `Home`'s outer gradient, which does read `Theme.of(context).colorScheme`
-/// — but since every section is opaque and covers the full screen height,
-/// that gradient is never actually visible. Safe to change or remove.
-class MyApp extends StatelessWidget {
+/// [_controller] is the single source of truth for light vs. dark mode —
+/// every section reads it through `AppTheme.of(context)` /
+/// `lib/theme/palette.dart`'s `paletteOf(context)` rather than pulling
+/// colours from `MaterialApp`'s own `ColorScheme`, which stays mostly
+/// vestigial (only `ThemeData.brightness` below is real; it just keeps
+/// default Material widgets like the mobile nav `Drawer` in step with the
+/// site's own toggle).
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final _controller = ThemeController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return AppTheme(
+      controller: _controller,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Samuel Rosengarten',
+          theme: ThemeData(
+            brightness: _controller.isDark ? Brightness.dark : Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
+              brightness: _controller.isDark ? Brightness.dark : Brightness.light,
+            ),
+          ),
+          home: const Home(),
+        ),
       ),
-      home: const Home(),
     );
   }
 }

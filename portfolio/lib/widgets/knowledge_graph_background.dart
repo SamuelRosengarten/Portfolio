@@ -18,7 +18,12 @@ import 'package:google_fonts/google_fonts.dart';
 /// handwritten chalk phrases. Sizes itself to fill its parent and honours
 /// the platform's reduced-motion setting by holding the first frame still.
 class KnowledgeGraphBackground extends StatefulWidget {
-  const KnowledgeGraphBackground({super.key});
+  const KnowledgeGraphBackground({super.key, required this.dark});
+
+  /// Picks between the near-black "blackboard" this was designed around and
+  /// a light "whiteboard" take for the site's light mode — see
+  /// [_GraphPalette].
+  final bool dark;
 
   @override
   State<KnowledgeGraphBackground> createState() =>
@@ -163,8 +168,13 @@ class _KnowledgeGraphBackgroundState extends State<KnowledgeGraphBackground>
               child: RepaintBoundary(
                 child: ValueListenableBuilder<_Field>(
                   valueListenable: _field,
-                  builder: (context, field, _) =>
-                      CustomPaint(painter: _GraphPainter(field, _dust)),
+                  builder: (context, field, _) => CustomPaint(
+                    painter: _GraphPainter(
+                      field,
+                      _dust,
+                      _GraphPalette.of(widget.dark),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -178,7 +188,10 @@ class _KnowledgeGraphBackgroundState extends State<KnowledgeGraphBackground>
                 child: RepaintBoundary(
                   child: ValueListenableBuilder<_Field>(
                     valueListenable: _field,
-                    builder: (context, field, _) => _ChalkLayer(field: field),
+                    builder: (context, field, _) => _ChalkLayer(
+                      field: field,
+                      palette: _GraphPalette.of(widget.dark),
+                    ),
                   ),
                 ),
               ),
@@ -279,8 +292,9 @@ const List<_Edge> _edges = [
 ];
 
 /// The ink field's own dark gradient — same family as the section's navy,
-/// pushed out into a few more stops for depth.
-const LinearGradient _boardGradient = LinearGradient(
+/// pushed out into a few more stops for depth. [_boardGradientLight] is the
+/// same shape lifted into a pale "whiteboard" for light mode.
+const LinearGradient _boardGradientDark = LinearGradient(
   begin: Alignment(-0.6, -1),
   end: Alignment(0.6, 1),
   colors: [
@@ -292,11 +306,88 @@ const LinearGradient _boardGradient = LinearGradient(
   stops: [0, 0.4, 0.7, 1],
 );
 
+const LinearGradient _boardGradientLight = LinearGradient(
+  begin: Alignment(-0.6, -1),
+  end: Alignment(0.6, 1),
+  colors: [
+    Color(0xFFFBFBFD),
+    Color(0xFFF2F4F8),
+    Color(0xFFEDF0F5),
+    Color(0xFFE7EBF2),
+  ],
+  stops: [0, 0.4, 0.7, 1],
+);
+
+/// Everything about the graph, spotlight and chalk text that differs
+/// between the site's light and dark modes, picked once per paint via [of].
+@immutable
+class _GraphPalette {
+  const _GraphPalette({
+    required this.boardGradient,
+    required this.edgeColor,
+    required this.sparkColor,
+    required this.spotlightBlendMode,
+    required this.spotlightColor,
+    required this.vignetteShadow,
+    required this.vignetteClear,
+    required this.chalkScript,
+    required this.chalkMono,
+  });
+
+  final LinearGradient boardGradient;
+  final Color edgeColor;
+
+  /// [_kNodeSpark] is a stand-in "this node is a flash of light, not a
+  /// coloured idea" marker in the node table below — white reads as that on
+  /// a dark board, but would vanish on a light one, so this is what it
+  /// actually gets painted as.
+  final Color sparkColor;
+
+  final BlendMode spotlightBlendMode;
+  final Color spotlightColor;
+
+  final Color vignetteShadow;
+  final Color vignetteClear;
+
+  final Color chalkScript;
+  final Color chalkMono;
+
+  static _GraphPalette get _dark => _GraphPalette(
+    boardGradient: _boardGradientDark,
+    edgeColor: _kNodeBlue.withValues(alpha: 0.16),
+    sparkColor: _kNodeSpark,
+    spotlightBlendMode: BlendMode.screen,
+    spotlightColor: _kNodeCyan,
+    vignetteShadow: const Color(0x99060810),
+    vignetteClear: const Color(0x00060810),
+    chalkScript: const Color(0xB3E7EEF7), // rgba(231,238,247,0.7)
+    chalkMono: const Color(0x99A8C7E6), // rgba(168,199,230,0.6)
+  );
+
+  static _GraphPalette get _light => _GraphPalette(
+    boardGradient: _boardGradientLight,
+    edgeColor: _kNodeBlue.withValues(alpha: 0.28),
+    sparkColor: const Color(0xFF1D2733),
+    // Screening a light colour over an already-light board barely shows up,
+    // so light mode paints the spotlight normally instead, like a soft
+    // highlighter wash rather than a glowing beam.
+    spotlightBlendMode: BlendMode.srcOver,
+    spotlightColor: _kNodeBlue,
+    vignetteShadow: const Color(0x2A141B26),
+    vignetteClear: const Color(0x00141B26),
+    chalkScript: const Color(0xB32E3D4E),
+    chalkMono: const Color(0x99425A73),
+  );
+
+  static _GraphPalette of(bool dark) => dark ? _dark : _light;
+}
+
 class _GraphPainter extends CustomPainter {
-  _GraphPainter(this.field, this.dust);
+  _GraphPainter(this.field, this.dust, this.palette);
 
   final _Field field;
   final ui.Image? dust;
+  final _GraphPalette palette;
 
   // Canvas painting is just stacking shapes on top of each other in order,
   // like layers in an image editor — so the order below matters: background
@@ -306,7 +397,10 @@ class _GraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    canvas.drawRect(rect, Paint()..shader = _boardGradient.createShader(rect));
+    canvas.drawRect(
+      rect,
+      Paint()..shader = palette.boardGradient.createShader(rect),
+    );
 
     // Each node's current (animated) position is computed once up front and
     // shared between the edge-drawing and node-drawing passes below, so an
@@ -365,13 +459,7 @@ class _GraphPainter extends CustomPainter {
     final to = positions[edge.toId];
     if (from == null || to == null) return;
 
-    canvas.drawLine(
-      from,
-      to,
-      Paint()
-        ..color = _kNodeBlue.withValues(alpha: 0.16)
-        ..strokeWidth = 1,
-    );
+    canvas.drawLine(from, to, Paint()..color = palette.edgeColor..strokeWidth = 1);
 
     // A small bright pulse travels the line, as if a signal just fired
     // between the two ideas.
@@ -385,15 +473,22 @@ class _GraphPainter extends CustomPainter {
       pulse,
       3,
       Paint()
-        ..color = _kNodeSpark.withValues(alpha: 0.85 * fade)
+        ..color = palette.sparkColor.withValues(alpha: 0.85 * fade)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
     );
   }
+
+  /// [_kNodeSpark] in the node table is a sentinel for "this one's a flash
+  /// of light, not a coloured idea" — [_GraphPalette.sparkColor] is what
+  /// that sentinel actually paints as in the current mode.
+  Color _fillFor(_Node node) =>
+      node.color == _kNodeSpark ? palette.sparkColor : node.color;
 
   void _paintNode(Canvas canvas, _Node node, Offset center) {
     final pulse = _phase(field.time, 4 + node.id * 0.3, node.id * 0.6);
     final scale = _keyframes(const [1, 1.18, 0.95, 1.08, 1], pulse);
     final glowAlpha = _keyframes(const [0.35, 0.6, 0.3, 0.5, 0.35], pulse);
+    final fill = _fillFor(node);
 
     // Every glow in this file (node halos, the edge pulse, the spotlight)
     // is the same trick: draw a solid, plain circle, then blur it with a
@@ -406,13 +501,13 @@ class _GraphPainter extends CustomPainter {
       center,
       node.radius * scale * 2.6,
       Paint()
-        ..color = node.color.withValues(alpha: glowAlpha * 0.35)
+        ..color = fill.withValues(alpha: glowAlpha * 0.35)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, node.radius),
     );
     canvas.drawCircle(
       center,
       node.radius * scale,
-      Paint()..color = node.color.withValues(alpha: 0.9),
+      Paint()..color = fill.withValues(alpha: 0.9),
     );
   }
 
@@ -428,21 +523,23 @@ class _GraphPainter extends CustomPainter {
     final radius = size.shortestSide * 0.4;
     if (radius <= 0) return;
 
-    // BlendMode.screen is how every "glowing light" effect in this codebase
+    // BlendMode.screen is how every "glowing light" effect in dark mode
     // avoids looking like a flat, opaque smudge painted over the graph: it
     // makes light colours *add* to what's already drawn (like two flashlight
     // beams overlapping) rather than covering it, so the spotlight brightens
-    // the nodes/edges underneath it instead of hiding them.
+    // the nodes/edges underneath it instead of hiding them. Screening a
+    // light colour over an already-light board barely shows up, so light
+    // mode paints normally instead (see [_GraphPalette.spotlightBlendMode]).
     canvas.drawCircle(
       center,
       radius,
       Paint()
-        ..blendMode = BlendMode.screen
+        ..blendMode = palette.spotlightBlendMode
         ..shader =
             RadialGradient(
               colors: [
-                _kNodeCyan.withValues(alpha: 0.10),
-                _kNodeCyan.withValues(alpha: 0),
+                palette.spotlightColor.withValues(alpha: 0.10),
+                palette.spotlightColor.withValues(alpha: 0),
               ],
             ).createShader(
               Rect.fromCircle(center: center, radius: radius),
@@ -451,8 +548,8 @@ class _GraphPainter extends CustomPainter {
   }
 
   void _paintVignettes(Canvas canvas, Size size) {
-    const shadow = Color(0x99060810);
-    const clear = Color(0x00060810);
+    final shadow = palette.vignetteShadow;
+    final clear = palette.vignetteClear;
     final third = size.height / 3;
     if (third <= 0) return;
 
@@ -460,7 +557,7 @@ class _GraphPainter extends CustomPainter {
     canvas.drawRect(
       top,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [shadow, clear],
@@ -471,7 +568,7 @@ class _GraphPainter extends CustomPainter {
     canvas.drawRect(
       bottom,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [shadow, clear],
@@ -483,7 +580,8 @@ class _GraphPainter extends CustomPainter {
   bool shouldRepaint(covariant _GraphPainter oldDelegate) =>
       oldDelegate.field.time != field.time ||
       oldDelegate.field.pointer != field.pointer ||
-      oldDelegate.dust != dust;
+      oldDelegate.dust != dust ||
+      oldDelegate.palette != palette;
 }
 
 // ---------------------------------------------------------------------------
@@ -594,13 +692,11 @@ const List<_ChalkPhrase> _phrases = [
   ),
 ];
 
-const Color _kChalkScript = Color(0xB3E7EEF7); // rgba(231,238,247,0.7)
-const Color _kChalkMono = Color(0x99A8C7E6); // rgba(168,199,230,0.6)
-
 class _ChalkLayer extends StatelessWidget {
-  const _ChalkLayer({required this.field});
+  const _ChalkLayer({required this.field, required this.palette});
 
   final _Field field;
+  final _GraphPalette palette;
 
   @override
   Widget build(BuildContext context) {
@@ -628,11 +724,15 @@ class _ChalkLayer extends StatelessWidget {
         ? GoogleFonts.caveat(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: _kChalkScript.withValues(alpha: _kChalkScript.a * opacity),
+            color: palette.chalkScript.withValues(
+              alpha: palette.chalkScript.a * opacity,
+            ),
           )
         : GoogleFonts.jetBrainsMono(
             fontSize: 11,
-            color: _kChalkMono.withValues(alpha: _kChalkMono.a * opacity),
+            color: palette.chalkMono.withValues(
+              alpha: palette.chalkMono.a * opacity,
+            ),
           );
 
     return Positioned(

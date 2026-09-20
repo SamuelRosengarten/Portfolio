@@ -19,12 +19,18 @@ class GoldenGateBackground extends StatefulWidget {
   const GoldenGateBackground({
     super.key,
     this.animationSpeed = 8,
+    required this.dark,
     required this.child,
   });
 
   /// Base orb drift period in seconds; each orb adds a little to it. The
   /// original exposed this as a 4–20 slider.
   final double animationSpeed;
+
+  /// Picks between the near-black "GoldenGateDark" look this was ported
+  /// from and a warm, golden-hour daylight take on the same orb field for
+  /// the site's light mode — see [_GoldenGatePalette].
+  final bool dark;
 
   final Widget child;
 
@@ -148,6 +154,7 @@ class _GoldenGateBackgroundState extends State<GoldenGateBackground>
                       field: field,
                       grain: _grain,
                       animationSpeed: widget.animationSpeed,
+                      palette: _GoldenGatePalette.of(widget.dark),
                     ),
                   ),
                 ),
@@ -158,7 +165,10 @@ class _GoldenGateBackgroundState extends State<GoldenGateBackground>
                 child: RepaintBoundary(
                   child: ValueListenableBuilder<_Field>(
                     valueListenable: _field,
-                    builder: (context, field, _) => _CodeLayer(field: field),
+                    builder: (context, field, _) => _CodeLayer(
+                      field: field,
+                      palette: _GoldenGatePalette.of(widget.dark),
+                    ),
                   ),
                 ),
               ),
@@ -295,8 +305,10 @@ const List<_Orb> _orbs = <_Orb>[
 ];
 
 /// `linear-gradient(145deg, …)` — near-black with a faint blue cast, so the
-/// screened orbs read as light rather than paint.
-const LinearGradient _baseGradient = LinearGradient(
+/// screened orbs read as light rather than paint. This is the dark-mode sky;
+/// [_baseGradientLight] is the same idea lifted into a warm, golden-hour
+/// daytime sky for light mode.
+const LinearGradient _baseGradientDark = LinearGradient(
   begin: Alignment(-0.57, -1),
   end: Alignment(0.57, 1),
   colors: [
@@ -308,32 +320,134 @@ const LinearGradient _baseGradient = LinearGradient(
   stops: [0, 0.35, 0.65, 1],
 );
 
+const LinearGradient _baseGradientLight = LinearGradient(
+  begin: Alignment(-0.57, -1),
+  end: Alignment(0.57, 1),
+  colors: [
+    Color(0xFFFDF3E4),
+    Color(0xFFF9E9D2),
+    Color(0xFFF4E0C2),
+    Color(0xFFF0D9B8),
+  ],
+  stops: [0, 0.35, 0.65, 1],
+);
+
 /// `saturate(1.6) brightness(0.9)` as a colour matrix, using the Rec. 709
-/// luminance weights CSS filters are defined against.
-const ColorFilter _glassTone = ColorFilter.matrix(<double>[
+/// luminance weights CSS filters are defined against — the dark-mode glass
+/// tone. [_glassToneLight] lifts brightness slightly instead of dimming it,
+/// so the same frosted-glass pass doesn't muddy a light backdrop.
+const ColorFilter _glassToneDark = ColorFilter.matrix(<double>[
   1.3252, -0.3862, -0.0390, 0, 0, //
   -0.1148, 1.0538, -0.0390, 0, 0, //
   -0.1148, -0.3862, 1.4010, 0, 0, //
   0, 0, 0, 1, 0, //
 ]);
 
+const ColorFilter _glassToneLight = ColorFilter.matrix(<double>[
+  1.18, -0.14, -0.02, 0, 6, //
+  -0.05, 1.10, -0.02, 0, 6, //
+  -0.05, -0.14, 1.21, 0, 6, //
+  0, 0, 0, 1, 0, //
+]);
+
 /// The frosted-glass pass: `backdrop-filter: blur(55px) saturate(1.6)
 /// brightness(0.9)` applied to the orb field below it.
-final ui.ImageFilter _glassFilter = ui.ImageFilter.compose(
-  outer: _glassTone,
+final ui.ImageFilter _glassFilterDark = ui.ImageFilter.compose(
+  outer: _glassToneDark,
   inner: ui.ImageFilter.blur(sigmaX: 55, sigmaY: 55),
 );
+
+final ui.ImageFilter _glassFilterLight = ui.ImageFilter.compose(
+  outer: _glassToneLight,
+  inner: ui.ImageFilter.blur(sigmaX: 55, sigmaY: 55),
+);
+
+/// Everything about the orb field and code layer that differs between the
+/// site's light and dark modes, picked once per paint via [of].
+@immutable
+class _GoldenGatePalette {
+  const _GoldenGatePalette({
+    required this.baseGradient,
+    required this.glassFilter,
+    required this.glassPaneTint,
+    required this.orbBlendMode,
+    required this.orbOpacityScale,
+    required this.vignetteShadow,
+    required this.vignetteClear,
+    required this.codeInk,
+    required this.codeKeyword,
+    required this.codeString,
+    required this.codeComment,
+  });
+
+  final LinearGradient baseGradient;
+  final ui.ImageFilter glassFilter;
+
+  /// The dark/light glass pane's own tint, painted over the blurred orb
+  /// field — `rgba(6,8,16,0.35)` in the original dark design.
+  final Color glassPaneTint;
+
+  /// Dark mode screens the orbs over near-black, which is how they read as
+  /// glowing light. That trick doesn't work on a light backdrop — screening
+  /// bright colour over a pale sky just washes it toward white — so light
+  /// mode paints them normally instead, at a lower opacity so they read as
+  /// soft colour blooms rather than solid discs.
+  final BlendMode orbBlendMode;
+  final double orbOpacityScale;
+
+  final Color vignetteShadow;
+  final Color vignetteClear;
+
+  final Color codeInk;
+  final Color codeKeyword;
+  final Color codeString;
+  final Color codeComment;
+
+  static _GoldenGatePalette get dark =>
+      _GoldenGatePalette(
+        baseGradient: _baseGradientDark,
+        glassFilter: _glassFilterDark,
+        glassPaneTint: const Color(0x59060810),
+        orbBlendMode: BlendMode.screen,
+        orbOpacityScale: 1,
+        vignetteShadow: const Color(0x8004060C),
+        vignetteClear: const Color(0x0004060C),
+        codeInk: const Color(0xA6D2B99B), // rgba(210,185,155,0.65)
+        codeKeyword: const Color(0xFFFF6D3A),
+        codeString: const Color(0xFFFFB830),
+        codeComment: const Color(0xB2B4823C), // rgba(180,130,60,0.7)
+      );
+
+  static _GoldenGatePalette get light =>
+      _GoldenGatePalette(
+        baseGradient: _baseGradientLight,
+        glassFilter: _glassFilterLight,
+        glassPaneTint: const Color(0x14FFFFFF),
+        orbBlendMode: BlendMode.srcOver,
+        orbOpacityScale: 0.55,
+        vignetteShadow: const Color(0x33241608),
+        vignetteClear: const Color(0x00241608),
+        codeInk: const Color(0xFF5B4632),
+        codeKeyword: const Color(0xFFC24418),
+        codeString: const Color(0xFF9C6B00),
+        codeComment: const Color(0xB2805A28),
+      );
+
+  static _GoldenGatePalette of(bool dark) => dark ? _GoldenGatePalette.dark : _GoldenGatePalette.light;
+}
 
 class _OrbFieldPainter extends CustomPainter {
   _OrbFieldPainter({
     required this.field,
     required this.grain,
     required this.animationSpeed,
+    required this.palette,
   });
 
   final _Field field;
   final ui.Image? grain;
   final double animationSpeed;
+  final _GoldenGatePalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -343,15 +457,17 @@ class _OrbFieldPainter extends CustomPainter {
     // stacked CSS filters. The layer bleeds past the section so the blur does
     // not fade out along its own edges; the ClipRect trims the overhang.
     final bleed = rect.inflate(180);
-    canvas.saveLayer(bleed, Paint()..imageFilter = _glassFilter);
-    canvas.drawRect(bleed, Paint()..shader = _baseGradient.createShader(rect));
+    canvas.saveLayer(bleed, Paint()..imageFilter = palette.glassFilter);
+    canvas.drawRect(
+      bleed,
+      Paint()..shader = palette.baseGradient.createShader(rect),
+    );
     for (final orb in _orbs) {
       _paintOrb(canvas, size, orb);
     }
     canvas.restore();
 
-    // rgba(6,8,16,0.35) — the dark glass pane's own tint.
-    canvas.drawRect(rect, Paint()..color = const Color(0x59060810));
+    canvas.drawRect(rect, Paint()..color = palette.glassPaneTint);
 
     final grainImage = grain;
     if (grainImage != null) {
@@ -395,20 +511,23 @@ class _OrbFieldPainter extends CustomPainter {
           field.pointer.dy * orb.parallaxStrength * 180,
         );
 
+    final scaledOpacity = orb.opacity * palette.orbOpacityScale;
     final stops = <Color>[
-      orb.colors[0].withValues(alpha: orb.opacity),
-      orb.colors[1].withValues(alpha: orb.opacity),
+      orb.colors[0].withValues(alpha: scaledOpacity),
+      orb.colors[1].withValues(alpha: scaledOpacity),
       orb.colors[1].withValues(alpha: 0),
     ];
 
     // A CSS circle gradient runs to the farthest corner of its square box, so
     // the visible disc only reaches ~71% along the ramp. `mix-blend-mode:
-    // screen` is what keeps the orbs glowing where they overlap.
+    // screen` is what keeps the orbs glowing where they overlap in dark
+    // mode; light mode paints them normally instead (see
+    // [_GoldenGatePalette.orbBlendMode]).
     canvas.drawCircle(
       center,
       radius,
       Paint()
-        ..blendMode = BlendMode.screen
+        ..blendMode = palette.orbBlendMode
         ..shader = RadialGradient(colors: stops, stops: [0, orb.midStop, 1])
             .createShader(
               Rect.fromCircle(center: center, radius: radius * math.sqrt2),
@@ -417,11 +536,11 @@ class _OrbFieldPainter extends CustomPainter {
     );
   }
 
-  /// The two `rgba(4,6,12,0.5) → transparent` vignettes over the top and bottom
-  /// thirds, which seat the section against whatever sits above and below it.
+  /// The two shadow-to-transparent vignettes over the top and bottom thirds,
+  /// which seat the section against whatever sits above and below it.
   void _paintVignettes(Canvas canvas, Size size) {
-    const shadow = Color(0x8004060C);
-    const clear = Color(0x0004060C);
+    final shadow = palette.vignetteShadow;
+    final clear = palette.vignetteClear;
     final third = size.height / 3;
     if (third <= 0) return;
 
@@ -429,7 +548,7 @@ class _OrbFieldPainter extends CustomPainter {
     canvas.drawRect(
       top,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [shadow, clear],
@@ -440,7 +559,7 @@ class _OrbFieldPainter extends CustomPainter {
     canvas.drawRect(
       bottom,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [shadow, clear],
@@ -453,7 +572,8 @@ class _OrbFieldPainter extends CustomPainter {
       oldDelegate.field.time != field.time ||
       oldDelegate.field.pointer != field.pointer ||
       oldDelegate.grain != grain ||
-      oldDelegate.animationSpeed != animationSpeed;
+      oldDelegate.animationSpeed != animationSpeed ||
+      oldDelegate.palette != palette;
 }
 
 // ---------------------------------------------------------------------------
@@ -587,11 +707,6 @@ const List<_Snippet> _snippets = <_Snippet>[
   ),
 ];
 
-const Color _kCodeInk = Color(0xA6D2B99B); // rgba(210,185,155,0.65)
-const Color _kCodeKeyword = Color(0xFFFF6D3A);
-const Color _kCodeString = Color(0xFFFFB830);
-const Color _kCodeComment = Color(0xB2B4823C); // rgba(180,130,60,0.7)
-
 const List<String> _keywords = [
   'const',
   'function',
@@ -617,9 +732,10 @@ final RegExp _tokenPattern = RegExp(
 );
 
 class _CodeLayer extends StatelessWidget {
-  const _CodeLayer({required this.field});
+  const _CodeLayer({required this.field, required this.palette});
 
   final _Field field;
+  final _GoldenGatePalette palette;
 
   @override
   Widget build(BuildContext context) {
@@ -680,7 +796,7 @@ class _CodeLayer extends StatelessWidget {
         spans.add(
           TextSpan(
             text: code.substring(cursor, match.start),
-            style: TextStyle(color: fade(_kCodeInk)),
+            style: TextStyle(color: fade(palette.codeInk)),
           ),
         );
       }
@@ -689,7 +805,9 @@ class _CodeLayer extends StatelessWidget {
       spans.add(
         TextSpan(
           text: token,
-          style: TextStyle(color: fade(quoted ? _kCodeString : _kCodeKeyword)),
+          style: TextStyle(
+            color: fade(quoted ? palette.codeString : palette.codeKeyword),
+          ),
         ),
       );
       cursor = match.end;
@@ -698,7 +816,7 @@ class _CodeLayer extends StatelessWidget {
       spans.add(
         TextSpan(
           text: code.substring(cursor),
-          style: TextStyle(color: fade(_kCodeInk)),
+          style: TextStyle(color: fade(palette.codeInk)),
         ),
       );
     }
@@ -706,7 +824,7 @@ class _CodeLayer extends StatelessWidget {
       spans.add(
         TextSpan(
           text: comment,
-          style: TextStyle(color: fade(_kCodeComment)),
+          style: TextStyle(color: fade(palette.codeComment)),
         ),
       );
     }

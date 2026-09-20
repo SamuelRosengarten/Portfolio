@@ -81,6 +81,7 @@ class _DiagonalSplit extends StatelessWidget {
         // diagonal cut at the top or bottom of the section.
         final leftSafeWidth = width * _bottomFraction;
         final rightSafeLeft = width * _topFraction;
+        final dark = paletteOf(context).dark;
 
         return Stack(
           fit: StackFit.expand,
@@ -90,13 +91,13 @@ class _DiagonalSplit extends StatelessWidget {
             // to the diagonal wedge and painted on top of it — so the
             // "ink" half is really just "leather with an ink-coloured
             // shape covering part of it", not two separate halves.
-            const LeatherBackground(),
+            LeatherBackground(dark: dark),
             ClipPath(
               clipper: const _DiagonalClipper(
                 topFraction: _topFraction,
                 bottomFraction: _bottomFraction,
               ),
-              child: const KnowledgeGraphBackground(),
+              child: KnowledgeGraphBackground(dark: dark),
             ),
             CustomPaint(
               painter: _SeamPainter(
@@ -117,7 +118,7 @@ class _DiagonalSplit extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 3,
-                    color: Colors.white.withValues(alpha: 0.45),
+                    color: paletteOf(context).ink.withValues(alpha: 0.45),
                   ),
                 ),
               ),
@@ -166,13 +167,14 @@ class _StackedSplit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = paletteOf(context).dark;
     return Column(
       children: [
         Expanded(
           child: Stack(
             fit: StackFit.expand,
             children: [
-              const KnowledgeGraphBackground(),
+              KnowledgeGraphBackground(dark: dark),
               const _HoverPop(
                 padding: EdgeInsets.symmetric(horizontal: 28, vertical: 24),
                 child: _InkContent(headlineSize: 44),
@@ -193,7 +195,7 @@ class _StackedSplit extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              const LeatherBackground(),
+              LeatherBackground(dark: dark),
               const _HoverPop(
                 padding: EdgeInsets.symmetric(horizontal: 28, vertical: 24),
                 child: _LeatherContent(headlineSize: 44),
@@ -377,6 +379,7 @@ class _InkContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -398,7 +401,7 @@ class _InkContent extends StatelessWidget {
             fontWeight: FontWeight.w700,
             letterSpacing: -2,
             height: 1,
-            color: Colors.white,
+            color: palette.ink,
           ),
         ),
         const SizedBox(height: 18),
@@ -411,7 +414,7 @@ class _InkContent extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               height: 1.6,
-              color: Colors.white.withValues(alpha: 0.68),
+              color: palette.ink.withValues(alpha: 0.68),
             ),
           ),
         ),
@@ -421,9 +424,9 @@ class _InkContent extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
+              color: palette.surface(0.06),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: palette.surface(0.1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,7 +446,7 @@ class _InkContent extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: palette.ink,
                         ),
                       ),
                     ),
@@ -458,7 +461,7 @@ class _InkContent extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     height: 1.55,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: palette.ink.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -494,6 +497,7 @@ class _LeatherContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = paletteOf(context).ink;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -522,7 +526,7 @@ class _LeatherContent extends StatelessWidget {
             fontWeight: FontWeight.w700,
             letterSpacing: -2,
             height: 1,
-            color: Colors.white,
+            color: ink,
           ),
         ),
         const SizedBox(height: 18),
@@ -535,7 +539,7 @@ class _LeatherContent extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               height: 1.6,
-              color: Colors.white.withValues(alpha: 0.72),
+              color: ink.withValues(alpha: 0.72),
             ),
           ),
         ),
@@ -609,7 +613,7 @@ class _AvatarPlaceholder extends StatelessWidget {
           child: Icon(
             Icons.person_outline,
             size: 22,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: paletteOf(context).ink.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -826,7 +830,7 @@ class _CarouselDot extends StatelessWidget {
       width: active ? 16 : 6,
       height: 6,
       decoration: BoxDecoration(
-        color: active ? _kLeatherTan : Colors.white.withValues(alpha: 0.25),
+        color: active ? _kLeatherTan : paletteOf(context).surface(0.25),
         borderRadius: BorderRadius.circular(100),
       ),
     );
@@ -847,6 +851,7 @@ class _ProductCardState extends State<_ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
@@ -858,7 +863,7 @@ class _ProductCardState extends State<_ProductCard> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: _hovering ? 0.1 : 0.06),
+            color: palette.surface(_hovering ? 0.1 : 0.06),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: _kLeatherTan.withValues(alpha: _hovering ? 0.5 : 0.25),
@@ -880,7 +885,7 @@ class _ProductCardState extends State<_ProductCard> {
                 Icon(
                   Icons.image_outlined,
                   size: 24,
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: palette.ink.withValues(alpha: 0.4),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -888,7 +893,7 @@ class _ProductCardState extends State<_ProductCard> {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: palette.ink.withValues(alpha: 0.85),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -896,7 +901,7 @@ class _ProductCardState extends State<_ProductCard> {
                   'Add photo',
                   style: GoogleFonts.inter(
                     fontSize: 10,
-                    color: Colors.white.withValues(alpha: 0.35),
+                    color: palette.ink.withValues(alpha: 0.35),
                   ),
                 ),
               ],
