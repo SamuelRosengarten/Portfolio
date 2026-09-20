@@ -550,7 +550,14 @@ class _LeatherContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        SizedBox(width: 380, child: const _LeatherCarousel()),
+        // ConstrainedBox rather than a fixed-width SizedBox: on an iPhone-
+        // width screen this half's available width is well under 380px, and
+        // a fixed width there would push the carousel past the edge of the
+        // screen instead of shrinking to fit it.
+        const ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 380),
+          child: SizedBox(width: double.infinity, child: _LeatherCarousel()),
+        ),
       ],
     );
   }
@@ -742,7 +749,15 @@ class _LeatherCarouselState extends State<_LeatherCarousel> {
             for (var i = 0; i < _products.length; i++)
               GestureDetector(
                 onTap: () => _goToPage(i),
-                child: _CarouselDot(active: (_page.round() == i)),
+                // The dot itself is only 6px tall — far too small to hit
+                // reliably with a finger. behavior: opaque plus this padding
+                // gives each one a ~36px tap zone without changing how big
+                // the dots look.
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 4),
+                  child: _CarouselDot(active: (_page.round() == i)),
+                ),
               ),
           ],
         ),
@@ -776,9 +791,15 @@ class _CarouselArrow extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.85)),
+        // 44x44 keeps the tap target at Apple/Google's recommended minimum
+        // for a finger — the icon itself stays the same visual size, just
+        // centred in a roomier hit area than the old 4px padding gave it.
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.85)),
+          ),
         ),
       ),
     );
