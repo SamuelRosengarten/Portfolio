@@ -13,33 +13,6 @@ The `gh-pages` branch only contains the compiled web build (`index.html`, `main.
    ```bash
    flutter build web --base-href "/Portfolio/"
    ```
-
-3. **Switch to the `gh-pages` branch:**
-   ```bash
-   git checkout gh-pages
-   ```
-
-4. **Clear out the old build files** (everything except `.git`), then copy the new build to the repo root:
-   ```bash
-   find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
-   cp -r build/web/* .
-   cp build/web/.nojekyll . 2>/dev/null || touch .nojekyll
-   ```
-
-5. **Commit and push:**
-   ```bash
-   git add -A
-   git commit -m "Deploy latest build"
-   git push origin gh-pages
-   ```
-
-6. **Switch back to your working branch:**
-   ```bash
-   git checkout main
-   ```
-
-7. Give GitHub Pages a minute or two to redeploy, then refresh the site.
-
 ## Notes
 
 - `index.html` and the other build files must live at the **root** of the `gh-pages` branch — not in a subfolder — or GitHub Pages won't find them.
