@@ -7,7 +7,7 @@ import '../theme/palette.dart';
 /// larger on desktop. `MediaQuery`'s width (not a `LayoutBuilder` constraint)
 /// is what's passed in here — see [SectionIntro.build] below.
 double _headlineSize(double width) {
-  if (width < 600) return 34;
+  if (width < 600) return 30;
   if (width < 900) return 44;
   return 56;
 }
@@ -62,7 +62,7 @@ class SectionShell extends StatelessWidget {
       color: background,
       constraints: BoxConstraints(minHeight: size.height, maxHeight: size.height),
       padding: EdgeInsets.symmetric(
-        vertical: size.width < 600 ? 80 : 120,
+        vertical: size.width < 600 ? 48 : 120,
         horizontal: 24,
       ),
       // LayoutBuilder + SingleChildScrollView is a safety net, not the
@@ -129,14 +129,14 @@ class SectionIntro extends StatelessWidget {
             color: dark ? Colors.white : kInk,
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: width < 600 ? 14 : 20),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
             subhead,
             style: GoogleFonts.inter(
-              fontSize: width < 600 ? 17 : 20,
-              height: 1.55,
+              fontSize: width < 600 ? 15 : 20,
+              height: width < 600 ? 1.45 : 1.55,
               letterSpacing: -0.2,
               color: kGray,
             ),

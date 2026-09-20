@@ -28,6 +28,29 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(tester.takeException(), isNull, reason: '$label section on mobile');
+
+      // Each section should fit the screen on its own on a phone-size
+      // device, not just "not crash" — a section whose content needs an
+      // internal scroll to see all of it (e.g. Contact's cards running off
+      // the bottom) defeats the point of "one section, one screen".
+      // SectionShell's scroll fallback exists for genuinely short/unusual
+      // viewports, not as something normal phone-size content routinely
+      // leans on. Hobbies is the one deliberate exception: each half packs
+      // in a bio block *and* either a tutoring card or a product carousel,
+      // and shrinking that further would mean cutting visible content
+      // (tags, card copy) rather than just tightening whitespace — so it
+      // gets a generous but bounded allowance instead of zero.
+      final allowedScroll = label == 'Hobbies' ? 260.0 : 0.0;
+      for (final state in tester.stateList<ScrollableState>(find.byType(Scrollable))) {
+        // The leather carousel's own horizontal paging isn't this kind of
+        // overflow — it's supposed to scroll sideways.
+        if (state.widget.axis == Axis.horizontal) continue;
+        expect(
+          state.position.maxScrollExtent,
+          lessThanOrEqualTo(allowedScroll),
+          reason: '$label section needed more internal scroll than expected on a phone-size screen',
+        );
+      }
     }
 
     // About's particle headline schedules a one-shot 600ms retry timer (see

@@ -176,8 +176,8 @@ class _StackedSplit extends StatelessWidget {
             children: [
               KnowledgeGraphBackground(dark: dark),
               const _HoverPop(
-                padding: EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-                child: _InkContent(headlineSize: 44),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: _InkContent(headlineSize: 30),
               ),
             ],
           ),
@@ -202,8 +202,8 @@ class _StackedSplit extends StatelessWidget {
             children: [
               LeatherBackground(dark: dark),
               const _HoverPop(
-                padding: EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-                child: _LeatherContent(headlineSize: 44),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: _LeatherContent(headlineSize: 30),
               ),
             ],
           ),
@@ -398,7 +398,7 @@ class _InkContent extends StatelessWidget {
             color: kBlue,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           'Teach.',
           style: GoogleFonts.inter(
@@ -409,7 +409,7 @@ class _InkContent extends StatelessWidget {
             color: palette.ink,
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Text(
@@ -417,17 +417,17 @@ class _InkContent extends StatelessWidget {
             'computer science — the kind of place where an idea gets to '
             'be interesting instead of just correct.',
             style: GoogleFonts.inter(
-              fontSize: 16,
-              height: 1.6,
+              fontSize: 14,
+              height: 1.4,
               color: palette.ink.withValues(alpha: 0.68),
             ),
           ),
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 16),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: palette.surface(0.06),
               borderRadius: BorderRadius.circular(18),
@@ -441,15 +441,15 @@ class _InkContent extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.groups_outlined,
-                      size: 20,
+                      size: 18,
                       color: kBlue.withValues(alpha: 0.9),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Tutoring at school, right now',
                         style: GoogleFonts.inter(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: palette.ink,
                         ),
@@ -457,19 +457,19 @@ class _InkContent extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
                   'Running peer tutoring sessions for computer science '
                   'students — the same instinct as the goal above, just '
                   'at a smaller scale: sit with someone until the '
                   'concept clicks.',
                   style: GoogleFonts.inter(
-                    fontSize: 14,
-                    height: 1.55,
+                    fontSize: 13,
+                    height: 1.4,
                     color: palette.ink.withValues(alpha: 0.6),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 const Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -523,7 +523,7 @@ class _LeatherContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Text(
           'Craft.',
           style: GoogleFonts.inter(
@@ -534,7 +534,7 @@ class _LeatherContent extends StatelessWidget {
             color: ink,
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Text(
@@ -542,13 +542,13 @@ class _LeatherContent extends StatelessWidget {
             'get better with every one. The saddle stitch taught me more '
             'about patience than any deadline ever did.',
             style: GoogleFonts.inter(
-              fontSize: 16,
-              height: 1.6,
+              fontSize: 14,
+              height: 1.4,
               color: ink.withValues(alpha: 0.72),
             ),
           ),
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 16),
         Text(
           'PAST PIECES',
           style: GoogleFonts.inter(
@@ -558,7 +558,7 @@ class _LeatherContent extends StatelessWidget {
             color: _kLeatherTan,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         // ConstrainedBox rather than a fixed-width SizedBox: on an iPhone-
         // width screen this half's available width is well under 380px, and
         // a fixed width there would push the carousel past the edge of the
@@ -709,7 +709,7 @@ class _LeatherCarouselState extends State<_LeatherCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 140,
+          height: 112,
           child: Stack(
             alignment: Alignment.center,
             children: [

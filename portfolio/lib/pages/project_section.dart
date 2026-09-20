@@ -31,7 +31,7 @@ class ProjectSection extends StatelessWidget {
                 'deserves until it earns a screenshot.',
             dark: dark,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: MediaQuery.sizeOf(context).width < 600 ? 16 : 24),
           const _ProjectShowcase(),
         ],
       ),
@@ -50,12 +50,16 @@ class _ProjectShowcase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    final mobile = MediaQuery.sizeOf(context).width < 600;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          aspectRatio: 16 / 9,
+          // Flatter on phones: this box is pure decoration (an empty
+          // placeholder), not content, so it's the cheapest place to give
+          // height back on a screen short enough to need it.
+          aspectRatio: mobile ? 21 / 9 : 16 / 9,
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -100,26 +104,30 @@ class _ProjectShowcase extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: mobile ? 14 : 20),
         Text(
           'Untitled project',
           style: GoogleFonts.inter(
-            fontSize: 24,
+            fontSize: mobile ? 20 : 24,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.4,
             color: palette.ink,
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: mobile ? 6 : 10),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
             'A place to put the thing I am building right now. Swap this copy '
             'for the real story once there is a screenshot worth showing.',
-            style: GoogleFonts.inter(fontSize: 16, height: 1.6, color: kGray),
+            style: GoogleFonts.inter(
+              fontSize: mobile ? 14 : 16,
+              height: mobile ? 1.4 : 1.6,
+              color: kGray,
+            ),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: mobile ? 14 : 20),
         Wrap(
           spacing: 10,
           runSpacing: 10,

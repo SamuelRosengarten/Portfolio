@@ -47,7 +47,13 @@ class _ContactGrid extends StatelessWidget {
       spacing: 16,
       columnsFor: (width) {
         if (width >= 760) return 4;
-        if (width >= 480) return 2;
+        // Was 480 — but `width` here is the grid's own available width
+        // (roughly device width minus the section's side padding), which
+        // for almost every phone lands well under that, forcing four cards
+        // into one tall stacked column and pushing the section's total
+        // height well past what a phone screen can show without scrolling.
+        // Two cards fit comfortably side by side much narrower than 480.
+        if (width >= 300) return 2;
         return 1;
       },
       children: const [
