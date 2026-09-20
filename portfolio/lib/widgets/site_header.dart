@@ -54,13 +54,24 @@ class SiteHeader extends StatelessWidget {
                 : Colors.white.withValues(alpha: 0.7),
             border: Border(bottom: BorderSide(color: palette.surface(0.08), width: 0.5)),
           ),
-          child: Stack(
-            alignment: Alignment.center,
+          // A Row with a fixed-width leading/trailing slot rather than a
+          // Stack of loosely-positioned children: the centered nav row's
+          // FittedBox has no inherent width limit of its own, so as a
+          // Stack's non-positioned child it was free to lay out under (and,
+          // near the mobile breakpoint, actually overlap) the toggle button
+          // in the corner. Giving the toggle its own reserved slot in a Row
+          // means the nav row's Expanded center slot can never claim that
+          // space in the first place.
+          child: Row(
             children: [
-              if (!mobile) _DesktopNav(onSelected: onSelected),
-              if (mobile)
-                const Positioned(left: 4, child: _MenuButton()),
-              const Positioned(right: 4, child: _ThemeToggleButton()),
+              SizedBox(
+                width: 48,
+                child: mobile ? const _MenuButton() : null,
+              ),
+              Expanded(
+                child: mobile ? const SizedBox.shrink() : _DesktopNav(onSelected: onSelected),
+              ),
+              const SizedBox(width: 48, child: _ThemeToggleButton()),
             ],
           ),
         ),

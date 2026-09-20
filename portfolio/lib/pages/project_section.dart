@@ -13,6 +13,13 @@ class ProjectSection extends StatelessWidget {
     return SectionShell(
       background: paletteOf(context).bg,
       child: Column(
+        // .min, not the default .max: this sizes to its own content instead
+        // of trying to fill the fixed section height, which would demand an
+        // *infinite* height on a phone screen short enough to need
+        // SectionShell's scroll fallback. SectionShell's own Center already
+        // takes care of centering this block vertically when there's room
+        // to spare (e.g. on a tall desktop window).
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionIntro(
@@ -25,19 +32,18 @@ class ProjectSection extends StatelessWidget {
             dark: dark,
           ),
           const SizedBox(height: 24),
-          const Expanded(child: _ProjectShowcase()),
+          const _ProjectShowcase(),
         ],
       ),
     );
   }
 }
 
-/// The placeholder image is wrapped in Expanded rather than sized from an
-/// aspect ratio, so it shrinks to whatever room is left under the copy
-/// instead of pushing the section past one screen on wide, short viewports.
-/// (Recall from section_layout.dart that [SectionShell] fixes the section to
-/// exactly one screen's height — this is how content living inside that
-/// fixed height stays flexible instead of overflowing.)
+/// The placeholder image is a fixed aspect ratio rather than an Expanded box
+/// filling whatever room is left: this whole showcase can end up inside
+/// SectionShell's scrollable fallback on a short phone screen, and Expanded
+/// needs a bounded height to fill — which a scroll view's child never has —
+/// so it would crash there instead of gracefully sizing itself.
 class _ProjectShowcase extends StatelessWidget {
   const _ProjectShowcase();
 
@@ -45,9 +51,11 @@ class _ProjectShowcase extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
+        AspectRatio(
+          aspectRatio: 16 / 9,
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -62,10 +70,10 @@ class _ProjectShowcase extends StatelessWidget {
               border: Border.all(color: palette.surface(0.08)),
             ),
             // FittedBox + scaleDown is the same overflow safety net used in
-            // site_header.dart: the Expanded box above can be squeezed down
-            // by a tall SectionIntro on a short/narrow viewport, and without
-            // this, the icon-and-caption column's fixed intrinsic height
-            // would overflow it instead of gracefully shrinking to fit.
+            // site_header.dart: the icon-and-caption column's fixed
+            // intrinsic height could exceed the box's height on a very
+            // short/narrow viewport, and without this that would overflow
+            // it instead of gracefully shrinking to fit.
             child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,

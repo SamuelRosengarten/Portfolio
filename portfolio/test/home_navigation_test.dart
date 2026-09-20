@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:portfolio/pages/hobbies_section.dart';
 import 'package:portfolio/pages/home.dart';
 import 'package:portfolio/pages/project_section.dart';
+import 'package:portfolio/theme/theme_controller.dart';
 import 'package:portfolio/widgets/site_header.dart';
 
 void main() {
@@ -11,7 +12,15 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const MaterialApp(home: Home()));
+    // Home reads the site's light/dark palette via AppTheme.of(context), so
+    // it needs that ancestor even in isolation — main.dart provides it for
+    // real; here it stands in for that.
+    await tester.pumpWidget(
+      AppTheme(
+        controller: ThemeController(),
+        child: const MaterialApp(home: Home()),
+      ),
+    );
     // The about section's animated backdrop never stops ticking, so settle by
     // pumping past each scroll animation instead of waiting for an idle frame.
     await tester.pump();

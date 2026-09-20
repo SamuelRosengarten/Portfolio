@@ -13,6 +13,13 @@ class ContactSection extends StatelessWidget {
     return SectionShell(
       background: paletteOf(context).bg,
       child: Column(
+        // .min, not the default .max: this sizes to its own content instead
+        // of trying to fill the fixed section height, which would demand an
+        // *infinite* height on a phone screen short enough to need
+        // SectionShell's scroll fallback. SectionShell's own Center already
+        // takes care of centering this block vertically when there's room
+        // to spare (e.g. on a tall desktop window).
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionIntro(
@@ -24,7 +31,7 @@ class ContactSection extends StatelessWidget {
             dark: dark,
           ),
           const SizedBox(height: 32),
-          const Expanded(child: Center(child: _ContactGrid())),
+          const _ContactGrid(),
         ],
       ),
     );

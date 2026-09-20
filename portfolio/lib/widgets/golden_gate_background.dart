@@ -320,22 +320,31 @@ const LinearGradient _baseGradientDark = LinearGradient(
   stops: [0, 0.35, 0.65, 1],
 );
 
+// Close to the site's own kLightBg/kPanelBg family — a near-white, barely
+// warm sheet of paper — rather than the deep tan first tried here. That
+// earlier version was closer in *spirit* to a golden-hour sky, but several
+// saturated, differently-hued orbs (see below) alpha-blended on top of it
+// muddied fast: screen blend (dark mode) only ever adds light, so
+// overlapping hues glow; ordinary blending on a light backdrop instead mixes
+// them toward brown. Starting from something this close to white, and
+// leaning on much lower orb opacity, keeps the overlaps reading as soft
+// colour instead of mud.
 const LinearGradient _baseGradientLight = LinearGradient(
   begin: Alignment(-0.57, -1),
   end: Alignment(0.57, 1),
   colors: [
-    Color(0xFFFDF3E4),
-    Color(0xFFF9E9D2),
-    Color(0xFFF4E0C2),
-    Color(0xFFF0D9B8),
+    Color(0xFFFDFCFA),
+    Color(0xFFF8F5EF),
+    Color(0xFFF6F1E8),
+    Color(0xFFF3EDE1),
   ],
   stops: [0, 0.35, 0.65, 1],
 );
 
 /// `saturate(1.6) brightness(0.9)` as a colour matrix, using the Rec. 709
 /// luminance weights CSS filters are defined against — the dark-mode glass
-/// tone. [_glassToneLight] lifts brightness slightly instead of dimming it,
-/// so the same frosted-glass pass doesn't muddy a light backdrop.
+/// tone. [_glassToneLight] is a much gentler touch: the light backdrop is
+/// already close to white, so it only needs a light lift, not a strong push.
 const ColorFilter _glassToneDark = ColorFilter.matrix(<double>[
   1.3252, -0.3862, -0.0390, 0, 0, //
   -0.1148, 1.0538, -0.0390, 0, 0, //
@@ -344,9 +353,9 @@ const ColorFilter _glassToneDark = ColorFilter.matrix(<double>[
 ]);
 
 const ColorFilter _glassToneLight = ColorFilter.matrix(<double>[
-  1.18, -0.14, -0.02, 0, 6, //
-  -0.05, 1.10, -0.02, 0, 6, //
-  -0.05, -0.14, 1.21, 0, 6, //
+  1.06, -0.03, -0.01, 0, 2, //
+  -0.01, 1.05, -0.01, 0, 2, //
+  -0.01, -0.03, 1.08, 0, 2, //
   0, 0, 0, 1, 0, //
 ]);
 
@@ -422,11 +431,16 @@ class _GoldenGatePalette {
       _GoldenGatePalette(
         baseGradient: _baseGradientLight,
         glassFilter: _glassFilterLight,
-        glassPaneTint: const Color(0x14FFFFFF),
+        glassPaneTint: const Color(0x0AFFFFFF),
         orbBlendMode: BlendMode.srcOver,
-        orbOpacityScale: 0.55,
-        vignetteShadow: const Color(0x33241608),
-        vignetteClear: const Color(0x00241608),
+        // Much lower than dark mode's 1: on a light backdrop these
+        // differently-hued orbs are ordinary alpha-blended paint, not
+        // screened light, so keeping them at dark mode's strength read as
+        // muddy smears rather than a soft glow. This keeps them present as
+        // a quiet accent without fighting the copy for attention.
+        orbOpacityScale: 0.22,
+        vignetteShadow: const Color(0x1F1A1208),
+        vignetteClear: const Color(0x001A1208),
         codeInk: const Color(0xFF5B4632),
         codeKeyword: const Color(0xFFC24418),
         codeString: const Color(0xFF9C6B00),

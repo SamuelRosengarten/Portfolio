@@ -182,9 +182,14 @@ class _StackedSplit extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
+        Container(
           height: 18,
           width: double.infinity,
+          // The dashed seam only paints the dashes themselves, leaving gaps
+          // between them — without an opaque fill behind it, those gaps show
+          // whatever happens to be painted further back in the tree instead
+          // of reading as a deliberate divider.
+          color: paletteOf(context).bg,
           child: CustomPaint(
             painter: _HorizontalSeamPainter(
               color: _kLeatherThread.withValues(alpha: 0.55),

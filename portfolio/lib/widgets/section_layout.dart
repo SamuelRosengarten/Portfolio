@@ -31,14 +31,31 @@ class SectionShell extends StatelessWidget {
     super.key,
     required this.background,
     required this.child,
+    this.scrollable = true,
   });
 
   final Color background;
   final Widget child;
 
+  /// False for a section whose own `child` already handles overflow itself
+  /// (About's body does its own LayoutBuilder + SingleChildScrollView) —
+  /// wrapping an already-scrollable child in a second one gives the inner
+  /// one an unbounded height to work with, which crashes rather than scrolls.
+  final bool scrollable;
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+
+    final content = Center(
+      child: ConstrainedBox(
+        // Caps the readable content width even on very wide monitors —
+        // without this, body text on a 2000px-wide window would stretch
+        // into unreadably long lines.
+        constraints: const BoxConstraints(maxWidth: 980),
+        child: child,
+      ),
+    );
 
     return Container(
       width: double.infinity,
@@ -48,15 +65,24 @@ class SectionShell extends StatelessWidget {
         vertical: size.width < 600 ? 80 : 120,
         horizontal: 24,
       ),
-      child: Center(
-        child: ConstrainedBox(
-          // Caps the readable content width even on very wide monitors —
-          // without this, body text on a 2000px-wide window would stretch
-          // into unreadably long lines.
-          constraints: const BoxConstraints(maxWidth: 980),
-          child: child,
-        ),
-      ),
+      // LayoutBuilder + SingleChildScrollView is a safety net, not the
+      // common case: most sections' content fits the fixed height above
+      // exactly, in which case ConstrainedBox's minHeight makes this behave
+      // just like a plain Center. But a phone-height screen combined with
+      // this section's own padding can leave less room than its content
+      // actually needs (e.g. Contact's four cards stacked in one column on
+      // a narrow phone) — without this, that content would overflow instead
+      // of scrolling.
+      child: !scrollable
+          ? content
+          : LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: content,
+                ),
+              ),
+            ),
     );
   }
 }

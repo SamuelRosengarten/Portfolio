@@ -32,6 +32,7 @@ class AboutSection extends StatelessWidget {
       dark: paletteOf(context).dark,
       child: const SectionShell(
         background: Colors.transparent,
+        scrollable: false,
         child: _AboutBody(),
       ),
     );

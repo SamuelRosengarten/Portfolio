@@ -393,12 +393,16 @@ class _LeatherPalette {
   static _LeatherPalette get _light => const _LeatherPalette(
     hideGradient: _hideGradientLight,
     emberBlendMode: BlendMode.srcOver,
-    emberOpacityScale: 0.55,
+    // Kept low for the same reason as the Golden Gate orbs: screen blend
+    // (dark mode) only ever adds light, so several overlapping warm hues
+    // stay glowing; ordinary blending on a light hide instead mixes them
+    // toward mud at anything close to dark mode's strength.
+    emberOpacityScale: 0.22,
     stitchThread: Color(0xFF6B4322),
     spotlightBlendMode: BlendMode.srcOver,
     spotlightColor: Color(0xFFB8791E),
-    vignetteShadow: Color(0x33241206),
-    vignetteClear: Color(0x00241206),
+    vignetteShadow: Color(0x22201005),
+    vignetteClear: Color(0x00201005),
     labelScript: Color(0xB3573A20), // dark brown ink, script weight
     labelMono: Color(0x996B4423),
   );
