@@ -19,6 +19,15 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <!--
+    Without this, mobile Safari renders the page at a default desktop-width
+    viewport (~980px) and scales it down to fit the screen, so Flutter's
+    MediaQuery width never reflects the phone's real logical width — the
+    site's phone-size nav drawer breakpoint (< 600px) then never trips on a
+    real device, even though it works fine when a desktop browser window is
+    resized narrow.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
