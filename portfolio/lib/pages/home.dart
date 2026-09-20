@@ -62,6 +62,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      drawer: NavDrawer(onSelected: _scrollTo),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

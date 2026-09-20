@@ -5,6 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 const double kSiteHeaderHeight = 48;
 
+/// Below this width the header switches from the centered row of nav links
+/// to a single menu button that opens [NavDrawer].
+const double kMobileNavBreakpoint = 600;
+
 /// The sections of the page, in the order they are stacked — the header renders
 /// one item per value and [Home] anchors one section to each.
 enum SiteSection {
@@ -26,7 +30,7 @@ class SiteHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 600;
+    final mobile = MediaQuery.sizeOf(context).width < kMobileNavBreakpoint;
 
     // BackdropFilter blurs whatever is *behind* this widget (the scrolling
     // page content), which combined with the translucent white container
@@ -48,36 +52,58 @@ class SiteHeader extends StatelessWidget {
               ),
             ),
           ),
-          // FittedBox + scaleDown is a safety net for very narrow screens:
-          // if the row of nav items would overflow the header's width, this
-          // shrinks the whole row down to fit instead of clipping it or
-          // throwing an overflow error. `compact` above already shrinks the
-          // text/padding at <600px, so this rarely has to do much.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (final section in SiteSection.values)
-                  _HeaderItem(
-                    section.label,
-                    compact: compact,
-                    onTap: () => onSelected(section),
-                  ),
-              ],
-            ),
-          ),
+          alignment: mobile ? Alignment.centerLeft : Alignment.center,
+          child: mobile ? const _MenuButton() : _DesktopNav(onSelected: onSelected),
         ),
       ),
     );
   }
 }
 
+/// Hamburger button shown top-left on phone-sized screens. Opens the
+/// [NavDrawer] registered on the enclosing [Scaffold] (see `Home`).
+class _MenuButton extends StatelessWidget {
+  const _MenuButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.menu, color: Colors.black87),
+      tooltip: 'Open navigation',
+      onPressed: () => Scaffold.of(context).openDrawer(),
+    );
+  }
+}
+
+/// The row of nav links shown across the top of the header on wider screens.
+class _DesktopNav extends StatelessWidget {
+  const _DesktopNav({required this.onSelected});
+
+  final ValueChanged<SiteSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    // FittedBox + scaleDown is a safety net for narrow-ish screens just
+    // above the mobile breakpoint: if the row of nav items would overflow
+    // the header's width, this shrinks the whole row down to fit instead of
+    // clipping it or throwing an overflow error.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final section in SiteSection.values)
+            _HeaderItem(section.label, onTap: () => onSelected(section)),
+        ],
+      ),
+    );
+  }
+}
+
 class _HeaderItem extends StatefulWidget {
-  const _HeaderItem(this.label, {required this.compact, required this.onTap});
+  const _HeaderItem(this.label, {required this.onTap});
 
   final String label;
-  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -96,17 +122,72 @@ class _HeaderItemState extends State<_HeaderItem> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: widget.compact ? 10 : 18),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 120),
             style: GoogleFonts.inter(
-              fontSize: widget.compact ? 12 : 13,
+              fontSize: 13,
               letterSpacing: -0.1,
               fontWeight: FontWeight.w400,
               color: Colors.black.withValues(alpha: _hovering ? 0.9 : 0.65),
             ),
             child: Text(widget.label),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Phone-size nav drawer: the same section names as the desktop header, laid
+/// out as a vertical list. Opened via the hamburger [_MenuButton] and
+/// registered as `Scaffold.drawer` by `Home` so every section is reachable
+/// no matter which one the visitor is currently scrolled to.
+class NavDrawer extends StatelessWidget {
+  const NavDrawer({super.key, required this.onSelected});
+
+  /// Called with the section the visitor tapped; the drawer is already
+  /// closed by the time this fires.
+  final ValueChanged<SiteSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 28),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'MENU',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.4,
+                  color: Colors.black.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            for (final section in SiteSection.values)
+              ListTile(
+                title: Text(
+                  section.label,
+                  style: GoogleFonts.inter(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onSelected(section);
+                },
+              ),
+          ],
         ),
       ),
     );
