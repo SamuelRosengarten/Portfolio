@@ -14,6 +14,7 @@ import '../widgets/golden_gate_background.dart';
 import '../widgets/section_layout.dart';
 
 import 'package:fade_animation_delayed/fade_animation_delayed.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:particle_text/particle_text.dart';
 
 class AboutSection extends StatelessWidget {
@@ -77,6 +78,21 @@ double _particleHeadlineSize(double width) {
   return 70;
 }
 
+/// Measures how wide [text] renders at [fontSize], using the same style
+/// `ParticleText`'s own internal `TextPainter` uses to sample glyphs
+/// (`FontWeight.bold`, the default font family) — see [_AboutIntro.build]
+/// for why this needs to match.
+double _measureParticleHeadlineWidth(String text, double fontSize) {
+  final painter = TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  return painter.width;
+}
+
 /// This section's own take on [SectionIntro]: same eyebrow-and-subhead frame,
 /// but the headline is rendered as interactive particles instead of text.
 class _AboutIntro extends StatelessWidget {
@@ -95,9 +111,25 @@ class _AboutIntro extends StatelessWidget {
         const SizedBox(height: 14),
         SizedBox(
           height: headlineSize + 12,
-          child: FadeAnimationDelayed(
-            delay: const Duration(seconds: 1),
-            child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
+          // ParticleText always centers its sampled glyphs within whatever
+          // width it's given, ignoring its own `textAlign: left` config
+          // (that only affects wrapping alignment, not placement) — left
+          // unconstrained, it fills the whole ~900px content column and the
+          // greeting ends up floating near the middle of the section while
+          // the bio paragraph right below it sits flush left, an obvious
+          // mismatch. Narrowing the box to the greeting's own measured
+          // width (plus a little slack for the particles' hover spread)
+          // makes "centered in the box" and "flush left in the column"
+          // come out the same place.
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: SizedBox(
+              width: _measureParticleHeadlineWidth(s.heroGreeting, headlineSize) + 48,
+              child: FadeAnimationDelayed(
+                delay: const Duration(seconds: 1),
+                child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -207,6 +239,27 @@ const _languages = [
   _Language('HTML5', Brands.html_5),
   _Language('CSS3', Brands.css3),
 ];
+
+/// Kicks off every language logo's SVG fetch up front, instead of leaving
+/// each one to `_LanguageChip`'s own `Brand` (an `SvgPicture.asset`) to
+/// request for the first time whenever it happens to build.
+///
+/// `Brand` isn't a font glyph — every logo is its own `.svg` asset file
+/// fetched over the network the first time it's drawn, and `AboutSection`
+/// (and its marquee) is the very first thing on the page. Left alone, all
+/// eight requests only start once that first frame has already built, so on
+/// anything slower than localhost the marquee is visibly missing logos —
+/// each one popping in on its own as its fetch resolves — right as the
+/// visitor lands on the site. Calling this from `main()`, before `runApp`
+/// even hands control to the widget tree, overlaps those fetches with the
+/// engine's own startup instead. flutter_svg caches by asset (see
+/// `SvgAssetLoader.loadBytes`), so the chips' own `Brand` widgets later hit
+/// this same warm cache rather than re-fetching.
+void precacheLanguageIcons() {
+  for (final language in _languages) {
+    SvgAssetLoader(language.icon, packageName: 'icons_plus').loadBytes(null);
+  }
+}
 
 /// The frosted card that frames the marquee: a small eyebrow label sitting
 /// over the three scrolling rows, echoing the glass-panel language the rest

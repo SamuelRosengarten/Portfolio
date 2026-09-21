@@ -73,6 +73,8 @@ class Strings {
       _fr ? 'Extension VS Code' : 'VS Code Extension';
   String get tagDesignPhase => _fr ? 'Phase de conception' : 'Design phase';
 
+  String get inDevelopment => _fr ? 'En développement' : 'In development';
+
   // Contact ------------------------------------------------------------------
 
   String get contactHeadline => _fr ? 'Discutons.' : "Let's talk.";

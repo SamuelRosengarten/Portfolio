@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:portfolio/i18n/app_language.dart';
+import 'package:portfolio/pages/about_section.dart';
 import 'package:portfolio/pages/home.dart';
 import 'package:portfolio/theme/theme_controller.dart';
 
 void main() {
+  // Needed before precacheLanguageIcons can touch the asset bundle — runApp
+  // below would call this too, but not soon enough for that to help here.
+  WidgetsFlutterBinding.ensureInitialized();
+  // Fired before the widget tree even exists, so these fetches overlap
+  // with the engine's own startup instead of only starting once the first
+  // frame (About's language marquee included) has already built — see
+  // precacheLanguageIcons's own doc comment for why that ordering matters.
+  precacheLanguageIcons();
   runApp(const MyApp());
 }
 

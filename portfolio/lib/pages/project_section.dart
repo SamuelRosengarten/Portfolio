@@ -56,26 +56,51 @@ class _ProjectShowcase extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          // Flatter on phones: gives height back on a screen short enough
-          // to need it. The preview image itself is 16:9 — BoxFit.cover
-          // crops its sides rather than distorting it on the wider 21:9
-          // phone box.
+          // Flatter on phones: this box is pure decoration (an empty
+          // placeholder), not content, so it's the cheapest place to give
+          // height back on a screen short enough to need it.
           aspectRatio: mobile ? 21 / 9 : 16 / 9,
           child: Container(
             width: double.infinity,
-            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: palette.dark
+                    ? const [Color(0xFF1C1C1E), Color(0xFF2C2C2E)]
+                    : const [Color(0xFFF0F0F3), Color(0xFFE4E4E9)],
+              ),
               border: Border.all(color: palette.surface(0.08)),
             ),
-            // A screenshot of the interactive design prototype for Code
-            // Coach's coaching hint + weekly progress panel — the actual
-            // UI this project is designed around, not a generic mockup.
-            child: Image.asset(
-              'assets/images/code_coach_preview.png',
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
+            // FittedBox + scaleDown is the same overflow safety net used in
+            // site_header.dart: the icon-and-caption column's fixed
+            // intrinsic height could exceed the box's height on a very
+            // short/narrow viewport, and without this that would overflow
+            // it instead of gracefully shrinking to fit.
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.construction_outlined,
+                      size: 40,
+                      color: palette.ink.withValues(alpha: 0.35),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      s.inDevelopment,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: palette.ink.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
