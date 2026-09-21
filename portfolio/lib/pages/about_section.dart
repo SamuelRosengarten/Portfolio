@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 // ignore: implementation_imports
 import 'package:icons_plus/src/brand.dart';
 
+import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/golden_gate_background.dart';
 import '../widgets/section_layout.dart';
@@ -85,6 +86,7 @@ class _AboutIntro extends StatelessWidget {
   Widget build(BuildContext context) {
     final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width);
     final ink = paletteOf(context).ink;
+    final s = stringsOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,19 +97,14 @@ class _AboutIntro extends StatelessWidget {
           height: headlineSize + 12,
           child: FadeAnimationDelayed(
             delay: const Duration(seconds: 1),
-            child: _ParticleHeadline(fontSize: headlineSize),
+            child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
           ),
         ),
         const SizedBox(height: 16),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Text(
-            'Computer programming student at Cégep Édouard-Montpetit, looking '
-            'for an internship in March 2027 and a software engineering degree '
-            'after that. Before code it was welding and mechanics — I traded '
-            'the torch and the toolbox for a keyboard, chasing a more stable '
-            'place to build a career, and kept the same insistence on doing '
-            'the work properly.',
+            s.aboutBio,
             style: GoogleFonts.inter(
               fontSize: 17,
               height: 1.6,
@@ -142,9 +139,10 @@ class _AboutIntro extends StatelessWidget {
 /// rasterizer that has definitely finished starting up, so it can't lose
 /// the same race twice.
 class _ParticleHeadline extends StatefulWidget {
-  const _ParticleHeadline({required this.fontSize});
+  const _ParticleHeadline({required this.fontSize, required this.text});
 
   final double fontSize;
+  final String text;
 
   @override
   State<_ParticleHeadline> createState() => _ParticleHeadlineState();
@@ -170,8 +168,12 @@ class _ParticleHeadlineState extends State<_ParticleHeadline> {
         ? const Color.fromARGB(255, 255, 255, 255)
         : const Color.fromARGB(255, 40, 28, 20);
     return ParticleText(
-      key: ValueKey(_attempt),
-      text: "Hi, I'm Samuel",
+      // Keying on the text too (not just _attempt) forces the same
+      // dispose-and-remount-from-scratch path the startup retry above
+      // uses whenever the language toggle changes this headline's text —
+      // ParticleText only ever samples its shape once, on mount.
+      key: ValueKey('$_attempt-${widget.text}'),
+      text: widget.text,
       config: ParticleConfig(
         fontSize: widget.fontSize,
         textAlign: TextAlign.left,
@@ -229,7 +231,7 @@ class _LanguagePanel extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'LANGUAGES & TOOLS',
+              stringsOf(context).languagesAndTools,
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

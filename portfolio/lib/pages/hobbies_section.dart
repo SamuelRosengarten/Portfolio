@@ -4,6 +4,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../i18n/app_language.dart';
+import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/knowledge_graph_background.dart';
 import '../widgets/leather_background.dart';
@@ -89,6 +91,7 @@ class _DiagonalSplit extends StatelessWidget {
         final leftSafeWidth = width * _bottomFraction;
         final rightSafeLeft = width * _topFraction;
         final dark = paletteOf(context).dark;
+        final lang = languageOf(context);
 
         return Stack(
           fit: StackFit.expand,
@@ -98,13 +101,13 @@ class _DiagonalSplit extends StatelessWidget {
             // to the diagonal wedge and painted on top of it — so the
             // "ink" half is really just "leather with an ink-coloured
             // shape covering part of it", not two separate halves.
-            LeatherBackground(dark: dark),
+            LeatherBackground(dark: dark, lang: lang),
             ClipPath(
               clipper: const _DiagonalClipper(
                 topFraction: _topFraction,
                 bottomFraction: _bottomFraction,
               ),
-              child: KnowledgeGraphBackground(dark: dark),
+              child: KnowledgeGraphBackground(dark: dark, lang: lang),
             ),
             CustomPaint(
               painter: _SeamPainter(
@@ -120,7 +123,7 @@ class _DiagonalSplit extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Text(
-                  'BEYOND THE CODE',
+                  stringsOf(context).beyondTheCode,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -175,13 +178,14 @@ class _StackedSplit extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = paletteOf(context).dark;
+    final lang = languageOf(context);
     return Column(
       children: [
         Expanded(
           child: Stack(
             fit: StackFit.expand,
             children: [
-              KnowledgeGraphBackground(dark: dark),
+              KnowledgeGraphBackground(dark: dark, lang: lang),
               const _HoverPop(
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: _InkContent(headlineSize: 30),
@@ -207,7 +211,7 @@ class _StackedSplit extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              LeatherBackground(dark: dark),
+              LeatherBackground(dark: dark, lang: lang),
               const _HoverPop(
                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: _LeatherContent(headlineSize: 30),
@@ -392,12 +396,13 @@ class _InkContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    final s = stringsOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'GOAL',
+          s.goalLabel,
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -407,7 +412,7 @@ class _InkContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Build.',
+          s.buildHeadline,
           style: GoogleFonts.inter(
             fontSize: headlineSize,
             fontWeight: FontWeight.w700,
@@ -420,10 +425,7 @@ class _InkContent extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Text(
-            'After a few years on the shop floor as a welder and mechanic, '
-            'the long-term plan is a software engineering degree — trading '
-            'the torch for a keyboard, and a stage in March 2027 for the '
-            'next step toward it.',
+            s.buildParagraph,
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.4,
@@ -455,7 +457,7 @@ class _InkContent extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Tutoring at school, right now',
+                        s.tutoringTitle,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -467,9 +469,7 @@ class _InkContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Answering questions from fellow programming students at '
-                  'Cégep Édouard-Montpetit, and translating the jargon into '
-                  'language that actually lands for whoever I\'m helping.',
+                  s.tutoringParagraph,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     height: 1.4,
@@ -477,13 +477,13 @@ class _InkContent extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Wrap(
+                Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _Tag('Patience', color: kBlue),
-                    _Tag('Empathy', color: kBlue),
-                    _Tag('Team player', color: kBlue),
+                    _Tag(s.tagPatience, color: kBlue),
+                    _Tag(s.tagEmpathy, color: kBlue),
+                    _Tag(s.tagTeamPlayer, color: kBlue),
                   ],
                 ),
               ],
@@ -509,6 +509,7 @@ class _LeatherContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ink = paletteOf(context).ink;
+    final s = stringsOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -519,7 +520,7 @@ class _LeatherContent extends StatelessWidget {
             const _AvatarPlaceholder(),
             const SizedBox(width: 16),
             Text(
-              'HOBBY',
+              s.hobbyLabel,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -531,7 +532,7 @@ class _LeatherContent extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Craft.',
+          s.craftHeadline,
           style: GoogleFonts.inter(
             fontSize: headlineSize,
             fontWeight: FontWeight.w700,
@@ -544,9 +545,7 @@ class _LeatherContent extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Text(
-            'Cutting, stitching, burnishing — pieces that take hours and '
-            'get better with every one. The saddle stitch taught me more '
-            'about patience than any deadline ever did.',
+            s.craftParagraph,
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.4,
@@ -556,7 +555,7 @@ class _LeatherContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'PAST PIECES',
+          s.pastPiecesLabel,
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -658,19 +657,35 @@ class _DashedCirclePainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-class _LeatherProduct {
-  const _LeatherProduct(this.title);
+enum _ProductKind { cardHolder, bifoldWallet, belt, toteBag, keychain }
 
-  final String title;
+class _LeatherProduct {
+  const _LeatherProduct(this.kind);
+
+  final _ProductKind kind;
 }
 
 const _products = [
-  _LeatherProduct('Card holder'),
-  _LeatherProduct('Bifold wallet'),
-  _LeatherProduct('Belt'),
-  _LeatherProduct('Tote bag'),
-  _LeatherProduct('Keychain'),
+  _LeatherProduct(_ProductKind.cardHolder),
+  _LeatherProduct(_ProductKind.bifoldWallet),
+  _LeatherProduct(_ProductKind.belt),
+  _LeatherProduct(_ProductKind.toteBag),
+  _LeatherProduct(_ProductKind.keychain),
 ];
+
+/// Small, closed data tied one-to-one to [_ProductKind] — lives next to it
+/// as a plain switch rather than in the shared [Strings] class, the same
+/// reasoning as [navLabel] in site_header.dart.
+String _productTitle(AppLanguage lang, _ProductKind kind) {
+  final fr = lang == AppLanguage.fr;
+  return switch (kind) {
+    _ProductKind.cardHolder => fr ? 'Porte-cartes' : 'Card holder',
+    _ProductKind.bifoldWallet => fr ? 'Portefeuille bifold' : 'Bifold wallet',
+    _ProductKind.belt => fr ? 'Ceinture' : 'Belt',
+    _ProductKind.toteBag => fr ? 'Sac fourre-tout' : 'Tote bag',
+    _ProductKind.keychain => fr ? 'Porte-clés' : 'Keychain',
+  };
+}
 
 /// A peek-style, snapping carousel of past pieces. Each card is a
 /// placeholder — swap `_products` for real pieces and drop a photo into
@@ -902,7 +917,7 @@ class _ProductCardState extends State<_ProductCard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  widget.product.title,
+                  _productTitle(languageOf(context), widget.product.kind),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -911,7 +926,7 @@ class _ProductCardState extends State<_ProductCard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Add photo',
+                  stringsOf(context).addPhotoLabel,
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     color: palette.ink.withValues(alpha: 0.35),

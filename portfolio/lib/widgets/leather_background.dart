@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../i18n/app_language.dart';
+
 /// Animated backdrop for the craft half of the hobbies section: a few warm
 /// embers glowing over dark hide, two hand-stitched seams wandering across
 /// it with a needle-pull of light travelling along each, and leathercraft
@@ -17,12 +19,15 @@ import 'package:google_fonts/google_fonts.dart';
 /// pointer-trailing glow) so all three backdrops read as one family, each
 /// in its own palette.
 class LeatherBackground extends StatefulWidget {
-  const LeatherBackground({super.key, required this.dark});
+  const LeatherBackground({super.key, required this.dark, required this.lang});
 
   /// Picks between the dark-hide look this was designed around and a light,
   /// vegetable-tanned take on the same seams/embers for the site's light
   /// mode — see [_LeatherPalette].
   final bool dark;
+
+  /// Which language the floating leathercraft notes ([_labels]) render in.
+  final AppLanguage lang;
 
   @override
   State<LeatherBackground> createState() => _LeatherBackgroundState();
@@ -159,6 +164,7 @@ class _LeatherBackgroundState extends State<LeatherBackground>
                     builder: (context, field, _) => _LabelLayer(
                       field: field,
                       palette: _LeatherPalette.of(widget.dark),
+                      lang: widget.lang,
                     ),
                   ),
                 ),
@@ -720,11 +726,29 @@ const List<_Label> _labels = [
   _Label(text: 'oil, then wax', x: 30, y: 96, delay: 1.9, duration: 24, strength: 0.02),
 ];
 
+/// French leatherworking terms for each [_Label.text] above, keyed by the
+/// English text itself rather than a separate id — the labels are fixed,
+/// closed data, so the English string doubles as its own lookup key.
+const Map<String, String> _labelTranslationsFr = {
+  'saddle stitch': 'point sellier',
+  '8 stitches / inch': '8 points au pouce',
+  'vegetable-tanned': 'tannage végétal',
+  'skive to 2mm': 'refendre à 2 mm',
+  'edge, bevel, burnish': 'tranche, biseau, lissage',
+  'waxed thread': 'fil ciré',
+  'awl · pricking iron': 'alène · fer à piquer',
+  'oil, then wax': 'huile, puis cire',
+};
+
+String _labelText(AppLanguage lang, String text) =>
+    lang == AppLanguage.fr ? (_labelTranslationsFr[text] ?? text) : text;
+
 class _LabelLayer extends StatelessWidget {
-  const _LabelLayer({required this.field, required this.palette});
+  const _LabelLayer({required this.field, required this.palette, required this.lang});
 
   final _Field field;
   final _LeatherPalette palette;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -771,7 +795,7 @@ class _LabelLayer extends StatelessWidget {
           field.pointer.dy * label.strength * 100,
       child: opacity < 0.01
           ? const SizedBox.shrink()
-          : Text(label.text, softWrap: false, style: style),
+          : Text(_labelText(lang, label.text), softWrap: false, style: style),
     );
   }
 }

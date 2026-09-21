@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../i18n/app_language.dart';
+
 /// Animated backdrop for the teaching/goals half of the hobbies section: a
 /// slowly breathing knowledge graph — nodes wandering gently, connected by
 /// edges that occasionally send a pulse of "signal" from one to the next —
@@ -18,12 +20,20 @@ import 'package:google_fonts/google_fonts.dart';
 /// handwritten chalk phrases. Sizes itself to fill its parent and honours
 /// the platform's reduced-motion setting by holding the first frame still.
 class KnowledgeGraphBackground extends StatefulWidget {
-  const KnowledgeGraphBackground({super.key, required this.dark});
+  const KnowledgeGraphBackground({
+    super.key,
+    required this.dark,
+    required this.lang,
+  });
 
   /// Picks between the near-black "blackboard" this was designed around and
   /// a light "whiteboard" take for the site's light mode — see
   /// [_GraphPalette].
   final bool dark;
+
+  /// Which language the one natural-language chalk phrase ([_phrases])
+  /// renders in — the math and code phrases stay as-is in both.
+  final AppLanguage lang;
 
   @override
   State<KnowledgeGraphBackground> createState() =>
@@ -191,6 +201,7 @@ class _KnowledgeGraphBackgroundState extends State<KnowledgeGraphBackground>
                     builder: (context, field, _) => _ChalkLayer(
                       field: field,
                       palette: _GraphPalette.of(widget.dark),
+                      lang: widget.lang,
                     ),
                   ),
                 ),
@@ -692,11 +703,22 @@ const List<_ChalkPhrase> _phrases = [
   ),
 ];
 
+/// Only one of [_phrases] is actual English prose — the rest is math
+/// notation and code syntax, which conventionally stays as-is regardless of
+/// language (a French programmer still writes `while`/`for`/`return`).
+const Map<String, String> _phraseTranslationsFr = {
+  'the proof is left as an exercise': 'la preuve est laissée en exercice',
+};
+
+String _phraseText(AppLanguage lang, String text) =>
+    lang == AppLanguage.fr ? (_phraseTranslationsFr[text] ?? text) : text;
+
 class _ChalkLayer extends StatelessWidget {
-  const _ChalkLayer({required this.field, required this.palette});
+  const _ChalkLayer({required this.field, required this.palette, required this.lang});
 
   final _Field field;
   final _GraphPalette palette;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -743,7 +765,7 @@ class _ChalkLayer extends StatelessWidget {
           field.pointer.dy * phrase.strength * 100,
       child: opacity < 0.01
           ? const SizedBox.shrink()
-          : Text(phrase.text, softWrap: false, style: style),
+          : Text(_phraseText(lang, phrase.text), softWrap: false, style: style),
     );
   }
 }

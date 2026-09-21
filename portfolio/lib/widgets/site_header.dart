@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../i18n/app_language.dart';
+import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../theme/theme_controller.dart';
 
@@ -14,15 +16,20 @@ const double kMobileNavBreakpoint = 600;
 
 /// The sections of the page, in the order they are stacked — the header renders
 /// one item per value and [Home] anchors one section to each.
-enum SiteSection {
-  about('About'),
-  projects('Projects'),
-  hobbies('Hobbies'),
-  contact('Contact');
+enum SiteSection { about, projects, hobbies, contact }
 
-  const SiteSection(this.label);
-
-  final String label;
+/// [SiteSection]'s label is small, closed data tied one-to-one to the enum
+/// itself, so it lives next to it as a plain switch rather than in the
+/// shared [Strings] class — putting it there would need [Strings] to import
+/// this file right back.
+String navLabel(AppLanguage lang, SiteSection section) {
+  final fr = lang == AppLanguage.fr;
+  return switch (section) {
+    SiteSection.about => fr ? 'À propos' : 'About',
+    SiteSection.projects => fr ? 'Projets' : 'Projects',
+    SiteSection.hobbies => fr ? 'Loisirs' : 'Hobbies',
+    SiteSection.contact => 'Contact',
+  };
 }
 
 class SiteHeader extends StatelessWidget {
@@ -64,14 +71,24 @@ class SiteHeader extends StatelessWidget {
           // space in the first place.
           child: Row(
             children: [
+              // 96px, matching the trailing slot's two-button width, so the
+              // centered nav row (which centers itself within whatever the
+              // Expanded gets) lands in the true middle of the header
+              // instead of drifting toward whichever side is narrower.
               SizedBox(
-                width: 48,
-                child: mobile ? const _MenuButton() : null,
+                width: 96,
+                child: mobile ? const Center(child: _MenuButton()) : null,
               ),
               Expanded(
                 child: mobile ? const SizedBox.shrink() : _DesktopNav(onSelected: onSelected),
               ),
-              const SizedBox(width: 48, child: _ThemeToggleButton()),
+              const SizedBox(
+                width: 96,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [_LanguageToggleButton(), _ThemeToggleButton()],
+                ),
+              ),
             ],
           ),
         ),
@@ -89,7 +106,7 @@ class _MenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(Icons.menu, color: paletteOf(context).ink.withValues(alpha: 0.87)),
-      tooltip: 'Open navigation',
+      tooltip: stringsOf(context).openNavigation,
       onPressed: () => Scaffold.of(context).openDrawer(),
     );
   }
@@ -107,13 +124,42 @@ class _ThemeToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = AppTheme.of(context);
     final palette = paletteOf(context);
+    final s = stringsOf(context);
     return IconButton(
       icon: Icon(
         controller.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
         color: palette.ink.withValues(alpha: 0.87),
         size: 20,
       ),
-      tooltip: controller.isDark ? 'Switch to light mode' : 'Switch to dark mode',
+      tooltip: controller.isDark ? s.switchToLightMode : s.switchToDarkMode,
+      onPressed: controller.toggle,
+    );
+  }
+}
+
+/// EN/FR switch, shown right next to [_ThemeToggleButton]. Follows the same
+/// "shows the mode a tap switches *to*" convention as the theme button: the
+/// label reads the language you'd get by tapping, not the current one.
+class _LanguageToggleButton extends StatelessWidget {
+  const _LanguageToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = AppLocale.of(context);
+    final palette = paletteOf(context);
+    final s = stringsOf(context);
+    final togglesToFrench = controller.language == AppLanguage.en;
+    return IconButton(
+      icon: Text(
+        togglesToFrench ? 'FR' : 'EN',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+          color: palette.ink.withValues(alpha: 0.87),
+        ),
+      ),
+      tooltip: togglesToFrench ? s.switchToFrench : s.switchToEnglish,
       onPressed: controller.toggle,
     );
   }
@@ -131,13 +177,17 @@ class _DesktopNav extends StatelessWidget {
     // above the mobile breakpoint: if the row of nav items would overflow
     // the header's width, this shrinks the whole row down to fit instead of
     // clipping it or throwing an overflow error.
+    final lang = languageOf(context);
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           for (final section in SiteSection.values)
-            _HeaderItem(section.label, onTap: () => onSelected(section)),
+            _HeaderItem(
+              navLabel(lang, section),
+              onTap: () => onSelected(section),
+            ),
         ],
       ),
     );
@@ -198,6 +248,7 @@ class NavDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    final lang = languageOf(context);
     return Drawer(
       backgroundColor: palette.dark ? kDarkPanelBg : Colors.white,
       child: SafeArea(
@@ -221,7 +272,7 @@ class NavDrawer extends StatelessWidget {
             for (final section in SiteSection.values)
               ListTile(
                 title: Text(
-                  section.label,
+                  navLabel(lang, section),
                   style: GoogleFonts.inter(
                     fontSize: 19,
                     fontWeight: FontWeight.w500,
