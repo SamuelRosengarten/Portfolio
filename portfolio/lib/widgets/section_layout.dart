@@ -3,13 +3,28 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/palette.dart';
 
+/// True on genuinely large desktop viewports — wide *and* tall, not just
+/// wide. `SectionShell` always sizes a section to the *entire* height it's
+/// given (so its background fills the screen behind it), but content sized
+/// only off width breakpoints stays exactly as large on a big external
+/// monitor as it is on a normal laptop, even with hundreds of extra pixels
+/// of vertical room — which is what reads as a large empty gap above and
+/// below the (unchanged) content block. Call sites that already scale for
+/// width check this too, to grow a size tier further when there's actually
+/// room to spare vertically as well.
+bool isRoomyViewport(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  return size.width >= 1300 && size.height >= 950;
+}
+
 /// Responsive font size for every [SectionIntro] headline: smaller on phones,
-/// larger on desktop. `MediaQuery`'s width (not a `LayoutBuilder` constraint)
-/// is what's passed in here — see [SectionIntro.build] below.
-double _headlineSize(double width) {
+/// larger on desktop, larger still on a roomy monitor. `MediaQuery`'s width
+/// (not a `LayoutBuilder` constraint) is what's passed in here — see
+/// [SectionIntro.build] below.
+double _headlineSize(double width, bool roomy) {
   if (width < 600) return 30;
   if (width < 900) return 44;
-  return 56;
+  return roomy ? 72 : 56;
 }
 
 /// Full-bleed band of colour holding one section's content, centred and capped
@@ -46,13 +61,20 @@ class SectionShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    // Widened on a roomy monitor, not just capped: each section's own body
+    // text already caps itself narrower than this for readability (see
+    // SectionIntro's subhead and About's bio), so this outer cap mainly
+    // bounds *wide* elements — Projects' showcase image (which grows taller
+    // with it, via its aspect ratio) and Contact's card grid — which is
+    // exactly what needs the extra room on a screen with plenty to spare.
+    final maxContentWidth = isRoomyViewport(context) ? 1180.0 : 980.0;
 
     final content = Center(
       child: ConstrainedBox(
         // Caps the readable content width even on very wide monitors —
         // without this, body text on a 2000px-wide window would stretch
         // into unreadably long lines.
-        constraints: const BoxConstraints(maxWidth: 980),
+        constraints: BoxConstraints(maxWidth: maxContentWidth),
         child: child,
       ),
     );
@@ -113,6 +135,7 @@ class SectionIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    final roomy = isRoomyViewport(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,20 +153,20 @@ class SectionIntro extends StatelessWidget {
         Text(
           headline,
           style: GoogleFonts.inter(
-            fontSize: _headlineSize(width),
+            fontSize: _headlineSize(width, roomy),
             fontWeight: FontWeight.w700,
             letterSpacing: -1.4,
             height: 1.08,
             color: dark ? Colors.white : kInk,
           ),
         ),
-        SizedBox(height: width < 600 ? 14 : 20),
+        SizedBox(height: width < 600 ? 14 : (roomy ? 28 : 20)),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 620),
+          constraints: BoxConstraints(maxWidth: roomy ? 720 : 620),
           child: Text(
             subhead,
             style: GoogleFonts.inter(
-              fontSize: width < 600 ? 15 : 20,
+              fontSize: width < 600 ? 15 : (roomy ? 23 : 20),
               height: width < 600 ? 1.45 : 1.55,
               letterSpacing: -0.2,
               color: kGray,

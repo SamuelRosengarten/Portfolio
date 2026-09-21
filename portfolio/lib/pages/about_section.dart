@@ -50,12 +50,12 @@ class _AboutBody extends StatelessWidget {
       builder: (context, constraints) => SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _AboutIntro(),
-              SizedBox(height: 48),
-              Center(child: _LanguagePanel()),
+              const _AboutIntro(),
+              SizedBox(height: isRoomyViewport(context) ? 72 : 48),
+              const Center(child: _LanguagePanel()),
             ],
           ),
         ),
@@ -69,12 +69,13 @@ class _AboutBody extends StatelessWidget {
 /// from a fixed-height offscreen canvas rather than reflowing like normal
 /// text — so at the old fixed 70px size, the headline ran wider than an
 /// iPhone's screen and got sampled straight past the edge of that canvas
-/// instead of wrapping or shrinking to fit.
-double _particleHeadlineSize(double width) {
+/// instead of wrapping or shrinking to fit. Bigger still on a roomy monitor
+/// — see [isRoomyViewport].
+double _particleHeadlineSize(double width, bool roomy) {
   if (width < 400) return 32;
   if (width < 600) return 40;
   if (width < 900) return 56;
-  return 70;
+  return roomy ? 92 : 70;
 }
 
 /// This section's own take on [SectionIntro]: same eyebrow-and-subhead frame,
@@ -89,7 +90,8 @@ class _AboutIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width);
+    final roomy = isRoomyViewport(context);
+    final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width, roomy);
     final ink = paletteOf(context).ink;
     final s = stringsOf(context);
 
@@ -109,14 +111,14 @@ class _AboutIntro extends StatelessWidget {
             child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: roomy ? 22 : 16),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
+          constraints: BoxConstraints(maxWidth: roomy ? 680 : 560),
           child: Text(
             s.aboutBio,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              fontSize: 17,
+              fontSize: roomy ? 20 : 17,
               height: 1.6,
               letterSpacing: -0.2,
               color: ink.withValues(alpha: 0.75),
@@ -300,10 +302,17 @@ class _LanguageMarqueeGate extends StatelessWidget {
     return FutureBuilder<void>(
       future: precacheLanguageIcons(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const SizedBox(height: _marqueeHeight);
-        }
-        return const _LanguageMarquee();
+        final ready = snapshot.connectionState == ConnectionState.done;
+        // A cross-fade rather than a hard swap: the reserved height above
+        // means nothing shifts either way, but popping the whole marquee in
+        // at once still reads as an abrupt jump-cut against the rest of the
+        // page's fades.
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          child: ready
+              ? const _LanguageMarquee()
+              : const SizedBox(height: _marqueeHeight),
+        );
       },
     );
   }
@@ -319,15 +328,20 @@ class _LanguageMarquee extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dealt round-robin across the rows so each one still cycles through a
-    // mix of languages rather than three copies of the same strip.
-    final rows = List.generate(
-      _rowSpeeds.length,
-      (i) => [
-        for (var j = i; j < _languages.length; j += _rowSpeeds.length)
-          _languages[j],
-      ],
-    );
+    // Each row gets the full list, just rotated by a different starting
+    // point, rather than a disjoint round-robin slice — with 8 languages
+    // over 3 rows, a strict split leaves the last row only 2 wide (versus
+    // 3 for the other two), so it visibly loops the same couple of logos
+    // over and over while its neighbours cycle through three. Every row
+    // being the same full set (in a different order) keeps all three
+    // equally varied.
+    final rows = List.generate(_rowSpeeds.length, (i) {
+      final offset = i * (_languages.length / _rowSpeeds.length).round();
+      return [
+        for (var j = 0; j < _languages.length; j++)
+          _languages[(j + offset) % _languages.length],
+      ];
+    });
 
     return Column(
       mainAxisSize: MainAxisSize.min,

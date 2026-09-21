@@ -30,7 +30,11 @@ class ProjectSection extends StatelessWidget {
             subhead: s.projectSubhead,
             dark: dark,
           ),
-          SizedBox(height: MediaQuery.sizeOf(context).width < 600 ? 16 : 24),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).width < 600
+                ? 16
+                : (isRoomyViewport(context) ? 36 : 24),
+          ),
           const _ProjectShowcase(),
         ],
       ),
@@ -50,16 +54,20 @@ class _ProjectShowcase extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     final mobile = MediaQuery.sizeOf(context).width < 600;
+    final roomy = isRoomyViewport(context);
     final s = stringsOf(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          // Flatter on phones: this box is pure decoration (an empty
-          // placeholder), not content, so it's the cheapest place to give
-          // height back on a screen short enough to need it.
-          aspectRatio: mobile ? 21 / 9 : 16 / 9,
+          // Flatter on phones (21:9, vs. the usual 16:9) — this box is pure
+          // decoration (an empty placeholder), not content, so it's the
+          // cheapest place to give height back on a screen short enough to
+          // need it. The opposite move on a roomy monitor: taller (3:2),
+          // which combines with SectionShell's own wider cap there to give
+          // this placeholder noticeably more height, not just more width.
+          aspectRatio: mobile ? 21 / 9 : (roomy ? 3 / 2 : 16 / 9),
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -104,23 +112,23 @@ class _ProjectShowcase extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: mobile ? 14 : 20),
+        SizedBox(height: mobile ? 14 : (roomy ? 28 : 20)),
         Text(
           'Code Coach',
           style: GoogleFonts.inter(
-            fontSize: mobile ? 20 : 24,
+            fontSize: mobile ? 20 : (roomy ? 30 : 24),
             fontWeight: FontWeight.w600,
             letterSpacing: -0.4,
             color: palette.ink,
           ),
         ),
-        SizedBox(height: mobile ? 6 : 10),
+        SizedBox(height: mobile ? 6 : (roomy ? 14 : 10)),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 620),
+          constraints: BoxConstraints(maxWidth: roomy ? 720 : 620),
           child: Text(
             s.projectDescription,
             style: GoogleFonts.inter(
-              fontSize: mobile ? 14 : 16,
+              fontSize: mobile ? 14 : (roomy ? 18 : 16),
               height: mobile ? 1.4 : 1.6,
               color: kGray,
             ),
@@ -130,12 +138,12 @@ class _ProjectShowcase extends StatelessWidget {
         Text(
           'github.com/SamuelRosengarten/code-coach',
           style: GoogleFonts.inter(
-            fontSize: mobile ? 12 : 13,
+            fontSize: mobile ? 12 : (roomy ? 15 : 13),
             fontWeight: FontWeight.w500,
             color: kBlue,
           ),
         ),
-        SizedBox(height: mobile ? 14 : 20),
+        SizedBox(height: mobile ? 14 : (roomy ? 28 : 20)),
         Wrap(
           spacing: 10,
           runSpacing: 10,
