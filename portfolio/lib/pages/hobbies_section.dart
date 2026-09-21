@@ -35,17 +35,16 @@ class HobbiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height;
-
-    return SizedBox(
-      width: double.infinity,
-      height: height,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 900;
-          return wide ? const _DiagonalSplit() : const _StackedSplit();
-        },
-      ),
+    // `Home` gives this section a tight, bounded height already (it fills
+    // the screen below the pinned header) — sizing to that directly, rather
+    // than to the screen's full height, is what keeps this section from
+    // running 48px (the header's height) taller than the room it's actually
+    // given.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 900;
+        return wide ? const _DiagonalSplit() : const _StackedSplit();
+      },
     );
   }
 }

@@ -15,13 +15,13 @@ double _headlineSize(double width) {
 /// Full-bleed band of colour holding one section's content, centred and capped
 /// so the copy never runs wider than it reads well.
 ///
-/// Setting `minHeight` and `maxHeight` to the *same* value (the full screen
-/// height) is what makes every section that uses this shell occupy exactly
-/// one screen's worth of scrolling, regardless of how much content it has —
-/// scrolling the page therefore advances roughly one section at a time.
-/// Content inside still has to fit that fixed height on its own (usually via
-/// `Expanded` soaking up the leftover space below the intro text); nothing
-/// here makes the child scrollable if it's too tall.
+/// `Home` shows exactly one section at a time, filling the screen below the
+/// pinned header — this shell fills exactly the height it's *given* by that
+/// (via the `LayoutBuilder` below), which is what makes it occupy the whole
+/// remaining screen regardless of how much content it has. Content inside
+/// still has to fit that height on its own (usually via `Expanded` soaking
+/// up the leftover space below the intro text); nothing here makes the
+/// child scrollable if it's too tall.
 ///
 /// The hobbies section intentionally does *not* use this shell — it wants a
 /// full-bleed, edge-to-edge layout with no side padding or 980px cap, so it
@@ -45,7 +45,7 @@ class SectionShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
+    final width = MediaQuery.sizeOf(context).width;
 
     final content = Center(
       child: ConstrainedBox(
@@ -57,32 +57,40 @@ class SectionShell extends StatelessWidget {
       ),
     );
 
-    return Container(
-      width: double.infinity,
-      color: background,
-      constraints: BoxConstraints(minHeight: size.height, maxHeight: size.height),
-      padding: EdgeInsets.symmetric(
-        vertical: size.width < 600 ? 48 : 120,
-        horizontal: 24,
-      ),
-      // LayoutBuilder + SingleChildScrollView is a safety net, not the
-      // common case: most sections' content fits the fixed height above
-      // exactly, in which case ConstrainedBox's minHeight makes this behave
-      // just like a plain Center. But a phone-height screen combined with
-      // this section's own padding can leave less room than its content
-      // actually needs (e.g. Contact's four cards stacked in one column on
-      // a narrow phone) — without this, that content would overflow instead
-      // of scrolling.
-      child: !scrollable
-          ? content
-          : LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: content,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The height `Home`'s Expanded actually gave this section — using
+        // that instead of the screen's full height is what used to leave
+        // every section 48px (the header's height) short of the room its
+        // own padding math assumed, which showed up as content needing more
+        // internal scroll than expected on a phone-size screen.
+        final height = constraints.maxHeight;
+
+        return Container(
+          width: double.infinity,
+          color: background,
+          constraints: BoxConstraints(minHeight: height, maxHeight: height),
+          padding: EdgeInsets.symmetric(
+            vertical: width < 600 ? 48 : 120,
+            horizontal: 24,
+          ),
+          // A safety net, not the common case: most sections' content fits
+          // the height above exactly, in which case ConstrainedBox's
+          // minHeight makes this behave just like a plain Center. But a
+          // phone-height screen combined with this section's own padding
+          // can leave less room than its content actually needs (e.g.
+          // Contact's four cards stacked in one column on a narrow phone) —
+          // without this, that content would overflow instead of scrolling.
+          child: !scrollable
+              ? content
+              : SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: height),
+                    child: content,
+                  ),
                 ),
-              ),
-            ),
+        );
+      },
     );
   }
 }

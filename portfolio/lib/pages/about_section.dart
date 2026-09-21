@@ -51,7 +51,6 @@ class _AboutBody extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _AboutIntro(),
@@ -78,23 +77,13 @@ double _particleHeadlineSize(double width) {
   return 70;
 }
 
-/// Measures how wide [text] renders at [fontSize], using the same style
-/// `ParticleText`'s own internal `TextPainter` uses to sample glyphs
-/// (`FontWeight.bold`, the default font family) — see [_AboutIntro.build]
-/// for why this needs to match.
-double _measureParticleHeadlineWidth(String text, double fontSize) {
-  final painter = TextPainter(
-    text: TextSpan(
-      text: text,
-      style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  return painter.width;
-}
-
 /// This section's own take on [SectionIntro]: same eyebrow-and-subhead frame,
 /// but the headline is rendered as interactive particles instead of text.
+///
+/// Centered, not flush left like [SectionIntro]'s own headlines — `_LanguagePanel`
+/// right below it is already centered (see [_AboutBody]), and centering the
+/// greeting and bio to match reads as one deliberate hero block instead of
+/// text anchored to two different edges.
 class _AboutIntro extends StatelessWidget {
   const _AboutIntro();
 
@@ -105,31 +94,19 @@ class _AboutIntro extends StatelessWidget {
     final s = stringsOf(context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 14),
         SizedBox(
           height: headlineSize + 12,
-          // ParticleText always centers its sampled glyphs within whatever
-          // width it's given, ignoring its own `textAlign: left` config
-          // (that only affects wrapping alignment, not placement) — left
-          // unconstrained, it fills the whole ~900px content column and the
-          // greeting ends up floating near the middle of the section while
-          // the bio paragraph right below it sits flush left, an obvious
-          // mismatch. Narrowing the box to the greeting's own measured
-          // width (plus a little slack for the particles' hover spread)
-          // makes "centered in the box" and "flush left in the column"
-          // come out the same place.
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: SizedBox(
-              width: _measureParticleHeadlineWidth(s.heroGreeting, headlineSize) + 48,
-              child: FadeAnimationDelayed(
-                delay: const Duration(seconds: 1),
-                child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
-              ),
-            ),
+          // ParticleText's `expand: true` default fills all the width it's
+          // given and centers its sampled glyphs within that — exactly what
+          // we want here, so this is left unconstrained rather than sized to
+          // the text itself.
+          child: FadeAnimationDelayed(
+            delay: const Duration(seconds: 1),
+            child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
           ),
         ),
         const SizedBox(height: 16),
@@ -137,6 +114,7 @@ class _AboutIntro extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 560),
           child: Text(
             s.aboutBio,
+            textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 17,
               height: 1.6,
@@ -240,25 +218,30 @@ const _languages = [
   _Language('CSS3', Brands.css3),
 ];
 
-/// Kicks off every language logo's SVG fetch up front, instead of leaving
-/// each one to `_LanguageChip`'s own `Brand` (an `SvgPicture.asset`) to
-/// request for the first time whenever it happens to build.
+/// Kicks off every language logo's SVG fetch up front and caches the
+/// combined future, instead of leaving each one to `_LanguageChip`'s own
+/// `Brand` (an `SvgPicture.asset`) to request for the first time whenever it
+/// happens to build.
 ///
 /// `Brand` isn't a font glyph — every logo is its own `.svg` asset file
 /// fetched over the network the first time it's drawn, and `AboutSection`
 /// (and its marquee) is the very first thing on the page. Left alone, all
-/// eight requests only start once that first frame has already built, so on
-/// anything slower than localhost the marquee is visibly missing logos —
-/// each one popping in on its own as its fetch resolves — right as the
-/// visitor lands on the site. Calling this from `main()`, before `runApp`
-/// even hands control to the widget tree, overlaps those fetches with the
-/// engine's own startup instead. flutter_svg caches by asset (see
-/// `SvgAssetLoader.loadBytes`), so the chips' own `Brand` widgets later hit
-/// this same warm cache rather than re-fetching.
-void precacheLanguageIcons() {
-  for (final language in _languages) {
-    SvgAssetLoader(language.icon, packageName: 'icons_plus').loadBytes(null);
-  }
+/// eight requests only start once that first frame has already built, and
+/// each `_LanguageChip` shows whatever it's got the moment it builds — so on
+/// anything slower than localhost the marquee visibly fills in logo by logo
+/// right as the visitor lands on the site, rather than appearing all at
+/// once. Calling this from `main()`, before `runApp` even hands control to
+/// the widget tree, overlaps the fetches with the engine's own startup
+/// instead of only starting once About has already built. `_LanguagePanel`
+/// then awaits the same future (the result is cached, so that costs nothing)
+/// and holds the marquee back until every logo is actually ready, so it
+/// only ever appears fully populated rather than mid-fill.
+Future<void>? _languageIconsReady;
+Future<void> precacheLanguageIcons() {
+  return _languageIconsReady ??= Future.wait([
+    for (final language in _languages)
+      SvgAssetLoader(language.icon, packageName: 'icons_plus').loadBytes(null),
+  ]);
 }
 
 /// The frosted card that frames the marquee: a small eyebrow label sitting
@@ -293,10 +276,35 @@ class _LanguagePanel extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const _LanguageMarquee(),
+            const _LanguageMarqueeGate(),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Holds the marquee back until every logo's SVG has actually loaded, rather
+/// than letting it render immediately with whichever ones happen to be
+/// ready — see [precacheLanguageIcons]'s doc comment for why a half-filled
+/// row is worse than a brief blank one. The reserved height matches
+/// [_LanguageMarquee]'s own real height (three 68px rows plus two 18px
+/// gaps) so nothing shifts when the marquee finally appears.
+class _LanguageMarqueeGate extends StatelessWidget {
+  const _LanguageMarqueeGate();
+
+  static const double _marqueeHeight = 68 * 3 + 18 * 2;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: precacheLanguageIcons(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox(height: _marqueeHeight);
+        }
+        return const _LanguageMarquee();
+      },
     );
   }
 }

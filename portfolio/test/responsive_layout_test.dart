@@ -59,7 +59,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
   });
 
-  testWidgets('desktop: toggling theme and jump-scrolling between sections works', (tester) async {
+  testWidgets('desktop: toggling theme and switching sections from the nav works', (tester) async {
     tester.view.physicalSize = const Size(1400, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -68,12 +68,11 @@ void main() {
     await tester.pumpWidget(const MyApp());
     await tester.pump(const Duration(milliseconds: 700));
 
-    expect(find.byType(SingleChildScrollView), findsWidgets);
-
     await tester.tap(find.text('Contact'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
-    expect(tester.takeException(), isNull, reason: 'desktop scroll-to-Contact');
+    expect(tester.takeException(), isNull, reason: 'desktop switch-to-Contact');
+    expect(find.text("Let's talk."), findsOneWidget);
 
     await tester.tap(find.byTooltip('Switch to light mode'));
     await tester.pump();
