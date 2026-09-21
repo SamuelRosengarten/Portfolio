@@ -24,11 +24,11 @@ class ProjectSection extends StatelessWidget {
         children: [
           SectionIntro(
             eyebrow: 'Work',
-            headline: 'Something is coming.',
+            headline: 'Code Coach.',
             subhead:
-                'My first real project is still on the bench. The shape is '
-                'there, the details are not — so here is the placeholder it '
-                'deserves until it earns a screenshot.',
+                'A VS Code extension concept, still in design — born out of '
+                'tutoring other students and wanting a tool that catches your '
+                'mistakes for you.',
             dark: dark,
           ),
           SizedBox(height: MediaQuery.sizeOf(context).width < 600 ? 16 : 24),
@@ -106,7 +106,7 @@ class _ProjectShowcase extends StatelessWidget {
         ),
         SizedBox(height: mobile ? 14 : 20),
         Text(
-          'Untitled project',
+          'Code Coach',
           style: GoogleFonts.inter(
             fontSize: mobile ? 20 : 24,
             fontWeight: FontWeight.w600,
@@ -118,8 +118,10 @@ class _ProjectShowcase extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
-            'A place to put the thing I am building right now. Swap this copy '
-            'for the real story once there is a screenshot worth showing.',
+            'A VS Code extension that turns the mistakes you make while '
+            'coding into something useful: contextual hints right next to '
+            'the error, a dashboard tracking patterns over time, and '
+            'exportable session reports to bring to a mentor or tutor.',
             style: GoogleFonts.inter(
               fontSize: mobile ? 14 : 16,
               height: mobile ? 1.4 : 1.6,
@@ -127,14 +129,22 @@ class _ProjectShowcase extends StatelessWidget {
             ),
           ),
         ),
+        SizedBox(height: mobile ? 6 : 8),
+        Text(
+          'github.com/SamuelRosengarten/code-coach',
+          style: GoogleFonts.inter(
+            fontSize: mobile ? 12 : 13,
+            fontWeight: FontWeight.w500,
+            color: kBlue,
+          ),
+        ),
         SizedBox(height: mobile ? 14 : 20),
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
-            _Tag('Flutter', palette: palette),
-            _Tag('Dart', palette: palette),
-            _Tag('In progress', palette: palette),
+            _Tag('VS Code Extension', palette: palette),
+            _Tag('Design phase', palette: palette),
           ],
         ),
       ],

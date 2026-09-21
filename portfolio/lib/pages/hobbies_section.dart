@@ -400,7 +400,7 @@ class _InkContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Teach.',
+          'Build.',
           style: GoogleFonts.inter(
             fontSize: headlineSize,
             fontWeight: FontWeight.w700,
@@ -413,9 +413,10 @@ class _InkContent extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Text(
-            'The long-term plan is a university classroom, teaching '
-            'computer science — the kind of place where an idea gets to '
-            'be interesting instead of just correct.',
+            'After a few years on the shop floor as a welder and mechanic, '
+            'the long-term plan is a software engineering degree — trading '
+            'the torch for a keyboard, and a stage in March 2027 for the '
+            'next step toward it.',
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.4,
@@ -459,10 +460,9 @@ class _InkContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Running peer tutoring sessions for computer science '
-                  'students — the same instinct as the goal above, just '
-                  'at a smaller scale: sit with someone until the '
-                  'concept clicks.',
+                  'Answering questions from fellow programming students at '
+                  'Cégep Édouard-Montpetit, and translating the jargon into '
+                  'language that actually lands for whoever I\'m helping.',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     height: 1.4,
@@ -474,10 +474,9 @@ class _InkContent extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _Tag('Algorithms', color: kBlue),
-                    _Tag('Data Structures', color: kBlue),
-                    _Tag('Intro to Programming', color: kBlue),
-                    _Tag('OOP', color: kBlue),
+                    _Tag('Patience', color: kBlue),
+                    _Tag('Empathy', color: kBlue),
+                    _Tag('Team player', color: kBlue),
                   ],
                 ),
               ],

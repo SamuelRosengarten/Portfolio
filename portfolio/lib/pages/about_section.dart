@@ -102,8 +102,12 @@ class _AboutIntro extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Text(
-            'A place to put the thing I am building right now. Swap this copy '
-            'for the real story once there is a screenshot worth showing.',
+            'Computer programming student at Cégep Édouard-Montpetit, looking '
+            'for an internship in March 2027 and a software engineering degree '
+            'after that. Before code it was welding and mechanics — I traded '
+            'the torch and the toolbox for a keyboard, chasing a more stable '
+            'place to build a career, and kept the same insistence on doing '
+            'the work properly.',
             style: GoogleFonts.inter(
               fontSize: 17,
               height: 1.6,
@@ -192,18 +196,12 @@ class _Language {
 }
 
 const _languages = [
+  _Language('C#', Brands.c_sharp_logo),
   _Language('Dart', Brands.dart),
   _Language('Flutter', Brands.flutter),
-  _Language('Python', Brands.python),
-  _Language('JavaScript', Brands.javascript),
-  _Language('TypeScript', Brands.typescript),
-  _Language('Java', Brands.java),
   _Language('Kotlin', Brands.kotlin),
-  _Language('Go', Brands.golang),
-  _Language('Rust', Brands.rust_programming_language),
-  _Language('Swift', Brands.swift_programming),
-  _Language('C++', Brands.cpp),
-  _Language('C#', Brands.c_sharp_logo),
+  _Language('TypeScript', Brands.typescript),
+  _Language('JavaScript', Brands.javascript),
   _Language('HTML5', Brands.html_5),
   _Language('CSS3', Brands.css3),
 ];
