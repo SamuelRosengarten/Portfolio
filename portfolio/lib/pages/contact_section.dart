@@ -26,8 +26,9 @@ class ContactSection extends StatelessWidget {
             eyebrow: 'Contact',
             headline: "Let's talk.",
             subhead:
-                'Open to internships, collaborations, or a conversation about '
-                'something you are building.',
+                'Looking for an internship in March 2027 — also open to '
+                'collaborations, or a conversation about something you are '
+                'building.',
             dark: dark,
           ),
           const SizedBox(height: 32),
@@ -60,22 +61,22 @@ class _ContactGrid extends StatelessWidget {
         _ContactCard(
           icon: Icons.mail_outline_rounded,
           label: 'Email',
-          value: 'your.email@example.com',
+          value: 'samrosengarten2@pm.me',
         ),
         _ContactCard(
           icon: Icons.code_rounded,
           label: 'GitHub',
-          value: 'github.com/yourhandle',
+          value: 'github.com/SamuelRosengarten',
         ),
         _ContactCard(
           icon: Icons.work_outline_rounded,
           label: 'LinkedIn',
-          value: 'linkedin.com/in/yourhandle',
+          value: 'linkedin.com/in/samuel-rosengarten-63b932404',
         ),
         _ContactCard(
           icon: Icons.place_outlined,
           label: 'Location',
-          value: 'Montréal, QC',
+          value: 'Longueuil, QC',
         ),
       ],
     );
