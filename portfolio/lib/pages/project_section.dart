@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/section_layout.dart';
 
@@ -10,6 +11,7 @@ class ProjectSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = paletteOf(context).dark;
+    final s = stringsOf(context);
     return SectionShell(
       background: paletteOf(context).bg,
       child: Column(
@@ -23,12 +25,9 @@ class ProjectSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionIntro(
-            eyebrow: 'Work',
+            eyebrow: s.projectEyebrow,
             headline: 'Code Coach.',
-            subhead:
-                'A VS Code extension concept, still in design — born out of '
-                'tutoring other students and wanting a tool that catches your '
-                'mistakes for you.',
+            subhead: s.projectSubhead,
             dark: dark,
           ),
           SizedBox(height: MediaQuery.sizeOf(context).width < 600 ? 16 : 24),
@@ -51,6 +50,7 @@ class _ProjectShowcase extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     final mobile = MediaQuery.sizeOf(context).width < 600;
+    final s = stringsOf(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,10 +93,7 @@ class _ProjectShowcase extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text(
-            'A VS Code extension that turns the mistakes you make while '
-            'coding into something useful: contextual hints right next to '
-            'the error, a dashboard tracking patterns over time, and '
-            'exportable session reports to bring to a mentor or tutor.',
+            s.projectDescription,
             style: GoogleFonts.inter(
               fontSize: mobile ? 14 : 16,
               height: mobile ? 1.4 : 1.6,
@@ -118,8 +115,8 @@ class _ProjectShowcase extends StatelessWidget {
           spacing: 10,
           runSpacing: 10,
           children: [
-            _Tag('VS Code Extension', palette: palette),
-            _Tag('Design phase', palette: palette),
+            _Tag(s.tagVsCodeExtension, palette: palette),
+            _Tag(s.tagDesignPhase, palette: palette),
           ],
         ),
       ],

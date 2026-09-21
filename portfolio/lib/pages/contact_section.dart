@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/section_layout.dart';
 
@@ -10,6 +11,7 @@ class ContactSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = paletteOf(context).dark;
+    final s = stringsOf(context);
     return SectionShell(
       background: paletteOf(context).bg,
       child: Column(
@@ -24,11 +26,8 @@ class ContactSection extends StatelessWidget {
         children: [
           SectionIntro(
             eyebrow: 'Contact',
-            headline: "Let's talk.",
-            subhead:
-                'Looking for an internship in March 2027 — also open to '
-                'collaborations, or a conversation about something you are '
-                'building.',
+            headline: s.contactHeadline,
+            subhead: s.contactSubhead,
             dark: dark,
           ),
           const SizedBox(height: 32),
@@ -57,25 +56,25 @@ class _ContactGrid extends StatelessWidget {
         if (width >= 300) return 2;
         return 1;
       },
-      children: const [
-        _ContactCard(
+      children: [
+        const _ContactCard(
           icon: Icons.mail_outline_rounded,
           label: 'Email',
           value: 'samrosengarten2@pm.me',
         ),
-        _ContactCard(
+        const _ContactCard(
           icon: Icons.code_rounded,
           label: 'GitHub',
           value: 'github.com/SamuelRosengarten',
         ),
-        _ContactCard(
+        const _ContactCard(
           icon: Icons.work_outline_rounded,
           label: 'LinkedIn',
           value: 'linkedin.com/in/samuel-rosengarten-63b932404',
         ),
         _ContactCard(
           icon: Icons.place_outlined,
-          label: 'Location',
+          label: stringsOf(context).locationLabel,
           value: 'Longueuil, QC',
         ),
       ],
