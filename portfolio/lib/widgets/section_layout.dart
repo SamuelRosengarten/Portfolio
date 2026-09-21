@@ -115,6 +115,7 @@ class SectionShell extends StatelessWidget {
         final height = constraints.maxHeight;
 
         final phone = width < 600;
+        final verticalPadding = phone ? 96.0 : 192.0;
 
         return Container(
           width: double.infinity,
@@ -141,7 +142,17 @@ class SectionShell extends StatelessWidget {
                   // in one column on a narrow phone.
                   ? SingleChildScrollView(
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(minHeight: height),
+                        // `height` is this Container's own outer height,
+                        // measured before its `padding` above eats into it —
+                        // the space actually available to this scroll
+                        // view's child is `height - verticalPadding`. Using
+                        // the unreduced `height` here was forcing content to
+                        // be at least a full padding's worth (96px) taller
+                        // than the viewport could ever show without
+                        // scrolling, so every phone section landing on this
+                        // fallback needed a phantom ~96px scroll no matter
+                        // how little content it actually had.
+                        constraints: BoxConstraints(minHeight: height - verticalPadding),
                         child: content,
                       ),
                     )
@@ -157,6 +168,15 @@ class SectionShell extends StatelessWidget {
       },
     );
   }
+}
+
+/// A subhead around 100 characters or shorter keeps its full 15px; each
+/// character past that shaves the size down, floored at 12px so it never
+/// gets illegibly small.
+double _subheadFontSize(String subhead) {
+  const referenceLength = 100;
+  final scale = (referenceLength / subhead.length).clamp(0.8, 1.0);
+  return 15 * scale;
 }
 
 /// Eyebrow, headline and subhead — the opening beat of every section.
@@ -208,7 +228,13 @@ class SectionIntro extends StatelessWidget {
           child: Text(
             subhead,
             style: GoogleFonts.inter(
-              fontSize: width < 600 ? 15 : 20 * scale,
+              // On phones, a subhead longer than a typical ~100-character
+              // one (Contact's and Projects' both now run 125-140+, wrapping
+              // to 7 lines at a flat 15px and eating a chunk of a phone
+              // screen's whole budget on their own) scales down instead —
+              // desktop has enough room that this never needs to apply
+              // there.
+              fontSize: width < 600 ? _subheadFontSize(subhead) : 20 * scale,
               height: width < 600 ? 1.45 : 1.55,
               letterSpacing: -0.2,
               color: kGray,

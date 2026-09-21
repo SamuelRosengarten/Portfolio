@@ -432,7 +432,11 @@ class _InkContent extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        // 8, not the 16 used elsewhere in this stack — the French
+        // buildParagraph runs long enough to tip this stacked mobile layout
+        // a few pixels past its scroll allowance, and this is the cheapest
+        // place to claw that back without touching type sizes.
+        const SizedBox(height: 8),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Container(

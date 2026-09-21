@@ -129,7 +129,12 @@ class _ProjectShowcase extends StatelessWidget {
           child: Text(
             s.projectDescription,
             style: GoogleFonts.inter(
-              fontSize: mobile ? 14 : 16 * scale,
+              // This is the longest single piece of copy in the section —
+              // on a phone, scale it down past a reasonable length the same
+              // way SectionIntro's subhead does (see _subheadFontSize),
+              // rather than let it alone decide whether the whole section
+              // needs a scroll.
+              fontSize: mobile ? _descriptionFontSize(s.projectDescription) : 16 * scale,
               height: mobile ? 1.4 : 1.6,
               color: kGray,
             ),
@@ -138,6 +143,13 @@ class _ProjectShowcase extends StatelessWidget {
         SizedBox(height: mobile ? 6 : 8 * scale),
         Text(
           'github.com/SamuelRosengarten/code-coach',
+          // This URL's only break points are '/' and '.', and on a phone
+          // width it doesn't fit on one line at any of them — left
+          // unbounded it was wrapping onto three lines (breaking the repo
+          // owner's name across two of them) instead of just staying one
+          // line and truncating cleanly.
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.inter(
             fontSize: mobile ? 12 : 13 * scale,
             fontWeight: FontWeight.w500,
@@ -156,6 +168,14 @@ class _ProjectShowcase extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A description around 150 characters or shorter keeps its full 14px; each
+/// character past that shaves the size down, floored at 11px.
+double _descriptionFontSize(String description) {
+  const referenceLength = 150;
+  final scale = (referenceLength / description.length).clamp(0.78, 1.0);
+  return 14 * scale;
 }
 
 class _Tag extends StatelessWidget {

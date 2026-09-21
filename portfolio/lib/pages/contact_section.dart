@@ -139,6 +139,13 @@ class _ContactCardState extends State<_ContactCard> {
             SizedBox(height: 4 * scale),
             Text(
               widget.value,
+              // Two-column mobile cards leave ~113px for this text — a long
+              // real handle (the LinkedIn slug especially) has almost no
+              // natural break points in that width and was wrapping into 6-7
+              // illegible fragments instead of the couple of clean lines
+              // this caps it to.
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(
                 fontSize: 15 * scale,
                 fontWeight: FontWeight.w500,
