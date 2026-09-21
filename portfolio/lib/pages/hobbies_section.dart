@@ -13,6 +13,13 @@ import '../widgets/leather_background.dart';
 const Color _kLeatherTan = Color(0xFFC99A62);
 const Color _kLeatherThread = Color(0xFFE7D3AE);
 
+/// [_kLeatherTan] reads fine against the near-black dark-mode hide, but
+/// nearly disappears against the pale tan hide in light mode — this picks a
+/// darker brown there instead so the same accent stays legible in both.
+const Color _kLeatherTanOnLight = Color(0xFF6B4322);
+
+Color _leatherAccent(bool dark) => dark ? _kLeatherTan : _kLeatherTanOnLight;
+
 // =============================================================================
 // Entry point — picks wide (diagonal) vs. narrow (stacked) layout.
 // =============================================================================
@@ -517,7 +524,7 @@ class _LeatherContent extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 2,
-                color: _kLeatherTan,
+                color: _leatherAccent(paletteOf(context).dark),
               ),
             ),
           ],
@@ -554,7 +561,7 @@ class _LeatherContent extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
-            color: _kLeatherTan,
+            color: _leatherAccent(paletteOf(context).dark),
           ),
         ),
         const SizedBox(height: 10),
@@ -611,7 +618,7 @@ class _AvatarPlaceholder extends StatelessWidget {
       height: 60,
       child: CustomPaint(
         painter: _DashedCirclePainter(
-          color: _kLeatherTan.withValues(alpha: 0.6),
+          color: _leatherAccent(paletteOf(context).dark).withValues(alpha: 0.6),
         ),
         child: Center(
           child: Icon(
@@ -834,7 +841,9 @@ class _CarouselDot extends StatelessWidget {
       width: active ? 16 : 6,
       height: 6,
       decoration: BoxDecoration(
-        color: active ? _kLeatherTan : paletteOf(context).surface(0.25),
+        color: active
+            ? _leatherAccent(paletteOf(context).dark)
+            : paletteOf(context).surface(0.25),
         borderRadius: BorderRadius.circular(100),
       ),
     );
