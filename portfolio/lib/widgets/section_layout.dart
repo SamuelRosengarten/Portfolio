@@ -3,28 +3,53 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/palette.dart';
 
-/// True on genuinely large desktop viewports — wide *and* tall, not just
-/// wide. `SectionShell` always sizes a section to the *entire* height it's
-/// given (so its background fills the screen behind it), but content sized
-/// only off width breakpoints stays exactly as large on a big external
-/// monitor as it is on a normal laptop, even with hundreds of extra pixels
-/// of vertical room — which is what reads as a large empty gap above and
-/// below the (unchanged) content block. Call sites that already scale for
-/// width check this too, to grow a size tier further when there's actually
-/// room to spare vertically as well.
-bool isRoomyViewport(BuildContext context) {
+/// How much bigger desktop content should render, continuously, for extra
+/// vertical room beyond a normal laptop window. `SectionShell` always sizes
+/// a section to the *entire* height it's given (so its background fills the
+/// screen behind it), but content sized only off width breakpoints stays
+/// exactly as large on a big monitor as it is on a small laptop, even with
+/// hundreds of extra pixels of vertical room — which is what reads as a
+/// large empty gap above and below the (unchanged) content block.
+///
+/// 1.0x at or below [_baseline] (a fairly ordinary laptop window, well
+/// under even a 13" MacBook's height); grows linearly and is capped at
+/// [_maxScale] by the time height reaches roughly double the baseline. A
+/// continuous multiplier rather than one all-or-nothing breakpoint, so it
+/// starts making a real difference on any window taller than a small
+/// laptop's, not just on unusually large external monitors.
+///
+/// Pinned to 1.0 below the desktop width breakpoint: a phone held upright
+/// is often taller than [baseline] on its own, and this was never meant to
+/// scale phone layouts, only desktop ones with real vertical room to
+/// spare — every call site's own width checks (see `_headlineSize`) already
+/// keep phone *font sizes* pinned regardless, but this needs its own guard
+/// since call sites that scale spacing/marquee sizing by it don't
+/// separately check width themselves.
+///
+/// Callers that apply this to something growing past the space it's given
+/// (About's intro block, most notably) pair it with a `FittedBox` safety
+/// net that scales back down if the pick here turns out to be too
+/// optimistic for a particular browser's real font metrics — this is a
+/// best-effort target, not a guarantee of fit on its own.
+double heightScale(BuildContext context) {
   final size = MediaQuery.sizeOf(context);
-  return size.width >= 1300 && size.height >= 950;
+  if (size.width < 900) return 1.0;
+  const baseline = 620.0;
+  const growthRange = 700.0;
+  const maxScale = 1.9;
+  if (size.height <= baseline) return 1.0;
+  final t = ((size.height - baseline) / growthRange).clamp(0.0, 1.0);
+  return 1.0 + t * (maxScale - 1.0);
 }
 
-/// Responsive font size for every [SectionIntro] headline: smaller on phones,
-/// larger on desktop, larger still on a roomy monitor. `MediaQuery`'s width
-/// (not a `LayoutBuilder` constraint) is what's passed in here — see
-/// [SectionIntro.build] below.
-double _headlineSize(double width, bool roomy) {
+/// Responsive font size for every [SectionIntro] headline: smaller on
+/// phones, larger on desktop, and scaled continuously further by [scale] —
+/// see [heightScale]. `MediaQuery`'s width (not a `LayoutBuilder`
+/// constraint) is what's passed in here — see [SectionIntro.build] below.
+double _headlineSize(double width, double scale) {
   if (width < 600) return 30;
   if (width < 900) return 44;
-  return roomy ? 72 : 56;
+  return 56 * scale;
 }
 
 /// Full-bleed band of colour holding one section's content, centred and capped
@@ -61,13 +86,14 @@ class SectionShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    // Widened on a roomy monitor, not just capped: each section's own body
-    // text already caps itself narrower than this for readability (see
+    final scale = heightScale(context);
+    // Widened continuously past 1.0x, not just capped: each section's own
+    // body text already caps itself narrower than this for readability (see
     // SectionIntro's subhead and About's bio), so this outer cap mainly
     // bounds *wide* elements — Projects' showcase image (which grows taller
     // with it, via its aspect ratio) and Contact's card grid — which is
     // exactly what needs the extra room on a screen with plenty to spare.
-    final maxContentWidth = isRoomyViewport(context) ? 1180.0 : 980.0;
+    final maxContentWidth = 980.0 + (scale - 1) * 200;
 
     final content = Center(
       child: ConstrainedBox(
@@ -88,29 +114,45 @@ class SectionShell extends StatelessWidget {
         // internal scroll than expected on a phone-size screen.
         final height = constraints.maxHeight;
 
+        final phone = width < 600;
+
         return Container(
           width: double.infinity,
           color: background,
           constraints: BoxConstraints(minHeight: height, maxHeight: height),
+          // 96, not the much roomier number this used to be — most of the
+          // fix for a section not filling the screen is scaling its content
+          // up (see heightScale), but trimming the fixed padding too claws
+          // back real space unconditionally, on every desktop window rather
+          // than only tall ones.
           padding: EdgeInsets.symmetric(
-            vertical: width < 600 ? 48 : 120,
+            vertical: phone ? 48 : 96,
             horizontal: 24,
           ),
-          // A safety net, not the common case: most sections' content fits
-          // the height above exactly, in which case ConstrainedBox's
-          // minHeight makes this behave just like a plain Center. But a
-          // phone-height screen combined with this section's own padding
-          // can leave less room than its content actually needs (e.g.
-          // Contact's four cards stacked in one column on a narrow phone) —
-          // without this, that content would overflow instead of scrolling.
           child: !scrollable
               ? content
-              : SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: height),
-                    child: content,
-                  ),
-                ),
+              // A safety net, not the common case: most sections' content
+              // fits the height above exactly, in which case
+              // ConstrainedBox's minHeight makes this behave just like a
+              // plain Center.
+              : phone
+                  // On a short phone, scrolling (not shrinking) is what
+                  // keeps text legible — e.g. Contact's four cards stacked
+                  // in one column on a narrow phone.
+                  ? SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: height),
+                        child: content,
+                      ),
+                    )
+                  // On desktop, heightScale's own pick can occasionally run
+                  // a section's content past the room a shorter window
+                  // actually has — scaling the whole block back down
+                  // uniformly here is what guarantees that never needs an
+                  // internal scroll, which would cut against the "one
+                  // section, one screen" point of the single-section nav.
+                  // A no-op whenever content already fits, the common case.
+                  : FittedBox(fit: BoxFit.scaleDown, child: content),
         );
       },
     );
@@ -135,7 +177,7 @@ class SectionIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final roomy = isRoomyViewport(context);
+    final scale = heightScale(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,20 +195,20 @@ class SectionIntro extends StatelessWidget {
         Text(
           headline,
           style: GoogleFonts.inter(
-            fontSize: _headlineSize(width, roomy),
+            fontSize: _headlineSize(width, scale),
             fontWeight: FontWeight.w700,
             letterSpacing: -1.4,
             height: 1.08,
             color: dark ? Colors.white : kInk,
           ),
         ),
-        SizedBox(height: width < 600 ? 14 : (roomy ? 28 : 20)),
+        SizedBox(height: width < 600 ? 14 : 20 * scale),
         ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: roomy ? 720 : 620),
+          constraints: BoxConstraints(maxWidth: 620 * (width < 600 ? 1 : scale)),
           child: Text(
             subhead,
             style: GoogleFonts.inter(
-              fontSize: width < 600 ? 15 : (roomy ? 23 : 20),
+              fontSize: width < 600 ? 15 : 20 * scale,
               height: width < 600 ? 1.45 : 1.55,
               letterSpacing: -0.2,
               color: kGray,

@@ -30,7 +30,7 @@ class ContactSection extends StatelessWidget {
             subhead: s.contactSubhead,
             dark: dark,
           ),
-          SizedBox(height: isRoomyViewport(context) ? 48 : 32),
+          SizedBox(height: 32 * heightScale(context)),
           const _ContactGrid(),
         ],
       ),
@@ -110,13 +110,13 @@ class _ContactCardState extends State<_ContactCard> {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    final roomy = isRoomyViewport(context);
+    final scale = heightScale(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: EdgeInsets.all(roomy ? 32 : 24),
+        padding: EdgeInsets.all(24 * scale),
         decoration: BoxDecoration(
           color: palette.surface(_hovering ? 0.08 : 0.05),
           borderRadius: BorderRadius.circular(20),
@@ -126,21 +126,21 @@ class _ContactCardState extends State<_ContactCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(widget.icon, size: roomy ? 28 : 22, color: kBlue),
-            SizedBox(height: roomy ? 22 : 16),
+            Icon(widget.icon, size: 22 * scale, color: kBlue),
+            SizedBox(height: 16 * scale),
             Text(
               widget.label,
               style: GoogleFonts.inter(
-                fontSize: roomy ? 15 : 13,
+                fontSize: 13 * scale,
                 fontWeight: FontWeight.w500,
                 color: kGray,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4 * scale),
             Text(
               widget.value,
               style: GoogleFonts.inter(
-                fontSize: roomy ? 18 : 15,
+                fontSize: 15 * scale,
                 fontWeight: FontWeight.w500,
                 color: palette.ink,
               ),

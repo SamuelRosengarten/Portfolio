@@ -47,16 +47,32 @@ class _AboutBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const _AboutIntro(),
-              SizedBox(height: isRoomyViewport(context) ? 72 : 48),
-              const Center(child: _LanguagePanel()),
-            ],
+      builder: (context, constraints) => SizedBox(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        child: FittedBox(
+          // heightScale sizes the intro/bio/marquee for how much room a
+          // window *usually* has, but it's a best-effort estimate — actual
+          // content height also depends on things like exactly how the bio
+          // paragraph wraps, which varies with the browser's real font
+          // metrics in ways that are impractical to predict exactly. This
+          // is the hard guarantee: scale the whole block down uniformly,
+          // together, on the rare window too short for heightScale's pick
+          // to actually fit — never needing an internal scroll here, which
+          // would undercut the "one section, one screen" point of the
+          // single-section nav. A no-op whenever it already fits, which is
+          // the common case.
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            width: constraints.maxWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _AboutIntro(),
+                SizedBox(height: 48 * heightScale(context)),
+                const Center(child: _LanguagePanel()),
+              ],
+            ),
           ),
         ),
       ),
@@ -69,13 +85,13 @@ class _AboutBody extends StatelessWidget {
 /// from a fixed-height offscreen canvas rather than reflowing like normal
 /// text — so at the old fixed 70px size, the headline ran wider than an
 /// iPhone's screen and got sampled straight past the edge of that canvas
-/// instead of wrapping or shrinking to fit. Bigger still on a roomy monitor
-/// — see [isRoomyViewport].
-double _particleHeadlineSize(double width, bool roomy) {
+/// instead of wrapping or shrinking to fit. Scaled continuously further by
+/// [scale] on a taller window — see [heightScale].
+double _particleHeadlineSize(double width, double scale) {
   if (width < 400) return 32;
   if (width < 600) return 40;
   if (width < 900) return 56;
-  return roomy ? 92 : 70;
+  return 70 * scale;
 }
 
 /// This section's own take on [SectionIntro]: same eyebrow-and-subhead frame,
@@ -90,8 +106,8 @@ class _AboutIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final roomy = isRoomyViewport(context);
-    final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width, roomy);
+    final scale = heightScale(context);
+    final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width, scale);
     final ink = paletteOf(context).ink;
     final s = stringsOf(context);
 
@@ -111,14 +127,14 @@ class _AboutIntro extends StatelessWidget {
             child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
           ),
         ),
-        SizedBox(height: roomy ? 22 : 16),
+        SizedBox(height: 16 * scale),
         ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: roomy ? 680 : 560),
+          constraints: BoxConstraints(maxWidth: 560 * scale),
           child: Text(
             s.aboutBio,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              fontSize: roomy ? 20 : 17,
+              fontSize: 17 * scale,
               height: 1.6,
               letterSpacing: -0.2,
               color: ink.withValues(alpha: 0.75),
@@ -255,11 +271,12 @@ class _LanguagePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    final scale = heightScale(context);
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 820),
+      constraints: BoxConstraints(maxWidth: 820 * scale),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 8),
+        padding: EdgeInsets.symmetric(vertical: 28 * scale, horizontal: 8),
         decoration: BoxDecoration(
           color: palette.surface(0.035),
           borderRadius: BorderRadius.circular(28),
@@ -271,13 +288,13 @@ class _LanguagePanel extends StatelessWidget {
             Text(
               stringsOf(context).languagesAndTools,
               style: GoogleFonts.inter(
-                fontSize: 12,
+                fontSize: 12 * scale,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 1.4,
                 color: kBlue,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20 * scale),
             const _LanguageMarqueeGate(),
           ],
         ),
@@ -290,15 +307,15 @@ class _LanguagePanel extends StatelessWidget {
 /// than letting it render immediately with whichever ones happen to be
 /// ready — see [precacheLanguageIcons]'s doc comment for why a half-filled
 /// row is worse than a brief blank one. The reserved height matches
-/// [_LanguageMarquee]'s own real height (three 68px rows plus two 18px
-/// gaps) so nothing shifts when the marquee finally appears.
+/// [_LanguageMarquee]'s own real height (three scaled rows plus two scaled
+/// gaps — see [_LanguageMarqueeRow]) so nothing shifts when the marquee
+/// finally appears.
 class _LanguageMarqueeGate extends StatelessWidget {
   const _LanguageMarqueeGate();
 
-  static const double _marqueeHeight = 68 * 3 + 18 * 2;
-
   @override
   Widget build(BuildContext context) {
+    final scale = heightScale(context);
     return FutureBuilder<void>(
       future: precacheLanguageIcons(),
       builder: (context, snapshot) {
@@ -311,7 +328,7 @@ class _LanguageMarqueeGate extends StatelessWidget {
           duration: const Duration(milliseconds: 400),
           child: ready
               ? const _LanguageMarquee()
-              : const SizedBox(height: _marqueeHeight),
+              : SizedBox(height: (68 * 3 + 18 * 2) * scale),
         );
       },
     );
@@ -342,15 +359,19 @@ class _LanguageMarquee extends StatelessWidget {
           _languages[(j + offset) % _languages.length],
       ];
     });
+    final scale = heightScale(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < rows.length; i++) ...[
-          if (i > 0) const SizedBox(height: 18),
+          if (i > 0) SizedBox(height: 18 * scale),
           _LanguageMarqueeRow(
             languages: rows[i],
-            pixelsPerSecond: _rowSpeeds[i],
+            // Scaled up with everything else, so the strip's motion doesn't
+            // visibly slow down relative to the now-bigger chips.
+            pixelsPerSecond: _rowSpeeds[i] * scale,
+            scale: scale,
           ),
         ],
       ],
@@ -364,10 +385,12 @@ class _LanguageMarqueeRow extends StatefulWidget {
   const _LanguageMarqueeRow({
     required this.languages,
     required this.pixelsPerSecond,
+    required this.scale,
   });
 
   final List<_Language> languages;
   final double pixelsPerSecond;
+  final double scale;
 
   @override
   State<_LanguageMarqueeRow> createState() => _LanguageMarqueeRowState();
@@ -375,7 +398,7 @@ class _LanguageMarqueeRow extends StatefulWidget {
 
 class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
     with SingleTickerProviderStateMixin {
-  static const double _chipWidth = 172;
+  double get _chipWidth => 172 * widget.scale;
 
   // Driven by hand with a Transform rather than a ScrollController: jumpTo
   // on a controller still runs the platform's ballistic scroll physics
@@ -431,7 +454,7 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
     final items = [...widget.languages, ...widget.languages];
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 780),
+      constraints: BoxConstraints(maxWidth: 780 * widget.scale),
       child: ShaderMask(
         blendMode: BlendMode.dstIn,
         shaderCallback: (bounds) => const LinearGradient(
@@ -446,7 +469,7 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
           stops: [0.0, 0.1, 0.9, 1.0],
         ).createShader(bounds),
         child: SizedBox(
-          height: 68,
+          height: 68 * widget.scale,
           child: ClipRect(
             // The strip of chips is far wider than the viewport by design —
             // OverflowBox lets it lay out at its full natural width instead
@@ -469,7 +492,7 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
                     for (final language in items)
                       SizedBox(
                         width: _chipWidth,
-                        child: _LanguageChip(language),
+                        child: _LanguageChip(language, scale: widget.scale),
                       ),
                   ],
                 ),
@@ -483,16 +506,17 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
 }
 
 class _LanguageChip extends StatelessWidget {
-  const _LanguageChip(this.language);
+  const _LanguageChip(this.language, {required this.scale});
 
   final _Language language;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      margin: EdgeInsets.symmetric(horizontal: 8 * scale),
+      padding: EdgeInsets.symmetric(horizontal: 18 * scale, vertical: 12 * scale),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -512,15 +536,15 @@ class _LanguageChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Brand(language.icon, size: 20),
-          const SizedBox(width: 10),
+          Brand(language.icon, size: 20 * scale),
+          SizedBox(width: 10 * scale),
           Flexible(
             child: Text(
               language.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(
-                fontSize: 14,
+                fontSize: 14 * scale,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.1,
                 color: palette.ink.withValues(alpha: 0.88),
