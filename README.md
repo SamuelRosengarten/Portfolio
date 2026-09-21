@@ -1,7 +1,7 @@
 # Deploying to GitHub Pages
 
 This project is served from the `gh-pages` branch at:
-`https://sam-stud.github.io/Portfolio/`
+[`https://sam-stud.github.io/Portfolio/`](https://samuelrosengarten.github.io/Portfolio/)
 
 The `gh-pages` branch only contains the compiled web build (`index.html`, `main.dart.js`, etc.) — it is **not** kept in sync automatically with `main` or `dev`. Every time you want the live site to reflect your latest code, you need to rebuild and redeploy manually using the steps below.
 
