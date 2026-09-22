@@ -24,7 +24,7 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-      - run: flutter build web --release --base-href "/Portfolio/" --dart-define=FLUTTER_WEB_CANVASKIT_URL=canvaskit/
+      - run: flutter build web --release --base-href "/Portfolio/"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: portfolio/build/web
