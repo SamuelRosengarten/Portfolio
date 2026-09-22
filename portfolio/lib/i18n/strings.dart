@@ -51,12 +51,12 @@ class Strings {
   String get projectEyebrow => _fr ? 'Projet' : 'Work';
 
   String get projectSubhead => _fr
-      ? "Une extension VS Code encore à l'état de concept — née du tutorat "
-            "que je fais auprès d'autres étudiants et de l'envie d'un outil "
-            "qui repère vos erreurs à votre place."
-      : 'A VS Code extension concept, still in design — born out of '
-            'tutoring other students and wanting a tool that catches your '
-            'mistakes for you.';
+      ? "Une extension VS Code maintenant publiée sur le Marketplace — née "
+            "du tutorat que je fais auprès d'autres étudiants et de l'envie "
+            "d'un outil qui repère vos erreurs à votre place."
+      : 'A VS Code extension, now published on the Marketplace — born out '
+            'of tutoring other students and wanting a tool that catches '
+            'your mistakes for you.';
 
   String get projectDescription => _fr
       ? "Une extension VS Code qui transforme les erreurs que vous faites "
@@ -71,9 +71,11 @@ class Strings {
 
   String get tagVsCodeExtension =>
       _fr ? 'Extension VS Code' : 'VS Code Extension';
-  String get tagDesignPhase => _fr ? 'Phase de conception' : 'Design phase';
+  String get tagPublished => _fr ? 'Publiée' : 'Published';
 
-  String get inDevelopment => _fr ? 'En développement' : 'In development';
+  String get publishedOnMarketplace => _fr
+      ? 'Publiée sur le VS Code Marketplace'
+      : 'Published on the VS Code Marketplace';
 
   // Contact ------------------------------------------------------------------
 
