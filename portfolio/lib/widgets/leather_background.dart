@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/app_language.dart';
+import '../theme/motion_controller.dart';
 
 /// Animated backdrop for the craft half of the hobbies section: a few warm
 /// embers glowing over dark hide, two hand-stitched seams wandering across
@@ -52,12 +53,25 @@ class _LeatherBackgroundState extends State<LeatherBackground>
   Offset _pointer = Offset.zero;
   Offset _pointerTarget = Offset.zero;
   Offset _pointerVelocity = Offset.zero;
+  bool _stillFrame = false;
 
   @override
   void initState() {
     super.initState();
     _createGrain();
-    _ticker.start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _stillFrame = !motionEnabledOf(context);
+    if (_stillFrame && _ticker.isActive) {
+      _ticker.stop();
+      _field.value = _Field.zero;
+    } else if (!_stillFrame && !_ticker.isActive) {
+      _lastTick = 0;
+      _ticker.start();
+    }
   }
 
   @override
@@ -124,7 +138,7 @@ class _LeatherBackgroundState extends State<LeatherBackground>
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: false,
-      onHover: _onHover,
+      onHover: _stillFrame ? null : _onHover,
       onExit: (_) => _pointerTarget = Offset.zero,
       child: ClipRect(
         child: Stack(

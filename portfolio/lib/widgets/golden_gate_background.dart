@@ -7,14 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/motion_controller.dart';
+
 /// Animated "Golden Gate dark" backdrop: gradient orbs screened over near-black,
 /// seen through dark frosted glass, dusted with grain, vignetted top and bottom,
 /// and drifting with code snippets. Ported from the React/Motion `GoldenGateDark`
 /// component — the orb and snippet tables below are the same data, and the mouse
 /// parallax uses the same spring.
 ///
-/// Sizes itself to [child], which paints on top of the animation. Honours the
-/// platform's reduced-motion setting by holding the first frame still.
+/// Sizes itself to [child], which paints on top of the animation. Animates
+/// by default; holds the first frame still when [MotionController] (see
+/// `theme/motion_controller.dart`) is switched off from the site header.
 class GoldenGateBackground extends StatefulWidget {
   const GoldenGateBackground({
     super.key,
@@ -50,12 +53,25 @@ class _GoldenGateBackgroundState extends State<GoldenGateBackground>
   Offset _pointer = Offset.zero;
   Offset _pointerTarget = Offset.zero;
   Offset _pointerVelocity = Offset.zero;
+  bool _stillFrame = false;
 
   @override
   void initState() {
     super.initState();
     _createGrain();
-    _ticker.start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _stillFrame = !motionEnabledOf(context);
+    if (_stillFrame && _ticker.isActive) {
+      _ticker.stop();
+      _field.value = _Field.zero;
+    } else if (!_stillFrame && !_ticker.isActive) {
+      _lastTick = 0;
+      _ticker.start();
+    }
   }
 
   @override
@@ -127,7 +143,7 @@ class _GoldenGateBackgroundState extends State<GoldenGateBackground>
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: false,
-      onHover: _onHover,
+      onHover: _stillFrame ? null : _onHover,
       onExit: (_) => _pointerTarget = Offset.zero,
       child: ClipRect(
         child: Stack(

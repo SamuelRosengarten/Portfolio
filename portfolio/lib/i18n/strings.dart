@@ -24,6 +24,10 @@ class Strings {
       _fr ? 'Passer au mode sombre' : 'Switch to dark mode';
   String get switchToFrench => 'Passer au français';
   String get switchToEnglish => 'Switch to English';
+  String get pauseBackgroundAnimations =>
+      _fr ? 'Mettre les animations en pause' : 'Pause background animations';
+  String get resumeBackgroundAnimations =>
+      _fr ? 'Reprendre les animations' : 'Resume background animations';
 
   // About ------------------------------------------------------------------
 

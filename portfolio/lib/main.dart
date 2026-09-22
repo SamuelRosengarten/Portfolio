@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:portfolio/i18n/app_language.dart';
 import 'package:portfolio/pages/about_section.dart';
 import 'package:portfolio/pages/home.dart';
+import 'package:portfolio/theme/motion_controller.dart';
 import 'package:portfolio/theme/theme_controller.dart';
 
 void main() {
@@ -36,11 +37,13 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _controller = ThemeController();
   final _localeController = LocaleController();
+  final _motionController = MotionController();
 
   @override
   void dispose() {
     _controller.dispose();
     _localeController.dispose();
+    _motionController.dispose();
     super.dispose();
   }
 
@@ -50,19 +53,22 @@ class _MyAppState extends State<MyApp> {
       controller: _controller,
       child: AppLocale(
         controller: _localeController,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) => MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Samuel Rosengarten',
-            theme: ThemeData(
-              brightness: _controller.isDark ? Brightness.dark : Brightness.light,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple,
+        child: AppMotion(
+          controller: _motionController,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) => MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'Samuel Rosengarten',
+              theme: ThemeData(
                 brightness: _controller.isDark ? Brightness.dark : Brightness.light,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.deepPurple,
+                  brightness: _controller.isDark ? Brightness.dark : Brightness.light,
+                ),
               ),
+              home: const Home(),
             ),
-            home: const Home(),
           ),
         ),
       ),

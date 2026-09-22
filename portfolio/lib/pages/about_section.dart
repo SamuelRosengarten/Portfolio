@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:icons_plus/src/brand.dart';
 
 import '../i18n/strings.dart';
+import '../theme/motion_controller.dart';
 import '../theme/palette.dart';
 import '../widgets/golden_gate_background.dart';
 import '../widgets/section_layout.dart';
@@ -414,7 +415,17 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
   void initState() {
     super.initState();
     _ticker = createTicker(_onTick);
-    _ticker.start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!motionEnabledOf(context)) {
+      _ticker.stop();
+    } else if (!_ticker.isActive) {
+      _lastElapsed = Duration.zero;
+      _ticker.start();
+    }
   }
 
   @override
