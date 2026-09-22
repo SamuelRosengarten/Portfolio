@@ -52,25 +52,12 @@ class _LeatherBackgroundState extends State<LeatherBackground>
   Offset _pointer = Offset.zero;
   Offset _pointerTarget = Offset.zero;
   Offset _pointerVelocity = Offset.zero;
-  bool _stillFrame = false;
 
   @override
   void initState() {
     super.initState();
     _createGrain();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _stillFrame = MediaQuery.disableAnimationsOf(context);
-    if (_stillFrame && _ticker.isActive) {
-      _ticker.stop();
-      _field.value = _Field.zero;
-    } else if (!_stillFrame && !_ticker.isActive) {
-      _lastTick = 0;
-      _ticker.start();
-    }
+    _ticker.start();
   }
 
   @override
@@ -137,7 +124,7 @@ class _LeatherBackgroundState extends State<LeatherBackground>
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: false,
-      onHover: _stillFrame ? null : _onHover,
+      onHover: _onHover,
       onExit: (_) => _pointerTarget = Offset.zero,
       child: ClipRect(
         child: Stack(

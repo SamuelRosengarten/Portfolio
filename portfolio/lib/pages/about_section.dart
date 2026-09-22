@@ -407,7 +407,6 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
   final _offset = ValueNotifier<double>(0);
   late final Ticker _ticker;
   Duration _lastElapsed = Duration.zero;
-  bool _reduceMotion = false;
 
   double get _loopWidth => _chipWidth * widget.languages.length;
 
@@ -415,18 +414,7 @@ class _LanguageMarqueeRowState extends State<_LanguageMarqueeRow>
   void initState() {
     super.initState();
     _ticker = createTicker(_onTick);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduceMotion = MediaQuery.disableAnimationsOf(context);
-    if (_reduceMotion) {
-      _ticker.stop();
-    } else if (!_ticker.isActive) {
-      _lastElapsed = Duration.zero;
-      _ticker.start();
-    }
+    _ticker.start();
   }
 
   @override
