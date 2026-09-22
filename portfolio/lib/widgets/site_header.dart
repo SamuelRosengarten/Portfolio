@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/app_language.dart';
 import '../i18n/strings.dart';
+import '../theme/motion_controller.dart';
 import '../theme/palette.dart';
 import '../theme/theme_controller.dart';
 
@@ -71,22 +72,26 @@ class SiteHeader extends StatelessWidget {
           // space in the first place.
           child: Row(
             children: [
-              // 96px, matching the trailing slot's two-button width, so the
-              // centered nav row (which centers itself within whatever the
-              // Expanded gets) lands in the true middle of the header
+              // 144px, matching the trailing slot's three-button width, so
+              // the centered nav row (which centers itself within whatever
+              // the Expanded gets) lands in the true middle of the header
               // instead of drifting toward whichever side is narrower.
               SizedBox(
-                width: 96,
+                width: 144,
                 child: mobile ? const Center(child: _MenuButton()) : null,
               ),
               Expanded(
                 child: mobile ? const SizedBox.shrink() : _DesktopNav(onSelected: onSelected),
               ),
               const SizedBox(
-                width: 96,
+                width: 144,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [_LanguageToggleButton(), _ThemeToggleButton()],
+                  children: [
+                    _MotionToggleButton(),
+                    _LanguageToggleButton(),
+                    _ThemeToggleButton(),
+                  ],
                 ),
               ),
             ],
@@ -108,6 +113,36 @@ class _MenuButton extends StatelessWidget {
       icon: Icon(Icons.menu, color: paletteOf(context).ink.withValues(alpha: 0.87)),
       tooltip: stringsOf(context).openNavigation,
       onPressed: () => Scaffold.of(context).openDrawer(),
+    );
+  }
+}
+
+/// Toggles [MotionController.animationsEnabled] — the decorative
+/// backgrounds animate by default (see `motion_controller.dart` for why that
+/// no longer follows the browser's `prefers-reduced-motion` setting), and
+/// this is the explicit opt-out for a visitor who wants them still. Follows
+/// the same "icon shows the mode a tap switches *to*" convention as
+/// [_ThemeToggleButton].
+class _MotionToggleButton extends StatelessWidget {
+  const _MotionToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = AppMotion.of(context);
+    final palette = paletteOf(context);
+    final s = stringsOf(context);
+    return IconButton(
+      icon: Icon(
+        controller.animationsEnabled
+            ? Icons.motion_photos_off_outlined
+            : Icons.motion_photos_on_outlined,
+        color: palette.ink.withValues(alpha: 0.87),
+        size: 20,
+      ),
+      tooltip: controller.animationsEnabled
+          ? s.pauseBackgroundAnimations
+          : s.resumeBackgroundAnimations,
+      onPressed: controller.toggle,
     );
   }
 }

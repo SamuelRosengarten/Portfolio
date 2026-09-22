@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/app_language.dart';
+import '../theme/motion_controller.dart';
 
 /// Animated backdrop for the teaching/goals half of the hobbies section: a
 /// slowly breathing knowledge graph — nodes wandering gently, connected by
@@ -17,8 +18,9 @@ import '../i18n/app_language.dart';
 ///
 /// Deliberately a different technique from [GoldenGateBackground]: no
 /// screen-blended orbs or backdrop blur, just thin lines, small glows and
-/// handwritten chalk phrases. Sizes itself to fill its parent and honours
-/// the platform's reduced-motion setting by holding the first frame still.
+/// handwritten chalk phrases. Sizes itself to fill its parent, animates by
+/// default, and holds the first frame still when [MotionController] is
+/// switched off from the site header.
 class KnowledgeGraphBackground extends StatefulWidget {
   const KnowledgeGraphBackground({
     super.key,
@@ -62,12 +64,25 @@ class _KnowledgeGraphBackgroundState extends State<KnowledgeGraphBackground>
   Offset _pointer = Offset.zero;
   Offset _pointerTarget = Offset.zero;
   Offset _pointerVelocity = Offset.zero;
+  bool _stillFrame = false;
 
   @override
   void initState() {
     super.initState();
     _createDust();
-    _ticker.start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _stillFrame = !motionEnabledOf(context);
+    if (_stillFrame && _ticker.isActive) {
+      _ticker.stop();
+      _field.value = _Field.zero;
+    } else if (!_stillFrame && !_ticker.isActive) {
+      _lastTick = 0;
+      _ticker.start();
+    }
   }
 
   @override
@@ -153,7 +168,7 @@ class _KnowledgeGraphBackgroundState extends State<KnowledgeGraphBackground>
     // top of this background (the section's text, the tutoring card, etc).
     return MouseRegion(
       opaque: false,
-      onHover: _onHover,
+      onHover: _stillFrame ? null : _onHover,
       onExit: (_) => _pointerTarget = Offset.zero,
       child: ClipRect(
         child: Stack(
