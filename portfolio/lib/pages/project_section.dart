@@ -94,13 +94,13 @@ class _ProjectShowcase extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.construction_outlined,
+                      Icons.rocket_launch_outlined,
                       size: 40,
                       color: palette.ink.withValues(alpha: 0.35),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      s.inDevelopment,
+                      s.publishedOnMarketplace,
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -142,6 +142,19 @@ class _ProjectShowcase extends StatelessWidget {
         ),
         SizedBox(height: mobile ? 6 : 8 * scale),
         Text(
+          'marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
+          // Same single-line-then-ellipsis treatment as the repo link below:
+          // this URL has no break point that fits a phone width either.
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: mobile ? 12 : 13 * scale,
+            fontWeight: FontWeight.w500,
+            color: kBlue,
+          ),
+        ),
+        SizedBox(height: mobile ? 2 : 4 * scale),
+        Text(
           'github.com/SamuelRosengarten/code-coach',
           // This URL's only break points are '/' and '.', and on a phone
           // width it doesn't fit on one line at any of them — left
@@ -153,7 +166,7 @@ class _ProjectShowcase extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: mobile ? 12 : 13 * scale,
             fontWeight: FontWeight.w500,
-            color: kBlue,
+            color: kGray,
           ),
         ),
         SizedBox(height: mobile ? 14 : 20 * scale),
@@ -162,7 +175,7 @@ class _ProjectShowcase extends StatelessWidget {
           runSpacing: 10,
           children: [
             _Tag(s.tagVsCodeExtension, palette: palette),
-            _Tag(s.tagDesignPhase, palette: palette),
+            _Tag(s.tagPublished, palette: palette),
           ],
         ),
       ],
