@@ -1,11 +1,11 @@
 {
-    "name": "portfolio",
-    "short_name": "portfolio",
+    "name": "Samuel Rosengarten — Portfolio",
+    "short_name": "Samuel Rosengarten",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#000000",
+    "theme_color": "#2997FF",
+    "description": "Samuel Rosengarten's portfolio — a computer programming student at Cégep Édouard-Montpetit, building software after a background in welding and mechanics.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
