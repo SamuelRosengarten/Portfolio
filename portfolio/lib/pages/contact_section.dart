@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
@@ -57,20 +58,23 @@ class _ContactGrid extends StatelessWidget {
         return 1;
       },
       children: [
-        const _ContactCard(
+        _ContactCard(
           icon: Icons.mail_outline_rounded,
           label: 'Email',
           value: 'samrosengarten2@pm.me',
+          url: Uri(scheme: 'mailto', path: 'samrosengarten2@pm.me'),
         ),
-        const _ContactCard(
+        _ContactCard(
           icon: Icons.code_rounded,
           label: 'GitHub',
           value: 'github.com/SamuelRosengarten',
+          url: Uri.parse('https://github.com/SamuelRosengarten'),
         ),
-        const _ContactCard(
+        _ContactCard(
           icon: Icons.work_outline_rounded,
           label: 'LinkedIn',
           value: 'linkedin.com/in/samuel-rosengarten-63b932404',
+          url: Uri.parse('https://linkedin.com/in/samuel-rosengarten-63b932404'),
         ),
         _ContactCard(
           icon: Icons.place_outlined,
@@ -87,11 +91,17 @@ class _ContactCard extends StatefulWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.url,
   });
 
   final IconData icon;
   final String label;
   final String value;
+
+  /// Where tapping this card should go — `mailto:` for Email, the profile
+  /// link for GitHub/LinkedIn. Null for cards (like Location) that are just
+  /// informational, which stay unclickable.
+  final Uri? url;
 
   @override
   State<_ContactCard> createState() => _ContactCardState();
@@ -111,50 +121,54 @@ class _ContactCardState extends State<_ContactCard> {
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     final scale = heightScale(context);
+    final card = AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: EdgeInsets.all(24 * scale),
+      decoration: BoxDecoration(
+        color: palette.surface(_hovering ? 0.08 : 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: palette.surface(_hovering ? 0.2 : 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(widget.icon, size: 22 * scale, color: kBlue),
+          SizedBox(height: 16 * scale),
+          Text(
+            widget.label,
+            style: GoogleFonts.inter(
+              fontSize: 13 * scale,
+              fontWeight: FontWeight.w500,
+              color: kGray,
+            ),
+          ),
+          SizedBox(height: 4 * scale),
+          Text(
+            widget.value,
+            // Two-column mobile cards leave ~113px for this text — a long
+            // real handle (the LinkedIn slug especially) has almost no
+            // natural break points in that width and was wrapping into 6-7
+            // illegible fragments instead of the couple of clean lines
+            // this caps it to.
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 15 * scale,
+              fontWeight: FontWeight.w500,
+              color: palette.ink,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final url = widget.url;
     return MouseRegion(
+      cursor: url == null ? MouseCursor.defer : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: EdgeInsets.all(24 * scale),
-        decoration: BoxDecoration(
-          color: palette.surface(_hovering ? 0.08 : 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: palette.surface(_hovering ? 0.2 : 0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(widget.icon, size: 22 * scale, color: kBlue),
-            SizedBox(height: 16 * scale),
-            Text(
-              widget.label,
-              style: GoogleFonts.inter(
-                fontSize: 13 * scale,
-                fontWeight: FontWeight.w500,
-                color: kGray,
-              ),
-            ),
-            SizedBox(height: 4 * scale),
-            Text(
-              widget.value,
-              // Two-column mobile cards leave ~113px for this text — a long
-              // real handle (the LinkedIn slug especially) has almost no
-              // natural break points in that width and was wrapping into 6-7
-              // illegible fragments instead of the couple of clean lines
-              // this caps it to.
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: 15 * scale,
-                fontWeight: FontWeight.w500,
-                color: palette.ink,
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: url == null ? card : GestureDetector(onTap: () => launchUrl(url), child: card),
     );
   }
 }
