@@ -445,7 +445,9 @@ Offset _pointAtFraction(List<Offset> points, double t) {
   var travelled = t.clamp(0.0, 1.0) * total;
   for (var i = 0; i < lengths.length; i++) {
     if (travelled <= lengths[i] || i == lengths.length - 1) {
-      final segT = lengths[i] == 0 ? 0.0 : (travelled / lengths[i]).clamp(0.0, 1.0);
+      final segT = lengths[i] == 0
+          ? 0.0
+          : (travelled / lengths[i]).clamp(0.0, 1.0);
       return Offset.lerp(points[i], points[i + 1], segT)!;
     }
     travelled -= lengths[i];
@@ -503,10 +505,7 @@ class _HideFieldPainter extends CustomPainter {
     final radius = ember.size / 2 * scale;
 
     final center =
-        Offset(
-          size.width * ember.x / 100,
-          size.height * ember.y / 100,
-        ) +
+        Offset(size.width * ember.x / 100, size.height * ember.y / 100) +
         Offset(
           _keyframes(const [0, 10, -6, 8, 0], drift),
           _keyframes(const [0, -14, 8, -10, 0], (drift + 0.3) % 1),
@@ -528,8 +527,10 @@ class _HideFieldPainter extends CustomPainter {
       radius,
       Paint()
         ..blendMode = palette.emberBlendMode
-        ..shader = RadialGradient(colors: stops, stops: const [0, 0.55, 1])
-            .createShader(Rect.fromCircle(center: center, radius: radius))
+        ..shader = RadialGradient(
+          colors: stops,
+          stops: const [0, 0.55, 1],
+        ).createShader(Rect.fromCircle(center: center, radius: radius))
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, ember.size * 0.12),
     );
   }
@@ -672,7 +673,14 @@ class _Label {
 }
 
 const List<_Label> _labels = [
-  _Label(text: 'saddle stitch', x: 5, y: 8, delay: 0, duration: 19, strength: 0.02),
+  _Label(
+    text: 'saddle stitch',
+    x: 5,
+    y: 8,
+    delay: 0,
+    duration: 19,
+    strength: 0.02,
+  ),
   _Label(
     text: '8 stitches / inch',
     x: 64,
@@ -724,7 +732,14 @@ const List<_Label> _labels = [
     strength: 0.03,
     mono: true,
   ),
-  _Label(text: 'oil, then wax', x: 30, y: 96, delay: 1.9, duration: 24, strength: 0.02),
+  _Label(
+    text: 'oil, then wax',
+    x: 30,
+    y: 96,
+    delay: 1.9,
+    duration: 24,
+    strength: 0.02,
+  ),
 ];
 
 /// French leatherworking terms for each [_Label.text] above, keyed by the
@@ -745,7 +760,11 @@ String _labelText(AppLanguage lang, String text) =>
     lang == AppLanguage.fr ? (_labelTranslationsFr[text] ?? text) : text;
 
 class _LabelLayer extends StatelessWidget {
-  const _LabelLayer({required this.field, required this.palette, required this.lang});
+  const _LabelLayer({
+    required this.field,
+    required this.palette,
+    required this.lang,
+  });
 
   final _Field field;
   final _LeatherPalette palette;
@@ -788,8 +807,7 @@ class _LabelLayer extends StatelessWidget {
 
     return Positioned(
       left:
-          size.width * label.x / 100 +
-          field.pointer.dx * label.strength * 140,
+          size.width * label.x / 100 + field.pointer.dx * label.strength * 140,
       top:
           size.height * label.y / 100 +
           drift +

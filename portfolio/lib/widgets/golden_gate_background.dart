@@ -415,42 +415,41 @@ class _GoldenGatePalette {
   final Color codeString;
   final Color codeComment;
 
-  static _GoldenGatePalette get dark =>
-      _GoldenGatePalette(
-        baseGradient: _baseGradientDark,
-        glassFilter: _glassFilterDark,
-        glassPaneTint: const Color(0x59060810),
-        orbBlendMode: BlendMode.screen,
-        orbOpacityScale: 1,
-        vignetteShadow: const Color(0x8004060C),
-        vignetteClear: const Color(0x0004060C),
-        codeInk: const Color(0xA6D2B99B), // rgba(210,185,155,0.65)
-        codeKeyword: const Color(0xFFFF6D3A),
-        codeString: const Color(0xFFFFB830),
-        codeComment: const Color(0xB2B4823C), // rgba(180,130,60,0.7)
-      );
+  static _GoldenGatePalette get dark => _GoldenGatePalette(
+    baseGradient: _baseGradientDark,
+    glassFilter: _glassFilterDark,
+    glassPaneTint: const Color(0x59060810),
+    orbBlendMode: BlendMode.screen,
+    orbOpacityScale: 1,
+    vignetteShadow: const Color(0x8004060C),
+    vignetteClear: const Color(0x0004060C),
+    codeInk: const Color(0xA6D2B99B), // rgba(210,185,155,0.65)
+    codeKeyword: const Color(0xFFFF6D3A),
+    codeString: const Color(0xFFFFB830),
+    codeComment: const Color(0xB2B4823C), // rgba(180,130,60,0.7)
+  );
 
-  static _GoldenGatePalette get light =>
-      _GoldenGatePalette(
-        baseGradient: _baseGradientLight,
-        glassFilter: _glassFilterLight,
-        glassPaneTint: const Color(0x0AFFFFFF),
-        orbBlendMode: BlendMode.srcOver,
-        // Much lower than dark mode's 1: on a light backdrop these
-        // differently-hued orbs are ordinary alpha-blended paint, not
-        // screened light, so keeping them at dark mode's strength read as
-        // muddy smears rather than a soft glow. This keeps them present as
-        // a quiet accent without fighting the copy for attention.
-        orbOpacityScale: 0.22,
-        vignetteShadow: const Color(0x1F1A1208),
-        vignetteClear: const Color(0x001A1208),
-        codeInk: const Color(0xFF5B4632),
-        codeKeyword: const Color(0xFFC24418),
-        codeString: const Color(0xFF9C6B00),
-        codeComment: const Color(0xB2805A28),
-      );
+  static _GoldenGatePalette get light => _GoldenGatePalette(
+    baseGradient: _baseGradientLight,
+    glassFilter: _glassFilterLight,
+    glassPaneTint: const Color(0x0AFFFFFF),
+    orbBlendMode: BlendMode.srcOver,
+    // Much lower than dark mode's 1: on a light backdrop these
+    // differently-hued orbs are ordinary alpha-blended paint, not
+    // screened light, so keeping them at dark mode's strength read as
+    // muddy smears rather than a soft glow. This keeps them present as
+    // a quiet accent without fighting the copy for attention.
+    orbOpacityScale: 0.22,
+    vignetteShadow: const Color(0x1F1A1208),
+    vignetteClear: const Color(0x001A1208),
+    codeInk: const Color(0xFF5B4632),
+    codeKeyword: const Color(0xFFC24418),
+    codeString: const Color(0xFF9C6B00),
+    codeComment: const Color(0xB2805A28),
+  );
 
-  static _GoldenGatePalette of(bool dark) => dark ? _GoldenGatePalette.dark : _GoldenGatePalette.light;
+  static _GoldenGatePalette of(bool dark) =>
+      dark ? _GoldenGatePalette.dark : _GoldenGatePalette.light;
 }
 
 class _OrbFieldPainter extends CustomPainter {

@@ -61,10 +61,14 @@ class _MyAppState extends State<MyApp> {
               debugShowCheckedModeBanner: false,
               title: 'Samuel Rosengarten',
               theme: ThemeData(
-                brightness: _controller.isDark ? Brightness.dark : Brightness.light,
+                brightness: _controller.isDark
+                    ? Brightness.dark
+                    : Brightness.light,
                 colorScheme: ColorScheme.fromSeed(
                   seedColor: Colors.deepPurple,
-                  brightness: _controller.isDark ? Brightness.dark : Brightness.light,
+                  brightness: _controller.isDark
+                      ? Brightness.dark
+                      : Brightness.light,
                 ),
               ),
               home: const Home(),

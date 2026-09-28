@@ -108,7 +108,10 @@ class _AboutIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scale = heightScale(context);
-    final headlineSize = _particleHeadlineSize(MediaQuery.sizeOf(context).width, scale);
+    final headlineSize = _particleHeadlineSize(
+      MediaQuery.sizeOf(context).width,
+      scale,
+    );
     final ink = paletteOf(context).ink;
     final s = stringsOf(context);
 
@@ -125,7 +128,10 @@ class _AboutIntro extends StatelessWidget {
           // the text itself.
           child: FadeAnimationDelayed(
             delay: const Duration(seconds: 1),
-            child: _ParticleHeadline(fontSize: headlineSize, text: s.heroGreeting),
+            child: _ParticleHeadline(
+              fontSize: headlineSize,
+              text: s.heroGreeting,
+            ),
           ),
         ),
         SizedBox(height: 16 * scale),
@@ -515,7 +521,10 @@ class _LanguageChip extends StatelessWidget {
     final palette = paletteOf(context);
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8 * scale),
-      padding: EdgeInsets.symmetric(horizontal: 18 * scale, vertical: 12 * scale),
+      padding: EdgeInsets.symmetric(
+        horizontal: 18 * scale,
+        vertical: 12 * scale,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,

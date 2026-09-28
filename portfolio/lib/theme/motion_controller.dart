@@ -20,8 +20,11 @@ class MotionController extends ValueNotifier<bool> {
 /// exposes the theme controller — reading it via [of] subscribes that widget
 /// to rebuild whenever the setting flips.
 class AppMotion extends InheritedNotifier<MotionController> {
-  const AppMotion({super.key, required MotionController controller, required super.child})
-    : super(notifier: controller);
+  const AppMotion({
+    super.key,
+    required MotionController controller,
+    required super.child,
+  }) : super(notifier: controller);
 
   static MotionController of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<AppMotion>();
@@ -31,4 +34,5 @@ class AppMotion extends InheritedNotifier<MotionController> {
 }
 
 /// Shorthand for the common case of just needing the current bool.
-bool motionEnabledOf(BuildContext context) => AppMotion.of(context).animationsEnabled;
+bool motionEnabledOf(BuildContext context) =>
+    AppMotion.of(context).animationsEnabled;

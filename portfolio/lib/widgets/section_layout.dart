@@ -137,33 +137,35 @@ class SectionShell extends StatelessWidget {
               // ConstrainedBox's minHeight makes this behave just like a
               // plain Center.
               : phone
-                  // On a short phone, scrolling (not shrinking) is what
-                  // keeps text legible — e.g. Contact's four cards stacked
-                  // in one column on a narrow phone.
-                  ? SingleChildScrollView(
-                      child: ConstrainedBox(
-                        // `height` is this Container's own outer height,
-                        // measured before its `padding` above eats into it —
-                        // the space actually available to this scroll
-                        // view's child is `height - verticalPadding`. Using
-                        // the unreduced `height` here was forcing content to
-                        // be at least a full padding's worth (96px) taller
-                        // than the viewport could ever show without
-                        // scrolling, so every phone section landing on this
-                        // fallback needed a phantom ~96px scroll no matter
-                        // how little content it actually had.
-                        constraints: BoxConstraints(minHeight: height - verticalPadding),
-                        child: content,
-                      ),
-                    )
-                  // On desktop, heightScale's own pick can occasionally run
-                  // a section's content past the room a shorter window
-                  // actually has — scaling the whole block back down
-                  // uniformly here is what guarantees that never needs an
-                  // internal scroll, which would cut against the "one
-                  // section, one screen" point of the single-section nav.
-                  // A no-op whenever content already fits, the common case.
-                  : FittedBox(fit: BoxFit.scaleDown, child: content),
+              // On a short phone, scrolling (not shrinking) is what
+              // keeps text legible — e.g. Contact's four cards stacked
+              // in one column on a narrow phone.
+              ? SingleChildScrollView(
+                  child: ConstrainedBox(
+                    // `height` is this Container's own outer height,
+                    // measured before its `padding` above eats into it —
+                    // the space actually available to this scroll
+                    // view's child is `height - verticalPadding`. Using
+                    // the unreduced `height` here was forcing content to
+                    // be at least a full padding's worth (96px) taller
+                    // than the viewport could ever show without
+                    // scrolling, so every phone section landing on this
+                    // fallback needed a phantom ~96px scroll no matter
+                    // how little content it actually had.
+                    constraints: BoxConstraints(
+                      minHeight: height - verticalPadding,
+                    ),
+                    child: content,
+                  ),
+                )
+              // On desktop, heightScale's own pick can occasionally run
+              // a section's content past the room a shorter window
+              // actually has — scaling the whole block back down
+              // uniformly here is what guarantees that never needs an
+              // internal scroll, which would cut against the "one
+              // section, one screen" point of the single-section nav.
+              // A no-op whenever content already fits, the common case.
+              : FittedBox(fit: BoxFit.scaleDown, child: content),
         );
       },
     );
@@ -224,7 +226,9 @@ class SectionIntro extends StatelessWidget {
         ),
         SizedBox(height: width < 600 ? 14 : 20 * scale),
         ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 620 * (width < 600 ? 1 : scale)),
+          constraints: BoxConstraints(
+            maxWidth: 620 * (width < 600 ? 1 : scale),
+          ),
           child: Text(
             subhead,
             style: GoogleFonts.inter(

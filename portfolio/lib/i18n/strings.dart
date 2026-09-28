@@ -16,8 +16,7 @@ class Strings {
 
   // Header ---------------------------------------------------------------
 
-  String get openNavigation =>
-      _fr ? 'Ouvrir la navigation' : 'Open navigation';
+  String get openNavigation => _fr ? 'Ouvrir la navigation' : 'Open navigation';
   String get switchToLightMode =>
       _fr ? 'Passer au mode clair' : 'Switch to light mode';
   String get switchToDarkMode =>
@@ -81,6 +80,38 @@ class Strings {
       ? 'Publiée sur le VS Code Marketplace'
       : 'Published on the VS Code Marketplace';
 
+  // Code Coach demo -------------------------------------------------------
+
+  String get demoRun => _fr ? 'Exécuter' : 'Run';
+  String get demoTryIt =>
+      _fr ? 'Essayez : exécutez le code' : 'Try it: run the code';
+  String get demoAnotherHint => _fr ? 'Un autre indice' : 'Another hint';
+  String get demoHintsTab => _fr ? 'Indices' : 'Hints';
+  String get demoDashboardTab => _fr ? 'Tableau de bord' : 'Dashboard';
+  String get demoError => _fr
+      ? 'ZeroDivisionError : division par zéro'
+      : 'ZeroDivisionError: division by zero';
+  String get demoLevelLabel => _fr ? 'Indice' : 'Hint';
+  List<String> get demoHints => _fr
+      ? const [
+          "Regardez ce qui se passe à la ligne 5 quand la liste est vide.",
+          "len(nums) vaut 0 pour une liste vide, et on ne peut pas diviser par 0.",
+          "Ajoutez une garde : si la liste est vide, retournez 0 (ou levez une erreur claire) avant de diviser.",
+        ]
+      : const [
+          "Look at what happens on line 5 when the list is empty.",
+          "len(nums) is 0 for an empty list, and you can't divide by 0.",
+          "Add a guard: if the list is empty, return 0 (or raise a clear error) before dividing.",
+        ];
+  String get demoPatterns =>
+      _fr ? 'Vos erreurs fréquentes' : 'Your most common mistakes';
+  List<String> get demoPatternLabels => _fr
+      ? const ['Entrée vide', 'Décalage de un', 'Erreur de type']
+      : const ['Empty input', 'Off-by-one', 'Type error'];
+  String get demoDisclaimer => _fr
+      ? 'Recréation interactive — pas la vraie extension.'
+      : 'Interactive recreation — not the real extension.';
+
   // Contact ------------------------------------------------------------------
 
   String get contactHeadline => _fr ? 'Discutons.' : "Let's talk.";
@@ -138,8 +169,7 @@ class Strings {
             'get better with every one. The saddle stitch taught me more '
             'about patience than any deadline ever did.';
 
-  String get pastPiecesLabel =>
-      _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
+  String get pastPiecesLabel => _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
   String get addPhotoLabel => _fr ? 'Ajouter une photo' : 'Add photo';
 }
 

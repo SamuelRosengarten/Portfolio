@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
+import '../widgets/code_coach_demo.dart';
 import '../widgets/section_layout.dart';
 
 class ProjectSection extends StatelessWidget {
@@ -32,7 +33,7 @@ class ProjectSection extends StatelessWidget {
           ),
           SizedBox(
             height: MediaQuery.sizeOf(context).width < 600
-                ? 16
+                ? 10
                 : 24 * heightScale(context),
           ),
           const _ProjectShowcase(),
@@ -42,10 +43,10 @@ class ProjectSection extends StatelessWidget {
   }
 }
 
-/// The placeholder image is a fixed aspect ratio rather than an Expanded box
-/// filling whatever room is left: this whole showcase can end up inside
-/// SectionShell's scrollable fallback on a short phone screen, and Expanded
-/// needs a bounded height to fill — which a scroll view's child never has —
+/// The demo sizes itself to its content rather than an Expanded box filling
+/// whatever room is left: this showcase can end up inside SectionShell's
+/// scrollable fallback on a short phone screen, where Expanded would crash
+/// for lack of a bounded height.
 /// so it would crash there instead of gracefully sizing itself.
 class _ProjectShowcase extends StatelessWidget {
   const _ProjectShowcase();
@@ -60,59 +61,7 @@ class _ProjectShowcase extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AspectRatio(
-          // Flatter on phones (21:9, vs. the usual 16:9) — this box is pure
-          // decoration (an empty placeholder), not content, so it's the
-          // cheapest place to give height back on a screen short enough to
-          // need it. The opposite move on a taller window: continuously
-          // taller (toward 3:2 at max scale), which combines with
-          // SectionShell's own wider cap there to give this placeholder
-          // noticeably more height, not just more width.
-          aspectRatio: mobile ? 21 / 9 : 16 / 9 + (3 / 2 - 16 / 9) * (scale - 1).clamp(0.0, 1.0),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: palette.dark
-                    ? const [Color(0xFF1C1C1E), Color(0xFF2C2C2E)]
-                    : const [Color(0xFFF0F0F3), Color(0xFFE4E4E9)],
-              ),
-              border: Border.all(color: palette.surface(0.08)),
-            ),
-            // FittedBox + scaleDown is the same overflow safety net used in
-            // site_header.dart: the icon-and-caption column's fixed
-            // intrinsic height could exceed the box's height on a very
-            // short/narrow viewport, and without this that would overflow
-            // it instead of gracefully shrinking to fit.
-            child: Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.rocket_launch_outlined,
-                      size: 40,
-                      color: palette.ink.withValues(alpha: 0.35),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      s.publishedOnMarketplace,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: palette.ink.withValues(alpha: 0.45),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+        const CodeCoachDemo(),
         SizedBox(height: mobile ? 14 : 20 * scale),
         Text(
           'Code Coach',
@@ -134,7 +83,9 @@ class _ProjectShowcase extends StatelessWidget {
               // way SectionIntro's subhead does (see _subheadFontSize),
               // rather than let it alone decide whether the whole section
               // needs a scroll.
-              fontSize: mobile ? _descriptionFontSize(s.projectDescription) : 16 * scale,
+              fontSize: mobile
+                  ? _descriptionFontSize(s.projectDescription)
+                  : 16 * scale,
               height: mobile ? 1.4 : 1.6,
               color: kGray,
             ),

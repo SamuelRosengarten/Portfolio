@@ -456,10 +456,7 @@ class _GraphPainter extends CustomPainter {
         ) *
         (node.radius / 4).clamp(0.6, 1.6);
 
-    return Offset(
-          size.width * node.x / 100,
-          size.height * node.y / 100,
-        ) +
+    return Offset(size.width * node.x / 100, size.height * node.y / 100) +
         wander +
         Offset(
           field.pointer.dx * node.parallax * 10,
@@ -472,7 +469,13 @@ class _GraphPainter extends CustomPainter {
     final to = positions[edge.toId];
     if (from == null || to == null) return;
 
-    canvas.drawLine(from, to, Paint()..color = palette.edgeColor..strokeWidth = 1);
+    canvas.drawLine(
+      from,
+      to,
+      Paint()
+        ..color = palette.edgeColor
+        ..strokeWidth = 1,
+    );
 
     // A small bright pulse travels the line, as if a signal just fired
     // between the two ideas.
@@ -548,15 +551,12 @@ class _GraphPainter extends CustomPainter {
       radius,
       Paint()
         ..blendMode = palette.spotlightBlendMode
-        ..shader =
-            RadialGradient(
-              colors: [
-                palette.spotlightColor.withValues(alpha: 0.10),
-                palette.spotlightColor.withValues(alpha: 0),
-              ],
-            ).createShader(
-              Rect.fromCircle(center: center, radius: radius),
-            ),
+        ..shader = RadialGradient(
+          colors: [
+            palette.spotlightColor.withValues(alpha: 0.10),
+            palette.spotlightColor.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: radius)),
     );
   }
 
@@ -716,7 +716,11 @@ String _phraseText(AppLanguage lang, String text) =>
     lang == AppLanguage.fr ? (_phraseTranslationsFr[text] ?? text) : text;
 
 class _ChalkLayer extends StatelessWidget {
-  const _ChalkLayer({required this.field, required this.palette, required this.lang});
+  const _ChalkLayer({
+    required this.field,
+    required this.palette,
+    required this.lang,
+  });
 
   final _Field field;
   final _GraphPalette palette;
@@ -731,9 +735,7 @@ class _ChalkLayer extends StatelessWidget {
 
         return Stack(
           clipBehavior: Clip.none,
-          children: [
-            for (final phrase in _phrases) _buildPhrase(phrase, size),
-          ],
+          children: [for (final phrase in _phrases) _buildPhrase(phrase, size)],
         );
       },
     );
@@ -760,7 +762,9 @@ class _ChalkLayer extends StatelessWidget {
           );
 
     return Positioned(
-      left: size.width * phrase.x / 100 + field.pointer.dx * phrase.strength * 140,
+      left:
+          size.width * phrase.x / 100 +
+          field.pointer.dx * phrase.strength * 140,
       top:
           size.height * phrase.y / 100 +
           drift +

@@ -74,7 +74,9 @@ class _ContactGrid extends StatelessWidget {
           icon: Icons.work_outline_rounded,
           label: 'LinkedIn',
           value: 'linkedin.com/in/samuel-rosengarten-63b932404',
-          url: Uri.parse('https://linkedin.com/in/samuel-rosengarten-63b932404'),
+          url: Uri.parse(
+            'https://linkedin.com/in/samuel-rosengarten-63b932404',
+          ),
         ),
         _ContactCard(
           icon: Icons.place_outlined,
@@ -168,7 +170,9 @@ class _ContactCardState extends State<_ContactCard> {
       cursor: url == null ? MouseCursor.defer : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      child: url == null ? card : GestureDetector(onTap: () => launchUrl(url), child: card),
+      child: url == null
+          ? card
+          : GestureDetector(onTap: () => launchUrl(url), child: card),
     );
   }
 }

@@ -60,7 +60,9 @@ class SiteHeader extends StatelessWidget {
             color: palette.dark
                 ? Colors.black.withValues(alpha: 0.55)
                 : Colors.white.withValues(alpha: 0.7),
-            border: Border(bottom: BorderSide(color: palette.surface(0.08), width: 0.5)),
+            border: Border(
+              bottom: BorderSide(color: palette.surface(0.08), width: 0.5),
+            ),
           ),
           // A Row with a fixed-width leading/trailing slot rather than a
           // Stack of loosely-positioned children: the centered nav row's
@@ -81,7 +83,9 @@ class SiteHeader extends StatelessWidget {
                 child: mobile ? const Center(child: _MenuButton()) : null,
               ),
               Expanded(
-                child: mobile ? const SizedBox.shrink() : _DesktopNav(onSelected: onSelected),
+                child: mobile
+                    ? const SizedBox.shrink()
+                    : _DesktopNav(onSelected: onSelected),
               ),
               const SizedBox(
                 width: 144,
@@ -110,7 +114,10 @@ class _MenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.menu, color: paletteOf(context).ink.withValues(alpha: 0.87)),
+      icon: Icon(
+        Icons.menu,
+        color: paletteOf(context).ink.withValues(alpha: 0.87),
+      ),
       tooltip: stringsOf(context).openNavigation,
       onPressed: () => Scaffold.of(context).openDrawer(),
     );
@@ -162,7 +169,9 @@ class _ThemeToggleButton extends StatelessWidget {
     final s = stringsOf(context);
     return IconButton(
       icon: Icon(
-        controller.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        controller.isDark
+            ? Icons.light_mode_outlined
+            : Icons.dark_mode_outlined,
         color: palette.ink.withValues(alpha: 0.87),
         size: 20,
       ),
