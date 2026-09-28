@@ -660,20 +660,41 @@ class _DashedCirclePainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-enum _ProductKind { cardHolder, bifoldWallet, belt, toteBag, keychain }
+enum _ProductKind { cardHolder, flapWallet, bifoldWallet, embroideredSleeve }
 
 class _LeatherProduct {
-  const _LeatherProduct(this.kind);
+  const _LeatherProduct(this.kind, this.asset, this.focus);
 
   final _ProductKind kind;
+  final String asset;
+
+  /// Vertical crop focus for the small carousel card: the photos are tall
+  /// portraits and the card is a short landscape strip, so each one needs
+  /// aiming at the piece itself rather than the middle of the frame.
+  final Alignment focus;
 }
 
 const _products = [
-  _LeatherProduct(_ProductKind.cardHolder),
-  _LeatherProduct(_ProductKind.bifoldWallet),
-  _LeatherProduct(_ProductKind.belt),
-  _LeatherProduct(_ProductKind.toteBag),
-  _LeatherProduct(_ProductKind.keychain),
+  _LeatherProduct(
+    _ProductKind.cardHolder,
+    'assets/leather/card_holder.jpg',
+    Alignment(0, 0.5),
+  ),
+  _LeatherProduct(
+    _ProductKind.flapWallet,
+    'assets/leather/flap_wallet.jpg',
+    Alignment(0, 0.8),
+  ),
+  _LeatherProduct(
+    _ProductKind.bifoldWallet,
+    'assets/leather/bifold_wallet.jpg',
+    Alignment(0, 0.45),
+  ),
+  _LeatherProduct(
+    _ProductKind.embroideredSleeve,
+    'assets/leather/embroidered_sleeve.jpg',
+    Alignment(0, 0),
+  ),
 ];
 
 /// Small, closed data tied one-to-one to [_ProductKind] — lives next to it
@@ -683,16 +704,15 @@ String _productTitle(AppLanguage lang, _ProductKind kind) {
   final fr = lang == AppLanguage.fr;
   return switch (kind) {
     _ProductKind.cardHolder => fr ? 'Porte-cartes' : 'Card holder',
+    _ProductKind.flapWallet => fr ? 'Portefeuille à rabat' : 'Flap wallet',
     _ProductKind.bifoldWallet => fr ? 'Portefeuille bifold' : 'Bifold wallet',
-    _ProductKind.belt => fr ? 'Ceinture' : 'Belt',
-    _ProductKind.toteBag => fr ? 'Sac fourre-tout' : 'Tote bag',
-    _ProductKind.keychain => fr ? 'Porte-clés' : 'Keychain',
+    _ProductKind.embroideredSleeve => fr ? 'Étui brodé' : 'Embroidered sleeve',
   };
 }
 
-/// A peek-style, snapping carousel of past pieces. Each card is a
-/// placeholder — swap `_products` for real pieces and drop a photo into
-/// each [_ProductCard] once there is something to show.
+/// A peek-style, snapping carousel of past pieces. Each card shows a photo
+/// cropped to a strip; tapping one opens the full photo. Add a piece by
+/// adding an asset and an entry to `_products`.
 class _LeatherCarousel extends StatefulWidget {
   const _LeatherCarousel();
 
@@ -880,59 +900,106 @@ class _ProductCard extends StatefulWidget {
 class _ProductCardState extends State<_ProductCard> {
   bool _hovering = false;
 
+  void _openFullPhoto(BuildContext context, String title) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: InteractiveViewer(
+                maxScale: 4,
+                child: Image.asset(
+                  widget.product.asset,
+                  fit: BoxFit.contain,
+                  semanticLabel: title,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: MaterialLocalizations.of(dialogContext).closeButtonLabel,
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: IconButton.styleFrom(backgroundColor: Colors.black54),
+              icon: const Icon(Icons.close, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final palette = paletteOf(context);
+    final title = _productTitle(languageOf(context), widget.product.kind);
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      child: AnimatedScale(
-        scale: _hovering ? 1.06 : 1.0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        child: AnimatedContainer(
+      child: GestureDetector(
+        onTap: () => _openFullPhoto(context, title),
+        child: AnimatedScale(
+          scale: _hovering ? 1.06 : 1.0,
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
-          decoration: BoxDecoration(
-            color: palette.surface(_hovering ? 0.1 : 0.06),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: _kLeatherTan.withValues(alpha: _hovering ? 0.5 : 0.25),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: _kLeatherTan.withValues(alpha: _hovering ? 0.5 : 0.25),
+              ),
+              boxShadow: _hovering
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : const [],
             ),
-            boxShadow: _hovering
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : const [],
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                Icon(
-                  Icons.image_outlined,
-                  size: 24,
-                  color: palette.ink.withValues(alpha: 0.4),
+                Image.asset(
+                  widget.product.asset,
+                  fit: BoxFit.cover,
+                  alignment: widget.product.focus,
+                  // The source photos are 1200px wide; a card is ~150px, so
+                  // decode small instead of holding four full bitmaps.
+                  cacheWidth: 400,
+                  semanticLabel: title,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _productTitle(languageOf(context), widget.product.kind),
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: palette.ink.withValues(alpha: 0.85),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  stringsOf(context).addPhotoLabel,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: palette.ink.withValues(alpha: 0.35),
+                // A dark fade at the bottom keeps the caption readable over
+                // any photo.
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(8, 14, 8, 6),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Color(0xB3000000)],
+                      ),
+                    ),
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],

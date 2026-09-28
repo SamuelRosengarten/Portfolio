@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
@@ -92,12 +93,11 @@ class _ProjectShowcase extends StatelessWidget {
           ),
         ),
         SizedBox(height: mobile ? 6 : 8 * scale),
-        Text(
+        // Both links keep one line and truncate: neither URL has a break
+        // point that fits a phone width (on the repo link the owner's name
+        // used to wrap across two lines).
+        _LinkText(
           'marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
-          // Same single-line-then-ellipsis treatment as the repo link below:
-          // this URL has no break point that fits a phone width either.
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.inter(
             fontSize: mobile ? 12 : 13 * scale,
             fontWeight: FontWeight.w500,
@@ -105,15 +105,8 @@ class _ProjectShowcase extends StatelessWidget {
           ),
         ),
         SizedBox(height: mobile ? 2 : 4 * scale),
-        Text(
+        _LinkText(
           'github.com/SamuelRosengarten/code-coach',
-          // This URL's only break points are '/' and '.', and on a phone
-          // width it doesn't fit on one line at any of them — left
-          // unbounded it was wrapping onto three lines (breaking the repo
-          // owner's name across two of them) instead of just staying one
-          // line and truncating cleanly.
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.inter(
             fontSize: mobile ? 12 : 13 * scale,
             fontWeight: FontWeight.w500,
@@ -163,6 +156,48 @@ class _Tag extends StatelessWidget {
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: palette.ink.withValues(alpha: 0.8),
+        ),
+      ),
+    );
+  }
+}
+
+/// A URL shown without its scheme that opens in a new tab when tapped — with
+/// a pointer cursor and an underline on hover so it reads as a link.
+class _LinkText extends StatefulWidget {
+  const _LinkText(this.address, {required this.style});
+
+  /// Host and path, e.g. `github.com/SamuelRosengarten/code-coach`.
+  final String address;
+  final TextStyle style;
+
+  @override
+  State<_LinkText> createState() => _LinkTextState();
+}
+
+class _LinkTextState extends State<_LinkText> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      link: true,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovering = true),
+        onExit: (_) => setState(() => _hovering = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => launchUrl(Uri.parse('https://${widget.address}')),
+          child: Text(
+            widget.address,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: widget.style.copyWith(
+              decoration: _hovering ? TextDecoration.underline : null,
+              decorationColor: widget.style.color,
+            ),
+          ),
         ),
       ),
     );

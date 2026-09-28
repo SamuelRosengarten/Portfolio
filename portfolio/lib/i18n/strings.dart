@@ -177,7 +177,6 @@ class Strings {
             'about patience than any deadline ever did.';
 
   String get pastPiecesLabel => _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
-  String get addPhotoLabel => _fr ? 'Ajouter une photo' : 'Add photo';
 }
 
 Strings stringsOf(BuildContext context) => Strings(languageOf(context));
