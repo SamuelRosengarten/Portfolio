@@ -82,32 +82,39 @@ class Strings {
 
   // Code Coach demo -------------------------------------------------------
 
-  String get demoRun => _fr ? 'Exécuter' : 'Run';
+  String get demoCheck => _fr ? 'Vérifier le code' : 'Check code';
   String get demoTryIt =>
-      _fr ? 'Essayez : exécutez le code' : 'Try it: run the code';
-  String get demoAnotherHint => _fr ? 'Un autre indice' : 'Another hint';
-  String get demoHintsTab => _fr ? 'Indices' : 'Hints';
-  String get demoDashboardTab => _fr ? 'Tableau de bord' : 'Dashboard';
-  String get demoError => _fr
-      ? 'ZeroDivisionError : division par zéro'
-      : 'ZeroDivisionError: division by zero';
-  String get demoLevelLabel => _fr ? 'Indice' : 'Hint';
+      _fr ? 'Essayez : vérifiez le code' : 'Try it: check the code';
+  String get demoStatsTab => 'Stats';
+  String get demoCodeCoach => 'CODE COACH';
+  String get demoYourWeek => _fr ? 'Votre semaine' : 'Your week';
+  String get demoMistakesPerWeek =>
+      _fr ? 'Erreurs par semaine' : 'Mistakes per week';
+  String get demoWeeks => _fr ? '6 semaines' : '6 weeks';
+  String get demoByKind =>
+      _fr ? 'PAR TYPE · CETTE SEMAINE' : 'BY KIND · THIS WEEK';
+  String get demoMute => _fr ? 'IGNORER' : 'MUTE';
+  String get demoMuted => _fr ? 'IGNORÉ' : 'MUTED';
+  String demoSeen(int n) =>
+      _fr ? 'Vu $n sur 20 en 2 min' : 'Seen $n of 20 in 2 min';
+  List<String> get demoKinds => _fr
+      ? const [
+          'Mauvais type de retour',
+          'Types incompatibles',
+          'Argument manquant',
+        ]
+      : const ['Wrong return type', 'Type mismatch', 'Missing argument'];
   List<String> get demoHints => _fr
       ? const [
-          "Regardez ce qui se passe à la ligne 5 quand la liste est vide.",
-          "len(nums) vaut 0 pour une liste vide, et on ne peut pas diviser par 0.",
-          "Ajoutez une garde : si la liste est vide, retournez 0 (ou levez une erreur claire) avant de diviser.",
+          "Le type de la valeur retournée ne correspond pas au type de retour déclaré de la fonction.",
+          "Le type de la valeur ne correspond pas au type déclaré de la variable.",
+          "Il manque un argument positionnel obligatoire dans cet appel — vérifiez la signature de la fonction.",
         ]
       : const [
-          "Look at what happens on line 5 when the list is empty.",
-          "len(nums) is 0 for an empty list, and you can't divide by 0.",
-          "Add a guard: if the list is empty, return 0 (or raise a clear error) before dividing.",
+          "The returned value's type doesn't match the function's declared return type.",
+          "The value's type doesn't match the variable's declared type.",
+          "This call is missing a required positional argument — check the function's signature.",
         ];
-  String get demoPatterns =>
-      _fr ? 'Vos erreurs fréquentes' : 'Your most common mistakes';
-  List<String> get demoPatternLabels => _fr
-      ? const ['Entrée vide', 'Décalage de un', 'Erreur de type']
-      : const ['Empty input', 'Off-by-one', 'Type error'];
   String get demoDisclaimer => _fr
       ? 'Recréation interactive — pas la vraie extension.'
       : 'Interactive recreation — not the real extension.';

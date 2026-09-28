@@ -1,23 +1,80 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
-import '../theme/motion_controller.dart';
 import '../theme/palette.dart';
 
-const _editorBg = Color(0xFF1E1E1E);
-const _panelBg = Color(0xFF252526);
-const _lineText = Color(0xFFD4D4D4);
-const _keyword = Color(0xFFC586C0);
-const _function = Color(0xFFDCDCAA);
-const _number = Color(0xFFB5CEA8);
-const _builtin = Color(0xFF4EC9B0);
-const _errorRed = Color(0xFFF14C4C);
+// Colours taken from the real extension: a light VS Code window with a warm
+// cream "Your week" sidebar and a gold accent.
+const _windowBg = Color(0xFFFFFFFF);
+const _chromeBg = Color(0xFFF3F3F3);
+const _sidebarBg = Color(0xFFF8F4EA);
+const _ink = Color(0xFF2B2A28);
+const _softInk = Color(0xFF8A857B);
+const _gold = Color(0xFFA9773B);
+const _errorRed = Color(0xFFE51400);
+const _kindColors = [Color(0xFF4A6F9C), Color(0xFF7B5EA0), Color(0xFF5E8A5E)];
 
-/// A small scripted recreation of the Code Coach extension: run a buggy
-/// snippet, get an error, then step through progressively stronger hints and
-/// watch the mistake tally on the dashboard tab go up. Nothing here calls an
-/// AI — the hints are canned, since the point is to show the interaction.
+const _codeText = Color(0xFF1F1F1F);
+const _keyword = Color(0xFFB4441E);
+const _type = Color(0xFF267F99);
+const _function = Color(0xFF795E26);
+const _number = Color(0xFF098658);
+
+/// One coloured token of a code line; [kind] marks it as the spot the
+/// analyzer complains about (index into the demo's three mistake kinds).
+class _Tok {
+  const _Tok(this.text, {this.color, this.kind});
+
+  final String text;
+  final Color? color;
+  final int? kind;
+}
+
+const _lines = <List<_Tok>>[
+  [
+    _Tok('String ', color: _type),
+    _Tok('greet', color: _function),
+    _Tok('('),
+    _Tok('String ', color: _type),
+    _Tok('name) {'),
+  ],
+  [
+    _Tok('  '),
+    _Tok('return ', color: _keyword),
+    _Tok('2', color: _number, kind: 0),
+    _Tok(';'),
+  ],
+  [_Tok('}')],
+  [
+    _Tok('String ', color: _type),
+    _Tok('patate', kind: 1),
+    _Tok(' = '),
+    _Tok('1', color: _number),
+    _Tok(';'),
+  ],
+  [
+    _Tok('final ', color: _keyword),
+    _Tok('msg = '),
+    _Tok('greet()', color: _function, kind: 2),
+    _Tok(';'),
+  ],
+];
+
+int? _kindOfLine(int i) {
+  for (final t in _lines[i]) {
+    if (t.kind != null) return t.kind;
+  }
+  return null;
+}
+
+/// A small scripted recreation of the Code Coach extension: check some buggy
+/// Dart, get inline hints next to each error, and watch the "Your week" stats
+/// sidebar tally them (with a working MUTE). Nothing here calls an AI — the
+/// hints are the real extension's wording, canned.
 class CodeCoachDemo extends StatefulWidget {
   const CodeCoachDemo({super.key});
 
@@ -26,39 +83,28 @@ class CodeCoachDemo extends StatefulWidget {
 }
 
 class _CodeCoachDemoState extends State<CodeCoachDemo> {
-  static const _baseCounts = [3, 5, 2];
+  static const _baseCounts = [3, 2, 3];
+  static const _pastWeeks = [1, 2, 1, 3, 2];
 
-  bool _ran = false;
-  int _hintLevel = 0;
-  int _runs = 0;
-  int _tab = 0; // 0 code (phone only), 1 hints, 2 dashboard
+  bool _checked = false;
+  int _checks = 0;
+  int _tab = 0; // phone only: 0 editor, 1 stats
+  final Set<int> _muted = {};
 
-  void _run() => setState(() {
-    _ran = true;
-    _hintLevel = 0;
-    _runs++;
-    _tab = 1;
+  void _check() => setState(() {
+    _checked = true;
+    _checks++;
+    _tab = 0;
   });
 
-  void _nextHint(int max) =>
-      setState(() => _hintLevel = (_hintLevel + 1).clamp(0, max));
+  void _toggleMute(int kind) => setState(() {
+    if (!_muted.remove(kind)) _muted.add(kind);
+  });
 
   @override
   Widget build(BuildContext context) {
     final s = stringsOf(context);
     final mobile = MediaQuery.sizeOf(context).width < 600;
-    final editor = _Editor(ran: _ran, onRun: _run, s: s, compact: mobile);
-    final side = _SidePanel(
-      s: s,
-      ran: _ran,
-      hintLevel: _hintLevel,
-      dashboard: _tab == 2,
-      runs: _runs,
-      baseCounts: _baseCounts,
-      compact: mobile,
-      onTab: (d) => setState(() => _tab = d ? 2 : 1),
-      onNextHint: () => _nextHint(s.demoHints.length - 1),
-    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,21 +113,11 @@ class _CodeCoachDemoState extends State<CodeCoachDemo> {
           borderRadius: BorderRadius.circular(20),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: _editorBg,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              color: _windowBg,
+              border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: mobile
-                ? _mobileBody(s, editor, side)
-                : IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(flex: 3, child: editor),
-                        Expanded(flex: 2, child: side),
-                      ],
-                    ),
-                  ),
+            child: mobile ? _mobileBody(s) : _desktopBody(s),
           ),
         ),
         if (!mobile) ...[
@@ -95,16 +131,38 @@ class _CodeCoachDemoState extends State<CodeCoachDemo> {
     );
   }
 
-  /// A phone can't fit the editor and side panel stacked (each section has to
-  /// fit one screen), so on a phone they become three tabs sharing one
-  /// fixed-height pane.
-  Widget _mobileBody(Strings s, Widget editor, Widget side) {
+  Widget _desktopBody(Strings s) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 2, child: _stats(s, compact: false)),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _titleStrip(s),
+                Expanded(child: _code(s, compact: false)),
+                _statusBar(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A phone can't fit the sidebar and editor side by side (each section has
+  /// to fit one screen), so on a phone they become two tabs.
+  Widget _mobileBody(Strings s) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
+        Container(
+          color: _chromeBg,
+          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
           child: Row(
             children: [
               Flexible(
@@ -114,171 +172,351 @@ class _CodeCoachDemoState extends State<CodeCoachDemo> {
                   child: Row(
                     children: [
                       _Tab(
-                        'average.py',
+                        'greeter.dart',
                         selected: _tab == 0,
                         onTap: () => setState(() => _tab = 0),
                       ),
                       const SizedBox(width: 4),
                       _Tab(
-                        s.demoHintsTab,
+                        s.demoStatsTab,
                         selected: _tab == 1,
                         onTap: () => setState(() => _tab = 1),
-                      ),
-                      const SizedBox(width: 4),
-                      _Tab(
-                        s.demoDashboardTab,
-                        selected: _tab == 2,
-                        onTap: () => setState(() => _tab = 2),
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              _RunButton(label: s.demoRun, onTap: _run),
+              _CheckButton(label: s.demoCheck, onTap: _check),
             ],
           ),
         ),
-        SizedBox(height: 116, child: _tab == 0 ? editor : side),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          child: _tab == 0 ? _code(s, compact: true) : _stats(s, compact: true),
+        ),
       ],
     );
   }
-}
 
-class _Editor extends StatelessWidget {
-  const _Editor({
-    required this.ran,
-    required this.onRun,
-    required this.s,
-    required this.compact,
-  });
+  Widget _titleStrip(Strings s) {
+    return Container(
+      color: _chromeBg,
+      padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
+      child: Row(
+        children: [
+          Text(
+            'greeter.dart',
+            style: GoogleFonts.inter(fontSize: 12.5, color: _ink),
+          ),
+          if (_checked) ...[
+            const SizedBox(width: 6),
+            Text('3', style: GoogleFonts.inter(fontSize: 12, color: _errorRed)),
+          ],
+          const Spacer(),
+          _CheckButton(label: s.demoCheck, onTap: _check),
+        ],
+      ),
+    );
+  }
 
-  final bool compact;
+  Widget _statusBar() {
+    const style = TextStyle(fontSize: 11, color: Color(0xFF616161));
+    return Container(
+      color: _chromeBg,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      child: Row(
+        children: [
+          const Icon(Icons.cancel_outlined, size: 12, color: Color(0xFF616161)),
+          const SizedBox(width: 3),
+          Text(_checked ? '3' : '0', style: style),
+          const SizedBox(width: 8),
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 12,
+            color: Color(0xFF616161),
+          ),
+          const SizedBox(width: 3),
+          const Text('0', style: style),
+          const Spacer(),
+          const Text('Dart', style: style),
+        ],
+      ),
+    );
+  }
 
-  final bool ran;
-  final VoidCallback onRun;
-  final Strings s;
+  Widget _code(Strings s, {required bool compact}) {
+    final mono = GoogleFonts.jetBrainsMono(
+      fontSize: compact ? 11 : 12.5,
+      height: 1.5,
+      color: _codeText,
+    );
+    final hints = s.demoHints;
 
-  TextStyle get _mono => GoogleFonts.jetBrainsMono(
-    fontSize: compact ? 11 : 12.5,
-    height: compact ? 1.35 : 1.4,
-    color: _lineText,
-  );
+    TextSpan spanFor(_Tok t) => TextSpan(
+      text: t.text,
+      style: TextStyle(
+        color: t.color,
+        decoration: _checked && t.kind != null
+            ? TextDecoration.underline
+            : null,
+        decorationStyle: TextDecorationStyle.wavy,
+        decorationColor: _errorRed,
+      ),
+    );
 
-  TextSpan _span(String t, [Color? c]) => TextSpan(
-    text: t,
-    style: c == null ? null : TextStyle(color: c),
-  );
-
-  List<List<TextSpan>> get _lines => [
-    [_span('def ', _keyword), _span('average', _function), _span('(nums):')],
-    [_span('    total = '), _span('0', _number)],
-    [
-      _span('    '),
-      _span('for ', _keyword),
-      _span('n '),
-      _span('in ', _keyword),
-      _span('nums:'),
-    ],
-    [_span('        total += n')],
-    [
-      _span('    '),
-      _span('return ', _keyword),
-      _span('total / '),
-      _span('len', _builtin),
-      _span('(nums)'),
-    ],
-    [_span('')],
-    [_span('print', _builtin), _span('(average(['), _span('])'), _span(')')],
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final lines = _lines;
-    return Padding(
-      padding: EdgeInsets.all(compact ? 12 : 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    Widget hintRow(int kind) {
+      return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!compact) ...[
-            Row(
-              children: [
-                for (final c in const [
-                  Color(0xFFFF5F57),
-                  Color(0xFFFEBC2E),
-                  Color(0xFF28C840),
-                ])
-                  Container(
-                    width: 11,
-                    height: 11,
-                    margin: const EdgeInsets.only(right: 7),
-                    decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-                  ),
-                const SizedBox(width: 6),
-                Text(
-                  'average.py',
-                  style: GoogleFonts.inter(fontSize: 12, color: kGray),
-                ),
-                const Spacer(),
-                _RunButton(label: s.demoRun, onTap: onRun),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.lightbulb_outline_rounded,
+              size: compact ? 12 : 14,
+              color: _gold,
             ),
-            const SizedBox(height: 14),
-          ],
-          for (var i = 0; i < lines.length; i++)
-            if (!(compact && i == 5))
-              Container(
-                color: ran && i == 4
-                    ? _errorRed.withValues(alpha: 0.14)
-                    : Colors.transparent,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 26,
-                      child: Text(
-                        '${i + 1}',
-                        style: _mono.copyWith(
-                          color: kGray.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text.rich(
-                        TextSpan(style: _mono, children: lines[i]),
-                        softWrap: false,
-                        overflow: TextOverflow.fade,
-                      ),
-                    ),
-                  ],
-                ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              hints[kind],
+              maxLines: compact ? null : 1,
+              overflow: TextOverflow.ellipsis,
+              style: mono.copyWith(
+                fontStyle: FontStyle.italic,
+                color: _softInk,
               ),
-          if (!compact) ...[
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget line(int i) {
+      final kind = _kindOfLine(i);
+      final showHint = _checked && kind != null && !_muted.contains(kind);
+      final code = Text.rich(
+        TextSpan(
+          style: mono,
+          children: [for (final t in _lines[i]) spanFor(t)],
+        ),
+        softWrap: false,
+      );
+      final gutter = SizedBox(
+        width: 26,
+        child: Text(
+          '${i + 1}',
+          style: mono.copyWith(color: _softInk.withValues(alpha: 0.7)),
+        ),
+      );
+      final tint = _checked && kind != null
+          ? _errorRed.withValues(alpha: 0.06)
+          : Colors.transparent;
+      if (compact) {
+        return Container(
+          color: tint,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  gutter,
+                  Expanded(child: code),
+                ],
+              ),
+              if (showHint)
+                Padding(
+                  padding: const EdgeInsets.only(left: 26, bottom: 3),
+                  child: hintRow(kind),
+                ),
+            ],
+          ),
+        );
+      }
+      return Container(
+        color: tint,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            gutter,
+            code,
+            if (showHint) ...[
+              const SizedBox(width: 10),
+              Expanded(child: hintRow(kind)),
+            ] else
+              const Spacer(),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.all(compact ? 8 : 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < _lines.length; i++) line(i),
+          if (!_checked && !compact) ...[
             const SizedBox(height: 10),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: ran
-                  ? Text(
-                      "✖ ${s.demoError}",
-                      key: const ValueKey("err"),
-                      style: _mono.copyWith(color: _errorRed, fontSize: 12),
-                    )
-                  : Text(
-                      s.demoTryIt,
-                      key: const ValueKey("try"),
-                      style: GoogleFonts.inter(fontSize: 12.5, color: kBlue),
-                    ),
+            Text(
+              s.demoTryIt,
+              style: GoogleFonts.inter(fontSize: 12.5, color: kBlue),
             ),
           ],
         ],
       ),
     );
   }
+
+  Widget _stats(Strings s, {required bool compact}) {
+    final kinds = s.demoKinds;
+    final counts = [for (final b in _baseCounts) b + _checks];
+    final total = counts.reduce((a, b) => a + b);
+    final serif = GoogleFonts.newsreader;
+    final labelStyle = GoogleFonts.inter(
+      fontSize: 10,
+      letterSpacing: 1,
+      color: _softInk,
+    );
+    return Container(
+      color: _sidebarBg,
+      padding: EdgeInsets.all(compact ? 12 : 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(s.demoCodeCoach, style: labelStyle),
+          const SizedBox(height: 4),
+          Text(s.demoYourWeek, style: serif(fontSize: 22, color: _ink)),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Text(
+                s.demoMistakesPerWeek,
+                style: serif(fontSize: 13, color: _ink),
+              ),
+              const Spacer(),
+              Text(s.demoWeeks, style: labelStyle.copyWith(letterSpacing: 0)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: compact ? 44 : 60,
+            width: double.infinity,
+            child: CustomPaint(painter: _LinePainter([..._pastWeeks, total])),
+          ),
+          const SizedBox(height: 14),
+          Text(s.demoByKind, style: labelStyle),
+          const SizedBox(height: 6),
+          for (var k = 0; k < kinds.length; k++)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(width: 8, height: 8, color: _kindColors[k]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          kinds[k],
+                          overflow: TextOverflow.ellipsis,
+                          style: serif(fontSize: 14, color: _ink),
+                        ),
+                      ),
+                      Text(
+                        '${counts[k]}',
+                        style: serif(fontSize: 14, color: _ink),
+                      ),
+                      const SizedBox(width: 12),
+                      InkWell(
+                        onTap: () => _toggleMute(k),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            _muted.contains(k) ? s.demoMuted : s.demoMute,
+                            style: labelStyle.copyWith(
+                              letterSpacing: 0.5,
+                              color: _muted.contains(k) ? _gold : _softInk,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: (_checks / 20).clamp(0.0, 1.0),
+                      minHeight: 3,
+                      color: _gold,
+                      backgroundColor: Colors.black.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      s.demoSeen(_checks),
+                      style: GoogleFonts.inter(fontSize: 10, color: _softInk),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
-class _RunButton extends StatelessWidget {
-  const _RunButton({required this.label, required this.onTap});
+class _LinePainter extends CustomPainter {
+  _LinePainter(this.values);
+
+  final List<int> values;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final max = values.reduce(math.max).toDouble();
+    final dx = size.width / (values.length - 1);
+    Offset point(int i) =>
+        Offset(i * dx, size.height - (values[i] / max) * (size.height - 8) - 4);
+
+    final path = Path()..moveTo(point(0).dx, point(0).dy);
+    for (var i = 1; i < values.length; i++) {
+      path.lineTo(point(i).dx, point(i).dy);
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = _gold
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..strokeJoin = StrokeJoin.round,
+    );
+    final last = point(values.length - 1);
+    canvas.drawCircle(last, 3.2, Paint()..color = _sidebarBg);
+    canvas.drawCircle(
+      last,
+      3.2,
+      Paint()
+        ..color = _gold
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LinePainter old) => !listEquals(values, old.values);
+}
+
+class _CheckButton extends StatelessWidget {
+  const _CheckButton({required this.label, required this.onTap});
 
   final String label;
   final VoidCallback onTap;
@@ -318,193 +556,6 @@ class _RunButton extends StatelessWidget {
   }
 }
 
-class _SidePanel extends StatelessWidget {
-  const _SidePanel({
-    required this.compact,
-    required this.s,
-    required this.ran,
-    required this.hintLevel,
-    required this.dashboard,
-    required this.runs,
-    required this.baseCounts,
-    required this.onTab,
-    required this.onNextHint,
-  });
-
-  final Strings s;
-  final bool ran;
-  final int hintLevel;
-  final bool dashboard;
-  final int runs;
-  final List<int> baseCounts;
-  final bool compact;
-  final ValueChanged<bool> onTab;
-  final VoidCallback onNextHint;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: _panelBg,
-      padding: EdgeInsets.all(compact ? 12 : 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!compact) ...[
-            Row(
-              children: [
-                _Tab(
-                  s.demoHintsTab,
-                  selected: !dashboard,
-                  onTap: () => onTab(false),
-                ),
-                const SizedBox(width: 8),
-                _Tab(
-                  s.demoDashboardTab,
-                  selected: dashboard,
-                  onTap: () => onTab(true),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-          ],
-          if (dashboard) _dashboardView() else _hintView(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _hintView(BuildContext context) {
-    final hints = s.demoHints;
-    if (!ran) {
-      return Text(
-        s.demoTryIt,
-        style: GoogleFonts.inter(fontSize: 13, color: kGray, height: 1.5),
-      );
-    }
-    final animate = motionEnabledOf(context);
-    final text = hints[hintLevel];
-    final nextButton = TextButton(
-      onPressed: onNextHint,
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: Size(0, compact ? 20 : 32),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        foregroundColor: kBlue,
-      ),
-      child: Text(
-        "${s.demoAnotherHint} →",
-        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
-      ),
-    );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              "${s.demoLevelLabel} ${hintLevel + 1}/${hints.length}",
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.4,
-                color: kBlue,
-              ),
-            ),
-            const Spacer(),
-            if (compact && hintLevel < hints.length - 1) nextButton,
-          ],
-        ),
-        SizedBox(height: compact ? 4 : 8),
-        // Keyed by run + level so each hint types itself out afresh; with
-        // the site's motion toggle off it just appears complete.
-        TweenAnimationBuilder<int>(
-          key: ValueKey('$runs-$hintLevel'),
-          tween: IntTween(begin: 0, end: text.length),
-          duration: animate
-              ? Duration(milliseconds: text.length * 18)
-              : Duration.zero,
-          builder: (_, n, _) => Stack(
-            children: [
-              // Invisible full text reserves the final height so the panel
-              // doesn't grow line by line while typing.
-              Opacity(opacity: 0, child: Text(text, style: _hintStyle)),
-              Text(text.substring(0, n), style: _hintStyle),
-            ],
-          ),
-        ),
-        if (!compact) ...[
-          const SizedBox(height: 14),
-          if (hintLevel < hints.length - 1) nextButton,
-        ],
-      ],
-    );
-  }
-
-  TextStyle get _hintStyle => GoogleFonts.inter(
-    fontSize: compact ? 13 : 13.5,
-    height: compact ? 1.4 : 1.5,
-    color: Colors.white.withValues(alpha: 0.9),
-  );
-
-  Widget _dashboardView() {
-    final labels = s.demoPatternLabels;
-    final counts = [baseCounts[0] + runs, baseCounts[1], baseCounts[2]];
-    final max = counts.reduce((a, b) => a > b ? a : b);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          s.demoPatterns,
-          style: GoogleFonts.inter(fontSize: 12, color: kGray),
-        ),
-        const SizedBox(height: 10),
-        for (var i = 0; i < labels.length; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 96,
-                  child: Text(
-                    labels[i],
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 12.5,
-                      color: Colors.white.withValues(alpha: 0.85),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(end: counts[i] / max),
-                    duration: const Duration(milliseconds: 350),
-                    builder: (_, v, _) => ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: v,
-                        minHeight: 8,
-                        color: kBlue,
-                        backgroundColor: Colors.white.withValues(alpha: 0.08),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${counts[i]}',
-                  style: GoogleFonts.inter(fontSize: 12.5, color: kGray),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
 class _Tab extends StatelessWidget {
   const _Tab(this.label, {required this.selected, required this.onTap});
 
@@ -521,7 +572,7 @@ class _Tab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
           color: selected
-              ? Colors.white.withValues(alpha: 0.12)
+              ? Colors.black.withValues(alpha: 0.08)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(100),
         ),
@@ -530,7 +581,7 @@ class _Tab extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: selected ? Colors.white : kGray,
+            color: selected ? _ink : _softInk,
           ),
         ),
       ),
