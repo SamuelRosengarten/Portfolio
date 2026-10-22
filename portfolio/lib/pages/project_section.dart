@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
@@ -12,223 +11,305 @@ class ProjectSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = paletteOf(context).dark;
+    final palette = paletteOf(context);
     final s = stringsOf(context);
-    return SectionShell(
-      background: paletteOf(context).band,
+    final phone = isPhone(context);
+    return PageSection(
+      background: palette.altBg,
+      bordered: true,
+      topPadding: phone ? 56 : null,
+      bottomPadding: phone ? 56 : null,
       child: Column(
-        // .min, not the default .max: this sizes to its own content instead
-        // of trying to fill the fixed section height, which would demand an
-        // *infinite* height on a phone screen short enough to need
-        // SectionShell's scroll fallback. SectionShell's own Center already
-        // takes care of centering this block vertically when there's room
-        // to spare (e.g. on a tall desktop window).
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SectionIntro(
+          SectionHeading(
             eyebrow: s.projectEyebrow,
             headline: 'Code Coach.',
             subhead: s.projectSubhead,
-            dark: dark,
           ),
-          SizedBox(
-            height: MediaQuery.sizeOf(context).width < 600
-                ? 10
-                : 24 * heightScale(context),
-          ),
-          const _ProjectShowcase(),
+          SizedBox(height: phone ? 28 : 48),
+          const _ProjectCard(),
         ],
       ),
     );
   }
 }
 
-/// The demo sizes itself to its content rather than an Expanded box filling
-/// whatever room is left: this showcase can end up inside SectionShell's
-/// scrollable fallback on a short phone screen, where Expanded would crash
-/// for lack of a bounded height.
-/// so it would crash there instead of gracefully sizing itself.
-class _ProjectShowcase extends StatelessWidget {
-  const _ProjectShowcase();
+class _ProjectCard extends StatelessWidget {
+  const _ProjectCard();
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    final mobile = MediaQuery.sizeOf(context).width < 600;
-    final scale = heightScale(context);
+    final phone = isPhone(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(phone ? 22 : 28),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: palette.card,
+          borderRadius: BorderRadius.circular(phone ? 22 : 28),
+          border: Border.all(color: palette.surface(0.1)),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Editor and details side by side once each gets ~460px.
+            if (constraints.maxWidth >= 460 * 2) {
+              return const IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: _DemoPane(compact: true)),
+                    Expanded(child: _Details()),
+                  ],
+                ),
+              );
+            }
+            // Stacked: the demo's wide layout needs ~720px of room, so below
+            // that it gets the compact one even though the card is full width.
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _DemoPane(compact: constraints.maxWidth < 820),
+                const _Details(),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// The interactive Code Coach demo on a dark stage, left of the details.
+class _DemoPane extends StatelessWidget {
+  const _DemoPane({this.compact});
+
+  /// Passed through to the demo; see [CodeCoachDemo.compact].
+  final bool? compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
+    return Container(
+      color: const Color(0xFF0F1115),
+      padding: EdgeInsets.all(phone ? 16 : (width * 0.03).clamp(20.0, 36.0)),
+      alignment: Alignment.center,
+      child: CodeCoachDemo(compact: compact),
+    );
+  }
+}
+
+class _Details extends StatelessWidget {
+  const _Details();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     final s = stringsOf(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const CodeCoachDemo(),
-        SizedBox(height: mobile ? 14 : 20 * scale),
-        Text(
-          'Code Coach',
-          style: GoogleFonts.inter(
-            fontSize: mobile ? 20 : 24 * scale,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.4,
-            color: palette.ink,
-          ),
-        ),
-        SizedBox(height: mobile ? 6 : 10 * scale),
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 620 * (mobile ? 1 : scale)),
-          child: Text(
-            s.projectDescription,
-            style: GoogleFonts.inter(
-              // This is the longest single piece of copy in the section —
-              // on a phone, scale it down past a reasonable length the same
-              // way SectionIntro's subhead does (see _subheadFontSize),
-              // rather than let it alone decide whether the whole section
-              // needs a scroll.
-              fontSize: mobile
-                  ? _descriptionFontSize(s.projectDescription)
-                  : 16 * scale,
-              height: mobile ? 1.4 : 1.6,
-              color: palette.muted,
-            ),
-          ),
-        ),
-        // The tags repeat what the subhead already says on a phone, where
-        // every line of height counts toward the one-screen budget.
-        if (!mobile) ...[
-          SizedBox(height: 18 * scale),
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
+
+    final features = [
+      (s.featureHintsTitle, s.featureHintsBody),
+      (s.featureDashboardTitle, s.featureDashboardBody),
+      (s.featureReportsTitle, s.featureReportsBody),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.all(phone ? 20 : (width * 0.034).clamp(24.0, 48.0)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _Tag(s.tagVsCodeExtension, palette: palette),
-              _Tag(s.tagPublished, palette: palette, highlight: true),
+              Pill(
+                s.tagVsCodeExtension,
+                background: palette.surface(0.08),
+                color: palette.ink,
+              ),
+              Pill(
+                s.tagPublished,
+                background: palette.blue.withValues(alpha: 0.16),
+                color: palette.accentText,
+              ),
+            ],
+          ),
+          if (!phone) ...[
+            const SizedBox(height: 24),
+            Text(
+              s.projectDescription,
+              style: interStyle(
+                size: 16,
+                color: palette.secondary,
+                height: 1.6,
+              ),
+            ),
+          ],
+          SizedBox(height: phone ? 18 : 24),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: palette.surface(0.08))),
+            ),
+            child: Column(
+              children: [
+                for (var i = 0; i < features.length; i++)
+                  _Feature(
+                    index: i + 1,
+                    title: features[i].$1,
+                    body: features[i].$2,
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(height: phone ? 18 : 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              _LinkButton(
+                label: s.viewOnMarketplace,
+                uri: Uri.parse(
+                  'https://marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
+                ),
+                primary: true,
+              ),
+              _LinkButton(
+                label: s.sourceOnGitHub,
+                uri: Uri.parse(
+                  'https://github.com/SamuelRosengarten/code-coach',
+                ),
+              ),
             ],
           ),
         ],
-        SizedBox(height: mobile ? 12 : 20 * scale),
-        Wrap(
-          spacing: 12,
-          runSpacing: 10,
-          children: [
-            _PillButton(
-              label: s.viewOnMarketplace,
-              address: 'marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
-              primary: true,
-            ),
-            _PillButton(
-              label: s.sourceOnGitHub,
-              address: 'github.com/SamuelRosengarten/code-coach',
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
 
-/// A description around 150 characters or shorter keeps its full 14px; each
-/// character past that shaves the size down, floored at 11px.
-double _descriptionFontSize(String description) {
-  const referenceLength = 150;
-  final scale = (referenceLength / description.length).clamp(0.78, 1.0);
-  return 14 * scale;
-}
+class _Feature extends StatelessWidget {
+  const _Feature({
+    required this.index,
+    required this.title,
+    required this.body,
+  });
 
-class _Tag extends StatelessWidget {
-  const _Tag(this.label, {required this.palette, this.highlight = false});
-
-  final String label;
-  final AppPalette palette;
-
-  /// The "Published" tag borrows the accent blue; the rest stay neutral.
-  final bool highlight;
+  final int index;
+  final String title;
+  final String body;
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    final phone = isPhone(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: phone ? 14 : 16),
       decoration: BoxDecoration(
-        color: highlight
-            ? kBlue.withValues(alpha: 0.16)
-            : palette.surface(0.08),
-        borderRadius: BorderRadius.circular(100),
+        border: Border(bottom: BorderSide(color: palette.surface(0.08))),
       ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: highlight
-              ? (palette.dark
-                    ? const Color(0xFF7CC0FF)
-                    : const Color(0xFF0066CC))
-              : palette.ink.withValues(alpha: 0.85),
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Text(
+              index.toString().padLeft(2, '0'),
+              style: monoStyle(size: phone ? 11 : 12, color: palette.accent),
+            ),
+          ),
+          SizedBox(width: phone ? 14 : 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: interStyle(
+                    size: phone ? 15 : 16,
+                    color: palette.ink,
+                    weight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: interStyle(
+                    size: 14,
+                    color: palette.tertiary,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// A pill-shaped link that opens [address] (host and path, no scheme) in a
-/// new tab: solid accent when [primary], outlined otherwise. Brightens on
-/// hover with a pointer cursor.
-class _PillButton extends StatelessWidget {
-  const _PillButton({
+/// A pill-shaped link that opens [uri]: solid accent when [primary], outlined
+/// otherwise. Reachable by keyboard and announced as a link.
+class _LinkButton extends StatelessWidget {
+  const _LinkButton({
     required this.label,
-    required this.address,
+    required this.uri,
     this.primary = false,
   });
 
   final String label;
-  final String address;
+  final Uri uri;
   final bool primary;
 
   @override
   Widget build(BuildContext context) {
     return LinkTarget(
-      uri: Uri.parse('https://$address'),
+      uri: uri,
       semanticLabel: label,
-      builder: _pill,
-    );
-  }
-
-  Widget _pill(BuildContext context, bool hovering) {
-    final palette = paletteOf(context);
-    final fg = primary ? Colors.black : palette.ink;
-    final mobile = MediaQuery.sizeOf(context).width < 600;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      constraints: BoxConstraints(minHeight: mobile ? 40 : 48),
-      padding: EdgeInsets.symmetric(horizontal: mobile ? 16 : 22),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: primary
-            ? (hovering ? const Color(0xFF5CB0FF) : kBlue)
-            : (hovering ? palette.surface(0.08) : Colors.transparent),
-        borderRadius: BorderRadius.circular(100),
-        border: primary ? null : Border.all(color: palette.surface(0.22)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: mobile ? 13 : 15,
-                fontWeight: FontWeight.w600,
-                color: fg,
-              ),
-            ),
+      builder: (context, highlighted) {
+        final palette = paletteOf(context);
+        final fg = primary ? palette.onAccent : palette.ink;
+        final phone = isPhone(context);
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          constraints: BoxConstraints(minHeight: phone ? 44 : 48),
+          padding: EdgeInsets.symmetric(horizontal: phone ? 18 : 22),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: primary
+                ? (highlighted
+                      ? Color.lerp(palette.accent, Colors.white, 0.18)
+                      : palette.accent)
+                : (highlighted ? palette.surface(0.08) : Colors.transparent),
+            borderRadius: BorderRadius.circular(999),
+            border: primary ? null : Border.all(color: palette.surface(0.22)),
           ),
-          if (primary) ...[
-            const SizedBox(width: 6),
-            Icon(Icons.arrow_outward_rounded, size: 16, color: fg),
-          ],
-        ],
-      ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: interStyle(
+                    size: phone ? 14 : 15,
+                    color: fg,
+                    weight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (primary) ...[
+                const SizedBox(width: 6),
+                Icon(Icons.arrow_outward_rounded, size: 16, color: fg),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

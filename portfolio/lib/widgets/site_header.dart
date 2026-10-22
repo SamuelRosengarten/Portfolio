@@ -1,22 +1,11 @@
-import 'dart:ui';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/app_language.dart';
 import '../i18n/strings.dart';
-import '../theme/motion_controller.dart';
 import '../theme/palette.dart';
 import '../theme/theme_controller.dart';
-
-/// Desktop header height; phones use [kMobileSiteHeaderHeight] to leave
-/// their sections more room.
-const double kSiteHeaderHeight = 56;
-const double kMobileSiteHeaderHeight = 48;
-
-/// Below this width the header switches from the centered row of nav links
-/// to a single menu button that opens [NavDrawer].
-const double kMobileNavBreakpoint = 600;
+import 'section_layout.dart';
 
 /// The sections of the page, in the order they are stacked — the header renders
 /// one item per value and [Home] anchors one section to each.
@@ -36,143 +25,155 @@ String navLabel(AppLanguage lang, SiteSection section) {
   };
 }
 
+/// Pinned header. On desktop: logo, centred section links and the language and
+/// theme toggles in one row. On a phone: logo, toggles and a menu button, with
+/// a horizontally scrolling jump bar of section pills underneath.
 class SiteHeader extends StatelessWidget {
-  const SiteHeader({
-    super.key,
-    required this.current,
-    required this.onSelected,
-  });
+  const SiteHeader({super.key, required this.active, required this.onSelected});
 
-  /// The section being shown, highlighted in the desktop nav.
-  final SiteSection current;
+  /// The section currently at the top of the viewport, highlighted in the nav.
+  final ValueListenable<SiteSection> active;
 
   /// Called with the section the visitor asked to jump to.
   final ValueChanged<SiteSection> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final mobile = MediaQuery.sizeOf(context).width < kMobileNavBreakpoint;
     final palette = paletteOf(context);
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
 
-    // BackdropFilter blurs whatever is *behind* this widget (the scrolling
-    // page content), which combined with the translucent container below is
-    // what gives the header its frosted-glass look as content scrolls
-    // underneath it — white glass in light mode, dark glass in dark mode.
-    // ClipRect is required because BackdropFilter blurs its entire layer,
-    // including past this widget's own bounds — without it the blur would
-    // bleed outside the header.
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          height: mobile ? kMobileSiteHeaderHeight : kSiteHeaderHeight,
-          decoration: BoxDecoration(
-            color: palette.dark
-                ? Colors.black.withValues(alpha: 0.72)
-                : Colors.white.withValues(alpha: 0.7),
-            border: Border(bottom: BorderSide(color: palette.surface(0.08))),
-          ),
-          // A Row with a fixed-width leading/trailing slot rather than a
-          // Stack of loosely-positioned children: the centered nav row's
-          // FittedBox has no inherent width limit of its own, so as a
-          // Stack's non-positioned child it was free to lay out under (and,
-          // near the mobile breakpoint, actually overlap) the toggle button
-          // in the corner. Giving the toggle its own reserved slot in a Row
-          // means the nav row's Expanded center slot can never claim that
-          // space in the first place.
-          child: Row(
-            children: [
-              // 144px, matching the trailing slot's three-button width, so
-              // the centered nav row (which centers itself within whatever
-              // the Expanded gets) lands in the true middle of the header
-              // instead of drifting toward whichever side is narrower.
-              SizedBox(
-                width: mobile ? 144 : 240,
-                child: mobile
-                    ? const Center(child: _MenuButton())
-                    : const Padding(
-                        padding: EdgeInsets.only(left: 24),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: _LogoMark(),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.bg.withValues(alpha: 0.94),
+        border: Border(bottom: BorderSide(color: palette.surface(0.08))),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: phone ? 16 : pageGutter(width),
+                    right: phone ? 8 : pageGutter(width),
+                  ),
+                  child: SizedBox(
+                    height: phone ? 60 : 64,
+                    child: Row(
+                      // The logo's flexible slot can leave slack; spreading it
+                      // keeps the toggles on the right edge.
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (phone)
+                          // Takes whatever the toggles leave, so a large
+                          // system font shortens the name instead of
+                          // pushing the toggles off the edge.
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: _Logo(
+                                phone: true,
+                                onTap: () => onSelected(SiteSection.about),
+                              ),
+                            ),
+                          )
+                        else ...[
+                          Flexible(
+                            child: _Logo(
+                              phone: false,
+                              onTap: () => onSelected(SiteSection.about),
+                            ),
+                          ),
+                          Expanded(
+                            child: _DesktopNav(
+                              active: active,
+                              onSelected: onSelected,
+                            ),
+                          ),
+                        ],
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const _LanguageToggleButton(),
+                            const _ThemeToggleButton(),
+                            if (phone) const _MenuButton(),
+                          ],
                         ),
-                      ),
-              ),
-              Expanded(
-                child: mobile
-                    ? const SizedBox.shrink()
-                    : _DesktopNav(current: current, onSelected: onSelected),
-              ),
-              SizedBox(
-                width: mobile ? 144 : 240,
-                // Icons grow with the system font size, so at large text
-                // the three buttons can outgrow their slot. Shrinking them
-                // to fit keeps all three reachable instead of clipping one.
-                child: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      _MotionToggleButton(),
-                      _LanguageToggleButton(),
-                      _ThemeToggleButton(),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            if (phone) _JumpBar(active: active, onSelected: onSelected),
+          ],
         ),
       ),
     );
   }
 }
 
-/// The "SR" monogram and name pinned to the header's left on desktop.
-class _LogoMark extends StatelessWidget {
-  const _LogoMark();
+class _Logo extends StatelessWidget {
+  const _Logo({required this.phone, required this.onTap});
+
+  final bool phone;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: kBlue,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            'SR',
-            style: monoLabel(size: 13, color: Colors.black, letterSpacing: 0),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Flexible(
-          child: Text(
-            'Samuel Rosengarten',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
-              color: palette.ink,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: phone ? 30 : 32,
+              height: phone ? 30 : 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: palette.accent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'SR',
+                style: monoStyle(
+                  size: phone ? 12 : 13,
+                  color: palette.onAccent,
+                  weight: FontWeight.w500,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                phone ? 'Samuel' : 'Samuel Rosengarten',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: interStyle(
+                  size: 15,
+                  color: palette.ink,
+                  weight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
 
-/// Hamburger button shown top-left on phone-sized screens. Opens the
-/// [NavDrawer] registered on the enclosing [Scaffold] (see `Home`).
+/// Hamburger button shown on phone-sized screens. Opens the [NavDrawer]
+/// registered on the enclosing [Scaffold] (see `Home`).
 class _MenuButton extends StatelessWidget {
   const _MenuButton();
 
@@ -189,41 +190,9 @@ class _MenuButton extends StatelessWidget {
   }
 }
 
-/// Toggles [MotionController.animationsEnabled] — the decorative
-/// backgrounds animate by default (see `motion_controller.dart` for why that
-/// no longer follows the browser's `prefers-reduced-motion` setting), and
-/// this is the explicit opt-out for a visitor who wants them still. Follows
-/// the same "icon shows the mode a tap switches *to*" convention as
-/// [_ThemeToggleButton].
-class _MotionToggleButton extends StatelessWidget {
-  const _MotionToggleButton();
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = AppMotion.of(context);
-    final palette = paletteOf(context);
-    final s = stringsOf(context);
-    return IconButton(
-      icon: Icon(
-        controller.animationsEnabled
-            ? Icons.motion_photos_off_outlined
-            : Icons.motion_photos_on_outlined,
-        color: palette.ink.withValues(alpha: 0.87),
-        size: 20,
-      ),
-      tooltip: controller.animationsEnabled
-          ? s.pauseBackgroundAnimations
-          : s.resumeBackgroundAnimations,
-      onPressed: controller.toggle,
-    );
-  }
-}
-
-/// Sun/moon switch, shown top-right in both the desktop and mobile header —
-/// tapping it flips [ThemeController.isDark] for the whole site. The icon
-/// shown is the mode a tap switches *to*, not the current one (a sun while
-/// dark, a moon while light), which is the more common convention for this
-/// kind of control.
+/// Sun/moon switch — tapping it flips [ThemeController.isDark] for the whole
+/// site. The icon shown is the mode a tap switches *to*, not the current one
+/// (a sun while dark, a moon while light).
 class _ThemeToggleButton extends StatelessWidget {
   const _ThemeToggleButton();
 
@@ -246,9 +215,9 @@ class _ThemeToggleButton extends StatelessWidget {
   }
 }
 
-/// EN/FR switch, shown right next to [_ThemeToggleButton]. Follows the same
-/// "shows the mode a tap switches *to*" convention as the theme button: the
-/// label reads the language you'd get by tapping, not the current one.
+/// EN/FR switch. Follows the same "shows the mode a tap switches *to*"
+/// convention as the theme button: the label reads the language you'd get by
+/// tapping, not the current one.
 class _LanguageToggleButton extends StatelessWidget {
   const _LanguageToggleButton();
 
@@ -261,11 +230,11 @@ class _LanguageToggleButton extends StatelessWidget {
     return IconButton(
       icon: Text(
         togglesToFrench ? 'FR' : 'EN',
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.4,
+        style: interStyle(
+          size: 12,
           color: palette.ink.withValues(alpha: 0.87),
+          weight: FontWeight.w700,
+          letterSpacing: 0.4,
         ),
       ),
       tooltip: togglesToFrench ? s.switchToFrench : s.switchToEnglish,
@@ -276,30 +245,31 @@ class _LanguageToggleButton extends StatelessWidget {
 
 /// The row of nav links shown across the top of the header on wider screens.
 class _DesktopNav extends StatelessWidget {
-  const _DesktopNav({required this.current, required this.onSelected});
+  const _DesktopNav({required this.active, required this.onSelected});
 
-  final SiteSection current;
+  final ValueListenable<SiteSection> active;
   final ValueChanged<SiteSection> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    // FittedBox + scaleDown is a safety net for narrow-ish screens just
-    // above the mobile breakpoint: if the row of nav items would overflow
-    // the header's width, this shrinks the whole row down to fit instead of
-    // clipping it or throwing an overflow error.
     final lang = languageOf(context);
+    // FittedBox + scaleDown is a safety net for widths just above the phone
+    // breakpoint: if the row would overflow, shrink it instead of clipping.
     return FittedBox(
       fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (final section in SiteSection.values)
-            _HeaderItem(
-              navLabel(lang, section),
-              selected: section == current,
-              onTap: () => onSelected(section),
-            ),
-        ],
+      child: ValueListenableBuilder<SiteSection>(
+        valueListenable: active,
+        builder: (context, current, _) => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (final section in SiteSection.values)
+              _HeaderItem(
+                navLabel(lang, section),
+                selected: section == current,
+                onTap: () => onSelected(section),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -322,22 +292,22 @@ class _HeaderItemState extends State<_HeaderItem> {
   @override
   Widget build(BuildContext context) {
     final ink = paletteOf(context).ink;
-    final emphasis = widget.selected ? 1.0 : (_hovering ? 0.95 : 0.65);
+    final emphasis = widget.selected ? 1.0 : (_hovering ? 0.9 : 0.65);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 120),
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              letterSpacing: -0.1,
-              fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w400,
+            style: interStyle(
+              size: 14,
               color: ink.withValues(alpha: emphasis),
+              weight: widget.selected ? FontWeight.w600 : FontWeight.w400,
             ),
             child: Text(widget.label),
           ),
@@ -347,10 +317,83 @@ class _HeaderItemState extends State<_HeaderItem> {
   }
 }
 
+/// Phone-only strip of section pills under the header; scrolls sideways if the
+/// labels (French especially) don't fit.
+class _JumpBar extends StatelessWidget {
+  const _JumpBar({required this.active, required this.onSelected});
+
+  final ValueListenable<SiteSection> active;
+  final ValueChanged<SiteSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    final lang = languageOf(context);
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: palette.surface(0.06))),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: ValueListenableBuilder<SiteSection>(
+          valueListenable: active,
+          builder: (context, current, _) => Row(
+            children: [
+              for (final section in SiteSection.values) ...[
+                if (section != SiteSection.about) const SizedBox(width: 8),
+                _JumpPill(
+                  navLabel(lang, section),
+                  selected: section == current,
+                  onTap: () => onSelected(section),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _JumpPill extends StatelessWidget {
+  const _JumpPill(this.label, {required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? palette.ink : palette.card,
+          borderRadius: BorderRadius.circular(999),
+          border: selected ? null : Border.all(color: palette.surface(0.06)),
+        ),
+        child: Text(
+          label,
+          style: interStyle(
+            size: 13,
+            color: selected ? palette.bg : palette.ink,
+            weight: selected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Phone-size nav drawer: the same section names as the desktop header, laid
 /// out as a vertical list. Opened via the hamburger [_MenuButton] and
-/// registered as `Scaffold.drawer` by `Home` so every section is reachable
-/// no matter which one the visitor is currently scrolled to.
+/// registered as `Scaffold.drawer` by `Home`.
 class NavDrawer extends StatelessWidget {
   const NavDrawer({super.key, required this.onSelected});
 
@@ -373,11 +416,11 @@ class NavDrawer extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'MENU',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.4,
+                style: interStyle(
+                  size: 12,
                   color: palette.ink.withValues(alpha: 0.4),
+                  weight: FontWeight.w600,
+                  letterSpacing: 1.4,
                 ),
               ),
             ),
@@ -386,11 +429,11 @@ class NavDrawer extends StatelessWidget {
               ListTile(
                 title: Text(
                   navLabel(lang, section),
-                  style: GoogleFonts.inter(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.2,
+                  style: interStyle(
+                    size: 19,
                     color: palette.ink,
+                    weight: FontWeight.w500,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 onTap: () {

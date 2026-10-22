@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'theme_controller.dart';
 
@@ -19,25 +18,6 @@ const Color kInk = Color(0xFF1D1D1F);
 const Color kGray = Color(0xFF86868B);
 const Color kBlue = Color(0xFF2997FF);
 
-/// Dark-mode secondary text and the alternating-band / raised-panel greys
-/// the redesign layers over pure black (page → band → panel → card).
-const Color kDarkMuted = Color(0xFFA1A1A6);
-const Color kDarkBand = Color(0xFF0B0B0C);
-const Color kDarkRaised = Color(0xFF111113);
-
-/// The redesign's small-caps label style (eyebrows, counters, step numbers).
-TextStyle monoLabel({
-  double size = 12,
-  Color? color,
-  double letterSpacing = 1.2,
-  FontWeight weight = FontWeight.w500,
-}) => GoogleFonts.jetBrainsMono(
-  fontSize: size,
-  fontWeight: weight,
-  letterSpacing: letterSpacing,
-  color: color,
-);
-
 /// Bundles the handful of colours that flip between the site's light and
 /// dark modes, so a section only has to ask "what's my background/ink/
 /// surface right now" instead of branching on [ThemeController.isDark]
@@ -54,21 +34,43 @@ class AppPalette {
 
   Color get panelBg => dark ? kDarkPanelBg : kPanelBg;
 
-  /// Slightly lifted band for the Projects / Contact sections.
-  Color get band => dark ? kDarkBand : kPanelBg;
-
-  /// Large framed panels (the stack panel) sit between band and card.
-  Color get raised => dark ? kDarkRaised : Colors.white;
-
-  /// Secondary copy: subheads, descriptions.
-  Color get muted => dark ? kDarkMuted : kGray;
-
   /// Primary text colour: white on a dark surface, near-black on a light one.
   Color get ink => dark ? Colors.white : kInk;
 
   Color get gray => kGray;
 
   Color get blue => kBlue;
+
+  /// The slightly offset band behind Projects and Contact, so the flat
+  /// sections read as separate bands on one continuous page.
+  Color get altBg => dark ? const Color(0xFF0B0B0C) : kPanelBg;
+
+  /// Raised card fill (project card, contact cards, stack chips).
+  Color get card => dark ? kDarkPanelBg : Colors.white;
+
+  /// The stack panel's fill — a step below [card] so chips sit on it.
+  Color get panel => dark ? const Color(0xFF111113) : Colors.white;
+
+  /// Body copy under a headline.
+  Color get secondary =>
+      dark ? const Color(0xFFA1A1A6) : const Color(0xFF515154);
+
+  /// Small labels and captions.
+  Color get tertiary =>
+      dark ? const Color(0xFF98989D) : const Color(0xFF6E6E73);
+
+  /// Decorative, lowest-emphasis text (the hero's second line, chevrons).
+  Color get muted => dark ? const Color(0xFF6E6E73) : kGray;
+
+  /// Brand accent. Light mode uses a deeper blue so white text on it passes.
+  Color get accent => dark ? kBlue : const Color(0xFF0071E3);
+
+  /// Text/icon colour that sits on top of [accent].
+  Color get onAccent => dark ? Colors.black : Colors.white;
+
+  /// Tinted accent text, e.g. the "Published" pill.
+  Color get accentText =>
+      dark ? const Color(0xFF7CC0FF) : const Color(0xFF0060C0);
 
   /// A translucent card/chip fill, white-on-dark or black-on-light at the
   /// same alpha the design already leans on for "frosted surface" panels.

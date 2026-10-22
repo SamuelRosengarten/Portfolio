@@ -76,7 +76,12 @@ int? _kindOfLine(int i) {
 /// sidebar tally them (with a working MUTE). Nothing here calls an AI — the
 /// hints are the real extension's wording, canned.
 class CodeCoachDemo extends StatefulWidget {
-  const CodeCoachDemo({super.key});
+  const CodeCoachDemo({super.key, this.compact});
+
+  /// Use the narrow single-column layout. Left null, it follows the screen
+  /// width (narrow below 600px); a caller that knows the demo sits in a
+  /// narrow pane on a wide screen passes true.
+  final bool? compact;
 
   @override
   State<CodeCoachDemo> createState() => _CodeCoachDemoState();
@@ -104,7 +109,7 @@ class _CodeCoachDemoState extends State<CodeCoachDemo> {
   @override
   Widget build(BuildContext context) {
     final s = stringsOf(context);
-    final mobile = MediaQuery.sizeOf(context).width < 600;
+    final mobile = widget.compact ?? MediaQuery.sizeOf(context).width < 600;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,

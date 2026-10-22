@@ -63,12 +63,17 @@ void main() {
   ) async {
     await _openSection(tester, 'Contact');
 
-    final links = await _tabThroughLinks(tester);
-    expect(links, [
+    // The whole page is one scroll, so the project buttons come first in tab
+    // order; the contact cards are the mailto link and the two profiles.
+    final contactLinks = {
       Uri(scheme: 'mailto', path: 'samrosengarten2@pm.me'),
       Uri.parse('https://github.com/SamuelRosengarten'),
       Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
-    ]);
+    };
+    final links = (await _tabThroughLinks(tester))
+        .where(contactLinks.contains)
+        .toList();
+    expect(links, contactLinks.toList());
 
     // Tabbing ended on or past the last card; walk back to the first one and
     // open it from the keyboard.
@@ -122,15 +127,14 @@ void main() {
   testWidgets('the project buttons are keyboard links too', (tester) async {
     await _openSection(tester, 'Projects');
     final links = await _tabThroughLinks(tester);
-    expect(links, isNotEmpty);
-    for (final uri in links) {
-      expect(uri.scheme, 'https');
-      expect(uri.host, isNotEmpty);
-    }
     expect(
-      links.any((u) => u.host.contains('marketplace.visualstudio.com')) ||
-          links.any((u) => u.host.contains('github.com')),
-      isTrue,
+      links,
+      containsAll([
+        Uri.parse(
+          'https://marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
+        ),
+        Uri.parse('https://github.com/SamuelRosengarten/code-coach'),
+      ]),
     );
   });
 }
