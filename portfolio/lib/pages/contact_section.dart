@@ -70,7 +70,7 @@ class _ContactGrid extends StatelessWidget {
         const _ContactCard(
           icon: Icons.work_outline_rounded,
           label: 'LinkedIn',
-          value: 'linkedin.com/in/samuel-rosengarten-63b932404',
+          value: 'linkedin.com/in/samuel-rosengarten',
         ),
         _ContactCard(
           icon: Icons.place_outlined,
