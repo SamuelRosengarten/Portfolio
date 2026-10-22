@@ -23,10 +23,6 @@ class Strings {
       _fr ? 'Passer au mode sombre' : 'Switch to dark mode';
   String get switchToFrench => 'Passer au français';
   String get switchToEnglish => 'Switch to English';
-  String get pauseBackgroundAnimations =>
-      _fr ? 'Mettre les animations en pause' : 'Pause background animations';
-  String get resumeBackgroundAnimations =>
-      _fr ? 'Reprendre les animations' : 'Resume background animations';
 
   // About ------------------------------------------------------------------
 
@@ -185,6 +181,109 @@ class Strings {
             'about patience than any deadline ever did.';
 
   String get pastPiecesLabel => _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
+
+  // Redesign copy -------------------------------------------------------------
+
+  String get heroTagline =>
+      _fr ? 'De la torche au clavier.' : 'From the torch to the keyboard.';
+
+  String get seeMyWork => _fr ? 'Voir mes projets' : 'See my work';
+
+  String get getInTouch => _fr ? 'Me contacter' : 'Get in touch';
+
+  String get pathBefore => _fr ? 'AVANT' : 'BEFORE';
+
+  String get pathNow => _fr ? 'MAINTENANT' : 'NOW';
+
+  String get pathNext => _fr ? 'ENSUITE' : 'NEXT';
+
+  String get pathAfter => _fr ? 'APRÈS' : 'AFTER';
+
+  String get pathBeforeTitle =>
+      _fr ? 'Soudure et mécanique' : 'Welding & mechanics';
+
+  String get pathBeforeBody =>
+      _fr ? "Des années sur le plancher d'usine." : 'Years on the shop floor.';
+
+  String get pathNowTitle =>
+      _fr ? 'Diplôme en programmation' : 'Programming diploma';
+
+  String get pathNowBody => _fr
+      ? "Cégep Édouard-Montpetit, et tutorat auprès d'autres étudiants."
+      : 'Cégep Édouard-Montpetit, and tutoring other students.';
+
+  String get pathNowShort => _fr
+      ? 'Diplôme en programmation + tutorat'
+      : 'Programming diploma + tutoring';
+
+  String get pathNextTitle =>
+      _fr ? 'Stage, mars 2027' : 'Internship, March 2027';
+
+  String get pathNextBody =>
+      _fr ? 'Pour terminer le diplôme.' : 'To complete the diploma.';
+
+  String get pathAfterTitle => _fr ? 'Développeur junior' : 'Junior developer';
+
+  String get pathAfterBody => _fr
+      ? "Lancer ma carrière dans l'industrie."
+      : 'Starting my career in the industry.';
+
+  String get featureHintsTitle =>
+      _fr ? 'Indices contextuels' : 'Contextual hints';
+
+  String get featureHintsBody => _fr
+      ? "Juste à côté de l'erreur, en langage clair."
+      : 'Right next to the error, in plain language.';
+
+  String get featureDashboardTitle =>
+      _fr ? 'Tableau des tendances' : 'Pattern dashboard';
+
+  String get featureDashboardBody => _fr
+      ? 'Suit les erreurs qui reviennent, au fil du temps.'
+      : 'Tracks which mistakes keep coming back, over time.';
+
+  String get featureReportsTitle =>
+      _fr ? 'Rapports de session' : 'Session reports';
+
+  String get featureReportsBody => _fr
+      ? 'Exportables, à apporter à un mentor ou un tuteur.'
+      : 'Exportable, to bring to a mentor or tutor.';
+
+  String get builtWithFlutter =>
+      _fr ? 'Conçu avec Flutter' : 'Built with Flutter';
+
+  String get goalConnectionsTitle =>
+      _fr ? 'Créer des contacts' : 'Make connections';
+
+  String get goalConnectionsBody => _fr
+      ? "Rencontrer des gens de l'industrie à la fin de mes études."
+      : 'Meet people in the industry once school wraps up.';
+
+  String get goalJuniorTitle => _fr
+      ? 'Commencer comme développeur junior'
+      : 'Start as a junior developer';
+
+  String get goalJuniorBody => _fr
+      ? 'Lancer ma carrière en écrivant du code tous les jours.'
+      : 'Begin my career writing code every day.';
+
+  String get goalHomeTitle => _fr
+      ? 'Réaliser des projets amusants à la maison'
+      : 'Build fun projects at home';
+
+  String get goalHomeBody => _fr
+      ? 'Continuer à créer simplement par plaisir.'
+      : 'Keep making things just because I enjoy it.';
+
+  String get pastPiecesSwipeLabel =>
+      _fr ? 'CRÉATIONS PASSÉES · GLISSER' : 'PAST PIECES · SWIPE';
+
+  String get addPhotoLabel => _fr ? 'Ajouter une photo' : 'Add photo';
+
+  String get photoAtTheBench =>
+      _fr ? '[PHOTO À\nL\'ÉTABLI]' : '[PHOTO AT\nTHE BENCH]';
+
+  String get photoPlaceholder => '[PHOTO]';
 }
 
 Strings stringsOf(BuildContext context) => Strings(languageOf(context));

@@ -3,308 +3,353 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/palette.dart';
 
-/// How much bigger desktop content should render, continuously, for extra
-/// vertical room beyond a normal laptop window. `SectionShell` always sizes
-/// a section to the *entire* height it's given (so its background fills the
-/// screen behind it), but content sized only off width breakpoints stays
-/// exactly as large on a big monitor as it is on a small laptop, even with
-/// hundreds of extra pixels of vertical room — which is what reads as a
-/// large empty gap above and below the (unchanged) content block.
-///
-/// 1.0x at or below [_baseline] (a fairly ordinary laptop window, well
-/// under even a 13" MacBook's height); grows linearly and is capped at
-/// [_maxScale] by the time height reaches roughly double the baseline. A
-/// continuous multiplier rather than one all-or-nothing breakpoint, so it
-/// starts making a real difference on any window taller than a small
-/// laptop's, not just on unusually large external monitors.
-///
-/// Pinned to 1.0 below the desktop width breakpoint: a phone held upright
-/// is often taller than [baseline] on its own, and this was never meant to
-/// scale phone layouts, only desktop ones with real vertical room to
-/// spare — every call site's own width checks (see `_headlineSize`) already
-/// keep phone *font sizes* pinned regardless, but this needs its own guard
-/// since call sites that scale spacing/marquee sizing by it don't
-/// separately check width themselves.
-///
-/// Callers that apply this to something growing past the space it's given
-/// (About's intro block, most notably) pair it with a `FittedBox` safety
-/// net that scales back down if the pick here turns out to be too
-/// optimistic for a particular browser's real font metrics — this is a
-/// best-effort target, not a guarantee of fit on its own.
-double heightScale(BuildContext context) {
-  final size = MediaQuery.sizeOf(context);
-  if (size.width < 900) return 1.0;
-  const baseline = 620.0;
-  const growthRange = 700.0;
-  const maxScale = 1.9;
-  if (size.height <= baseline) return 1.0;
-  final t = ((size.height - baseline) / growthRange).clamp(0.0, 1.0);
-  return 1.0 + t * (maxScale - 1.0);
-}
+/// Below this width the page switches to its phone layouts: the header gets a
+/// menu button and a jump bar, grids collapse to one column, and the contact
+/// cards become a single grouped list.
+const double kPhoneBreakpoint = 720;
 
-/// Responsive font size for every [SectionIntro] headline: smaller on
-/// phones, larger on desktop, and scaled continuously further by [scale] —
-/// see [heightScale]. `MediaQuery`'s width (not a `LayoutBuilder`
-/// constraint) is what's passed in here — see [SectionIntro.build] below.
-double _headlineSize(double width, double scale) {
-  if (width < 600) return 30;
-  if (width < 900) return 44;
-  return 56 * scale;
-}
+/// Widest the page content ever gets, so lines stay readable on a big monitor.
+const double kMaxContentWidth = 1180;
 
-/// Full-bleed band of colour holding one section's content, centred and capped
-/// so the copy never runs wider than it reads well.
-///
-/// `Home` shows exactly one section at a time, filling the screen below the
-/// pinned header — this shell fills exactly the height it's *given* by that
-/// (via the `LayoutBuilder` below), which is what makes it occupy the whole
-/// remaining screen regardless of how much content it has. Content inside
-/// still has to fit that height on its own (usually via `Expanded` soaking
-/// up the leftover space below the intro text); nothing here makes the
-/// child scrollable if it's too tall.
-///
-/// The hobbies section intentionally does *not* use this shell — it wants a
-/// full-bleed, edge-to-edge layout with no side padding or 980px cap, so it
-/// builds its own sizing from scratch instead.
-class SectionShell extends StatelessWidget {
-  const SectionShell({
+bool isPhone(BuildContext context) =>
+    MediaQuery.sizeOf(context).width < kPhoneBreakpoint;
+
+/// Side padding that grows with the window, from 20px on a phone to 64px.
+double pageGutter(double width) => (width * 0.05).clamp(20.0, 64.0);
+
+TextStyle interStyle({
+  required double size,
+  required Color color,
+  FontWeight weight = FontWeight.w400,
+  double? height,
+  double letterSpacing = 0,
+}) => GoogleFonts.inter(
+  fontSize: size,
+  color: color,
+  fontWeight: weight,
+  height: height,
+  letterSpacing: letterSpacing,
+);
+
+TextStyle monoStyle({
+  required double size,
+  required Color color,
+  FontWeight weight = FontWeight.w400,
+  double? height,
+  double letterSpacing = 0,
+}) => GoogleFonts.jetBrainsMono(
+  fontSize: size,
+  color: color,
+  fontWeight: weight,
+  height: height,
+  letterSpacing: letterSpacing,
+);
+
+/// One full-width band of the page. Paints [background] edge to edge and
+/// holds [child] in a column capped at [kMaxContentWidth] with responsive
+/// side and vertical padding.
+class PageSection extends StatelessWidget {
+  const PageSection({
     super.key,
-    required this.background,
     required this.child,
-    this.scrollable = true,
+    this.background,
+    this.bordered = false,
+    this.topPadding,
+    this.bottomPadding,
   });
 
-  final Color background;
   final Widget child;
+  final Color? background;
 
-  /// False for a section whose own `child` already handles overflow itself
-  /// (About's body does its own LayoutBuilder + SingleChildScrollView) —
-  /// wrapping an already-scrollable child in a second one gives the inner
-  /// one an unbounded height to work with, which crashes rather than scrolls.
-  final bool scrollable;
+  /// Hairline above and below, for the alternate-background bands.
+  final bool bordered;
+
+  /// Overrides for the default vertical padding.
+  final double? topPadding;
+  final double? bottomPadding;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final scale = heightScale(context);
-    // Widened continuously past 1.0x, not just capped: each section's own
-    // body text already caps itself narrower than this for readability (see
-    // SectionIntro's subhead and About's bio), so this outer cap mainly
-    // bounds *wide* elements — Projects' showcase image (which grows taller
-    // with it, via its aspect ratio) and Contact's card grid — which is
-    // exactly what needs the extra room on a screen with plenty to spare.
-    final maxContentWidth = 980.0 + (scale - 1) * 200;
-
-    final content = Center(
-      child: ConstrainedBox(
-        // Caps the readable content width even on very wide monitors —
-        // without this, body text on a 2000px-wide window would stretch
-        // into unreadably long lines.
-        constraints: BoxConstraints(maxWidth: maxContentWidth),
-        child: child,
+    final vertical = (width * 0.08).clamp(64.0, 112.0);
+    final hairline = paletteOf(context).surface(0.08);
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: background,
+        border: bordered
+            ? Border(
+                top: BorderSide(color: hairline),
+                bottom: BorderSide(color: hairline),
+              )
+            : null,
       ),
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // The height `Home`'s Expanded actually gave this section — using
-        // that instead of the screen's full height is what used to leave
-        // every section 48px (the header's height) short of the room its
-        // own padding math assumed, which showed up as content needing more
-        // internal scroll than expected on a phone-size screen.
-        final height = constraints.maxHeight;
-
-        final phone = width < 600;
-        final verticalPadding = phone ? 96.0 : 192.0;
-
-        return Container(
-          width: double.infinity,
-          color: background,
-          constraints: BoxConstraints(minHeight: height, maxHeight: height),
-          // 96, not the much roomier number this used to be — most of the
-          // fix for a section not filling the screen is scaling its content
-          // up (see heightScale), but trimming the fixed padding too claws
-          // back real space unconditionally, on every desktop window rather
-          // than only tall ones.
-          padding: EdgeInsets.symmetric(
-            vertical: phone ? 48 : 96,
-            horizontal: 24,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              pageGutter(width),
+              topPadding ?? vertical,
+              pageGutter(width),
+              bottomPadding ?? vertical,
+            ),
+            child: child,
           ),
-          child: !scrollable
-              ? content
-              // A safety net, not the common case: most sections' content
-              // fits the height above exactly, in which case
-              // ConstrainedBox's minHeight makes this behave just like a
-              // plain Center.
-              : phone
-              // On a short phone, scrolling (not shrinking) is what
-              // keeps text legible — e.g. Contact's four cards stacked
-              // in one column on a narrow phone.
-              ? SingleChildScrollView(
-                  child: ConstrainedBox(
-                    // `height` is this Container's own outer height,
-                    // measured before its `padding` above eats into it —
-                    // the space actually available to this scroll
-                    // view's child is `height - verticalPadding`. Using
-                    // the unreduced `height` here was forcing content to
-                    // be at least a full padding's worth (96px) taller
-                    // than the viewport could ever show without
-                    // scrolling, so every phone section landing on this
-                    // fallback needed a phantom ~96px scroll no matter
-                    // how little content it actually had.
-                    constraints: BoxConstraints(
-                      minHeight: height - verticalPadding,
-                    ),
-                    child: content,
-                  ),
-                )
-              // On desktop, heightScale's own pick can occasionally run
-              // a section's content past the room a shorter window
-              // actually has — scaling the whole block back down
-              // uniformly here is what guarantees that never needs an
-              // internal scroll, which would cut against the "one
-              // section, one screen" point of the single-section nav.
-              // A no-op whenever content already fits, the common case.
-              : FittedBox(fit: BoxFit.scaleDown, child: content),
-        );
-      },
+        ),
+      ),
     );
   }
 }
 
-/// A subhead around 100 characters or shorter keeps its full 15px; each
-/// character past that shaves the size down, floored at 12px so it never
-/// gets illegibly small.
-double _subheadFontSize(String subhead) {
-  const referenceLength = 100;
-  final scale = (referenceLength / subhead.length).clamp(0.8, 1.0);
-  return 15 * scale;
+/// Small monospace caps label ("WORK", "GOAL"...).
+class MonoLabel extends StatelessWidget {
+  const MonoLabel(this.text, {super.key, this.color, this.size = 12});
+
+  final String text;
+  final Color? color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: monoStyle(
+      size: size,
+      color: color ?? paletteOf(context).accent,
+      letterSpacing: 1.2,
+    ),
+  );
 }
 
-/// Eyebrow, headline and subhead — the opening beat of every section.
-class SectionIntro extends StatelessWidget {
-  const SectionIntro({
+/// Eyebrow, headline and optional subhead — the opening beat of a section.
+class SectionHeading extends StatelessWidget {
+  const SectionHeading({
     super.key,
     required this.eyebrow,
     required this.headline,
-    required this.subhead,
-    this.dark = false,
+    this.subhead,
   });
 
   final String eyebrow;
   final String headline;
-  final String subhead;
-  final bool dark;
+  final String? subhead;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final scale = heightScale(context);
+    final palette = paletteOf(context);
+    final phone = isPhone(context);
+    // Align loosens the parent's (often tight, stretched) width so the 680px
+    // cap actually applies instead of being overridden by it.
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            MonoLabel(eyebrow.toUpperCase(), size: phone ? 11 : 12),
+            SizedBox(height: phone ? 12 : 14),
+            Text(
+              headline,
+              style: interStyle(
+                size: (width * 0.046).clamp(36.0, 60.0),
+                color: palette.ink,
+                weight: FontWeight.w800,
+                height: 1.05,
+                letterSpacing: phone ? -1.2 : -1.6,
+              ),
+            ),
+            if (subhead != null) ...[
+              SizedBox(height: phone ? 12 : 14),
+              Text(
+                subhead!,
+                style: interStyle(
+                  size: (width * 0.014).clamp(16.0, 19.0),
+                  color: palette.secondary,
+                  height: 1.55,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          eyebrow.toUpperCase(),
-          style: monoLabel(size: 12, color: dark ? kBlue : kGray),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          headline,
-          style: GoogleFonts.inter(
-            fontSize: _headlineSize(width, scale),
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1.6,
-            height: 1.05,
-            color: dark ? Colors.white : kInk,
-          ),
-        ),
-        SizedBox(height: width < 600 ? 14 : 20 * scale),
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: 620 * (width < 600 ? 1 : scale),
-          ),
-          child: Text(
-            subhead,
-            style: GoogleFonts.inter(
-              // On phones, a subhead longer than a typical ~100-character
-              // one (Contact's and Projects' both now run 125-140+, wrapping
-              // to 7 lines at a flat 15px and eating a chunk of a phone
-              // screen's whole budget on their own) scales down instead —
-              // desktop has enough room that this never needs to apply
-              // there.
-              fontSize: width < 600 ? _subheadFontSize(subhead) : 20 * scale,
-              height: width < 600 ? 1.45 : 1.55,
-              letterSpacing: -0.2,
-              color: dark ? kDarkMuted : kGray,
+/// A rounded pill label.
+class Pill extends StatelessWidget {
+  const Pill(
+    this.label, {
+    super.key,
+    required this.background,
+    required this.color,
+    this.borderColor,
+    this.vertical = 6,
+    this.horizontal = 12,
+  });
+
+  final String label;
+  final Color background;
+  final Color color;
+  final Color? borderColor;
+  final double vertical;
+  final double horizontal;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
+    decoration: BoxDecoration(
+      color: background,
+      borderRadius: BorderRadius.circular(999),
+      border: borderColor == null ? null : Border.all(color: borderColor!),
+    ),
+    child: Text(
+      label,
+      style: interStyle(size: 12, color: color, weight: FontWeight.w600),
+    ),
+  );
+}
+
+/// Filled (accent) or outlined pill-shaped button used by the hero.
+class PillButton extends StatefulWidget {
+  const PillButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.filled = false,
+    this.icon,
+    this.expand = false,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool filled;
+  final IconData? icon;
+
+  /// Fill the available width (the phone layout stacks buttons full width).
+  final bool expand;
+
+  @override
+  State<PillButton> createState() => _PillButtonState();
+}
+
+class _PillButtonState extends State<PillButton> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    final fg = widget.filled ? palette.onAccent : palette.ink;
+    final bg = widget.filled
+        ? palette.accent
+        : (_hovering ? palette.surface(0.08) : Colors.transparent);
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: Semantics(
+        button: true,
+        label: widget.label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onPressed,
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: 48,
+              minWidth: widget.expand ? double.infinity : 0,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(999),
+              border: widget.filled
+                  ? null
+                  : Border.all(color: palette.surface(0.22)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Flexible so a large system font wraps the label instead of
+                // pushing it past the button's edge.
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    textAlign: TextAlign.center,
+                    style: interStyle(
+                      size: 15,
+                      color: fg,
+                      weight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (widget.icon != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(widget.icon, size: 16, color: fg),
+                ],
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
 
 /// Lays children out in equal-width columns sized from the real available
-/// width, with every card in a row sharing the tallest card's height.
+/// width, with every card in a row sharing the tallest card's height — the
+/// same behaviour as CSS `repeat(auto-fit, minmax(min-width, 1fr))`.
 ///
-/// This exists instead of a plain [Wrap] or [GridView] because neither of
-/// those stretches items in the same row to a shared height by default — a
-/// short "About" card next to a tall "Contact" card would otherwise look
-/// misaligned. The trick is `IntrinsicHeight` + `CrossAxisAlignment.stretch`:
-/// `IntrinsicHeight` measures the row's children once to find the tallest
-/// one, then `stretch` makes every child in that `Row` match it.
-class CardGrid extends StatelessWidget {
-  const CardGrid({
+/// Children must not contain a `LayoutBuilder`: each row is wrapped in an
+/// `IntrinsicHeight`, which can't measure one.
+class AutoFitGrid extends StatelessWidget {
+  const AutoFitGrid({
     super.key,
     required this.children,
-    required this.columnsFor,
+    required this.minItemWidth,
     required this.spacing,
+    this.runSpacing,
   });
 
   final List<Widget> children;
-
-  /// Given the grid's available width, returns how many columns to use —
-  /// each call site defines its own breakpoints (see about/contact/hobbies
-  /// sections for examples).
-  final int Function(double width) columnsFor;
+  final double minItemWidth;
   final double spacing;
+  final double? runSpacing;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = columnsFor(constraints.maxWidth);
-        // Divide the remaining width (total width minus the gaps between
-        // columns) evenly, rather than giving each card a fixed width —
-        // this is what lets the grid fill whatever space it's given instead
-        // of leaving a gap or overflowing.
-        final cardWidth =
-            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        final available = constraints.maxWidth;
+        final columns = ((available + spacing) / (minItemWidth + spacing))
+            .floor()
+            .clamp(1, children.length);
+        final itemWidth = (available - spacing * (columns - 1)) / columns;
 
-        // Chop the flat list of children into `columns`-sized rows, e.g.
-        // 6 children over 4 columns -> [[0,1,2,3], [4,5]].
-        final rows = <List<Widget>>[];
-        for (var i = 0; i < children.length; i += columns) {
-          final end = i + columns;
-          rows.add(
-            children.sublist(i, end > children.length ? children.length : end),
-          );
-        }
+        final rows = <List<Widget>>[
+          for (var i = 0; i < children.length; i += columns)
+            children.sublist(
+              i,
+              i + columns > children.length ? children.length : i + columns,
+            ),
+        ];
 
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var r = 0; r < rows.length; r++) ...[
-              if (r > 0) SizedBox(height: spacing),
+              if (r > 0) SizedBox(height: runSpacing ?? spacing),
               IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     for (var c = 0; c < rows[r].length; c++) ...[
                       if (c > 0) SizedBox(width: spacing),
-                      SizedBox(width: cardWidth, child: rows[r][c]),
+                      SizedBox(width: itemWidth, child: rows[r][c]),
                     ],
                   ],
                 ),

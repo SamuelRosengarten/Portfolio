@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
@@ -11,176 +10,314 @@ class ContactSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = paletteOf(context).dark;
+    final palette = paletteOf(context);
     final s = stringsOf(context);
-    return SectionShell(
-      background: paletteOf(context).band,
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: palette.altBg,
+        border: Border(top: BorderSide(color: palette.surface(0.06))),
+      ),
       child: Column(
-        // .min, not the default .max: this sizes to its own content instead
-        // of trying to fill the fixed section height, which would demand an
-        // *infinite* height on a phone screen short enough to need
-        // SectionShell's scroll fallback. SectionShell's own Center already
-        // takes care of centering this block vertically when there's room
-        // to spare (e.g. on a tall desktop window).
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionIntro(
-            eyebrow: 'Contact',
-            headline: s.contactHeadline,
-            subhead: s.contactSubhead,
-            dark: dark,
+          PageSection(
+            topPadding: phone ? 56 : null,
+            bottomPadding: phone ? 32 : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SectionHeading(
+                  eyebrow: 'Contact',
+                  headline: s.contactHeadline,
+                  subhead: s.contactSubhead,
+                ),
+                SizedBox(height: phone ? 24 : 40),
+                _ContactCards(
+                  entries: [
+                    _Entry(
+                      icon: Icons.mail_outline_rounded,
+                      label: 'Email',
+                      value: 'samrosengarten2@pm.me',
+                      url: Uri(scheme: 'mailto', path: 'samrosengarten2@pm.me'),
+                    ),
+                    _Entry(
+                      icon: Icons.code_rounded,
+                      label: 'GitHub',
+                      value: 'github.com/SamuelRosengarten',
+                      url: Uri.parse('https://github.com/SamuelRosengarten'),
+                      phoneValue: 'SamuelRosengarten',
+                    ),
+                    _Entry(
+                      icon: Icons.work_outline_rounded,
+                      label: 'LinkedIn',
+                      value: 'linkedin.com/in/samuel-rosengarten',
+                      url: Uri.parse(
+                        'https://linkedin.com/in/samuel-rosengarten',
+                      ),
+                      phoneValue: 'samuel-rosengarten',
+                    ),
+                    _Entry(
+                      icon: Icons.place_outlined,
+                      label: s.locationLabel,
+                      value: 'Longueuil, QC',
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 32 * heightScale(context)),
-          const _ContactGrid(),
+          // Footer rule and line.
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  pageGutter(width),
+                  0,
+                  pageGutter(width),
+                  phone ? 32 : 40,
+                ),
+                child: Container(
+                  padding: EdgeInsets.only(top: phone ? 20 : 28),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: palette.surface(0.08)),
+                    ),
+                  ),
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      Text(
+                        '© 2026 Samuel Rosengarten',
+                        style: interStyle(
+                          size: phone ? 12 : 13,
+                          color: palette.tertiary,
+                        ),
+                      ),
+                      Text(
+                        s.builtWithFlutter,
+                        style: monoStyle(
+                          size: phone ? 12 : 13,
+                          color: palette.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _ContactGrid extends StatelessWidget {
-  const _ContactGrid();
-
-  @override
-  Widget build(BuildContext context) {
-    return CardGrid(
-      spacing: 16,
-      columnsFor: (width) {
-        if (width >= 760) return 4;
-        // Was 480 — but `width` here is the grid's own available width
-        // (roughly device width minus the section's side padding), which
-        // for almost every phone lands well under that, forcing four cards
-        // into one tall stacked column and pushing the section's total
-        // height well past what a phone screen can show without scrolling.
-        // Two cards fit comfortably side by side much narrower than 480.
-        if (width >= 300) return 2;
-        return 1;
-      },
-      children: [
-        _ContactCard(
-          icon: Icons.mail_outline_rounded,
-          label: 'Email',
-          value: 'samrosengarten2@pm.me',
-          url: Uri(scheme: 'mailto', path: 'samrosengarten2@pm.me'),
-        ),
-        _ContactCard(
-          icon: Icons.code_rounded,
-          label: 'GitHub',
-          value: 'github.com/SamuelRosengarten',
-          url: Uri.parse('https://github.com/SamuelRosengarten'),
-        ),
-        _ContactCard(
-          icon: Icons.work_outline_rounded,
-          label: 'LinkedIn',
-          value: 'linkedin.com/in/samuel-rosengarten',
-          url: Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
-        ),
-        _ContactCard(
-          icon: Icons.place_outlined,
-          label: stringsOf(context).locationLabel,
-          value: 'Longueuil, QC',
-        ),
-      ],
-    );
-  }
-}
-
-class _ContactCard extends StatelessWidget {
-  const _ContactCard({
+class _Entry {
+  const _Entry({
     required this.icon,
     required this.label,
     required this.value,
     this.url,
+    this.phoneValue,
   });
 
   final IconData icon;
   final String label;
   final String value;
 
-  /// Where tapping this card should go — `mailto:` for Email, the profile
-  /// link for GitHub/LinkedIn. Null for cards (like Location) that are just
-  /// informational, which stay unclickable.
+  /// Where tapping the card goes (`mailto:` or a profile link); null for
+  /// informational cards (Location), which stay unclickable.
   final Uri? url;
 
-  // Hovering and keyboard focus share one highlight, supplied by LinkTarget.
-  // Location, which has no link, never highlights.
+  /// A shorter form of [value] for the narrow phone list.
+  final String? phoneValue;
+}
+
+class _ContactCards extends StatelessWidget {
+  const _ContactCards({required this.entries});
+
+  final List<_Entry> entries;
+
   @override
   Widget build(BuildContext context) {
-    final url = this.url;
+    if (isPhone(context)) {
+      return _PhoneList(entries: entries);
+    }
+    return AutoFitGrid(
+      minItemWidth: 250,
+      spacing: 14,
+      children: [for (final e in entries) _ContactCard(entry: e)],
+    );
+  }
+}
+
+class _ContactCard extends StatelessWidget {
+  const _ContactCard({required this.entry});
+
+  final _Entry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = entry.url;
     if (url == null) return _card(context, false);
+    // Hovering and keyboard focus share one highlight, supplied by LinkTarget.
     return LinkTarget(
       uri: url,
-      semanticLabel: '$label: $value',
+      semanticLabel: '${entry.label}: ${entry.value}',
       builder: _card,
     );
   }
 
-  Widget _card(BuildContext context, bool hovering) {
+  Widget _card(BuildContext context, bool highlighted) {
     final palette = paletteOf(context);
-    final scale = heightScale(context);
-    final card = AnimatedContainer(
+    final info = entry.url == null;
+    return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      padding: EdgeInsets.all(22 * scale),
+      constraints: const BoxConstraints(minHeight: 120),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: url == null
+        color: info
             ? Colors.transparent
-            : (palette.dark
-                  ? (hovering ? const Color(0xFF232326) : kDarkPanelBg)
-                  : palette.surface(hovering ? 0.08 : 0.05)),
+            : (highlighted
+                  ? Color.alphaBlend(palette.surface(0.04), palette.card)
+                  : palette.card),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: palette.surface(url == null ? 0.16 : (hovering ? 0.28 : 0.08)),
+          color: palette.surface(info ? 0.16 : (highlighted ? 0.28 : 0.08)),
         ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Icon(
-                icon,
-                size: 22 * scale,
-                color: url == null ? palette.muted : kBlue,
+                entry.icon,
+                size: 22,
+                color: info ? palette.tertiary : palette.accent,
               ),
-              if (url != null)
+              if (!info)
                 Icon(
                   Icons.arrow_outward_rounded,
-                  size: 16 * scale,
-                  color: const Color(0xFF6E6E73),
+                  size: 16,
+                  color: palette.muted,
                 ),
             ],
           ),
-          SizedBox(height: 18 * scale),
+          const SizedBox(height: 18),
           Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13 * scale,
-              fontWeight: FontWeight.w500,
-              color: palette.muted,
-            ),
+            entry.label,
+            style: interStyle(size: 13, color: palette.tertiary),
           ),
-          SizedBox(height: 4 * scale),
+          const SizedBox(height: 4),
           Text(
-            value,
-            // Two-column mobile cards leave ~113px for this text — a long
-            // real handle (the LinkedIn slug especially) has almost no
-            // natural break points in that width and was wrapping into 6-7
-            // illegible fragments instead of the couple of clean lines
-            // this caps it to.
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: 15 * scale,
-              fontWeight: FontWeight.w600,
+            entry.value,
+            style: interStyle(
+              size: 15,
               color: palette.ink,
+              weight: FontWeight.w600,
             ),
           ),
         ],
       ),
     );
-    return card;
+  }
+}
+
+/// Phone: one rounded container holding a row per contact method.
+class _PhoneList extends StatelessWidget {
+  const _PhoneList({required this.entries});
+
+  final List<_Entry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: palette.surface(0.08)),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < entries.length; i++)
+            _PhoneRow(entry: entries[i], last: i == entries.length - 1),
+        ],
+      ),
+    );
+  }
+}
+
+class _PhoneRow extends StatelessWidget {
+  const _PhoneRow({required this.entry, required this.last});
+
+  final _Entry entry;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = entry.url;
+    if (url == null) return _row(context, false);
+    return LinkTarget(
+      uri: url,
+      semanticLabel: '${entry.label}: ${entry.value}',
+      builder: _row,
+    );
+  }
+
+  Widget _row(BuildContext context, bool highlighted) {
+    final palette = paletteOf(context);
+    final info = entry.url == null;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 64),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: highlighted ? palette.surface(0.05) : null,
+        border: last
+            ? null
+            : Border(bottom: BorderSide(color: palette.surface(0.08))),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            entry.icon,
+            size: 22,
+            color: info ? palette.tertiary : palette.accent,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.label,
+                  style: interStyle(size: 12, color: palette.tertiary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  entry.phoneValue ?? entry.value,
+                  style: interStyle(
+                    size: 15,
+                    color: palette.ink,
+                    weight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!info)
+            Icon(Icons.chevron_right_rounded, size: 18, color: palette.muted),
+        ],
+      ),
+    );
   }
 }
