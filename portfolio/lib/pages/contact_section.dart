@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
@@ -10,88 +9,149 @@ class ContactSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = paletteOf(context).dark;
+    final palette = paletteOf(context);
     final s = stringsOf(context);
-    return SectionShell(
-      background: paletteOf(context).bg,
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: palette.altBg,
+        border: Border(top: BorderSide(color: palette.surface(0.06))),
+      ),
       child: Column(
-        // .min, not the default .max: this sizes to its own content instead
-        // of trying to fill the fixed section height, which would demand an
-        // *infinite* height on a phone screen short enough to need
-        // SectionShell's scroll fallback. SectionShell's own Center already
-        // takes care of centering this block vertically when there's room
-        // to spare (e.g. on a tall desktop window).
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionIntro(
-            eyebrow: 'Contact',
-            headline: s.contactHeadline,
-            subhead: s.contactSubhead,
-            dark: dark,
+          PageSection(
+            topPadding: phone ? 56 : null,
+            bottomPadding: phone ? 32 : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SectionHeading(
+                  eyebrow: 'Contact',
+                  headline: s.contactHeadline,
+                  subhead: s.contactSubhead,
+                ),
+                SizedBox(height: phone ? 24 : 40),
+                _ContactCards(
+                  entries: [
+                    _Entry(
+                      icon: Icons.mail_outline_rounded,
+                      label: 'Email',
+                      value: 'samrosengarten2@pm.me',
+                    ),
+                    const _Entry(
+                      icon: Icons.code_rounded,
+                      label: 'GitHub',
+                      value: 'github.com/SamuelRosengarten',
+                      phoneValue: 'SamuelRosengarten',
+                    ),
+                    const _Entry(
+                      icon: Icons.work_outline_rounded,
+                      label: 'LinkedIn',
+                      value: 'linkedin.com/in/samuel-rosengarten',
+                      phoneValue: 'samuel-rosengarten',
+                    ),
+                    _Entry(
+                      icon: Icons.place_outlined,
+                      label: s.locationLabel,
+                      value: 'Longueuil, QC',
+                      outlined: true,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 32 * heightScale(context)),
-          const _ContactGrid(),
+          // Footer rule and line.
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  pageGutter(width),
+                  0,
+                  pageGutter(width),
+                  phone ? 32 : 40,
+                ),
+                child: Container(
+                  padding: EdgeInsets.only(top: phone ? 20 : 28),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: palette.surface(0.08))),
+                  ),
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      Text(
+                        '© 2026 Samuel Rosengarten',
+                        style: interStyle(
+                          size: phone ? 12 : 13,
+                          color: palette.tertiary,
+                        ),
+                      ),
+                      Text(
+                        s.builtWithFlutter,
+                        style: monoStyle(
+                          size: phone ? 12 : 13,
+                          color: palette.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _ContactGrid extends StatelessWidget {
-  const _ContactGrid();
-
-  @override
-  Widget build(BuildContext context) {
-    return CardGrid(
-      spacing: 16,
-      columnsFor: (width) {
-        if (width >= 760) return 4;
-        // Was 480 — but `width` here is the grid's own available width
-        // (roughly device width minus the section's side padding), which
-        // for almost every phone lands well under that, forcing four cards
-        // into one tall stacked column and pushing the section's total
-        // height well past what a phone screen can show without scrolling.
-        // Two cards fit comfortably side by side much narrower than 480.
-        if (width >= 300) return 2;
-        return 1;
-      },
-      children: [
-        const _ContactCard(
-          icon: Icons.mail_outline_rounded,
-          label: 'Email',
-          value: 'samrosengarten2@pm.me',
-        ),
-        const _ContactCard(
-          icon: Icons.code_rounded,
-          label: 'GitHub',
-          value: 'github.com/SamuelRosengarten',
-        ),
-        const _ContactCard(
-          icon: Icons.work_outline_rounded,
-          label: 'LinkedIn',
-          value: 'linkedin.com/in/samuel-rosengarten',
-        ),
-        _ContactCard(
-          icon: Icons.place_outlined,
-          label: stringsOf(context).locationLabel,
-          value: 'Longueuil, QC',
-        ),
-      ],
-    );
-  }
-}
-
-class _ContactCard extends StatefulWidget {
-  const _ContactCard({
+class _Entry {
+  const _Entry({
     required this.icon,
     required this.label,
     required this.value,
+    this.phoneValue,
+    this.outlined = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
+
+  /// A shorter form of [value] for the narrow phone list.
+  final String? phoneValue;
+
+  /// Dashed, transparent card for info that isn't a link (the location).
+  final bool outlined;
+}
+
+class _ContactCards extends StatelessWidget {
+  const _ContactCards({required this.entries});
+
+  final List<_Entry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isPhone(context)) {
+      return _PhoneList(entries: entries);
+    }
+    return AutoFitGrid(
+      minItemWidth: 250,
+      spacing: 14,
+      children: [for (final e in entries) _ContactCard(entry: e)],
+    );
+  }
+}
+
+class _ContactCard extends StatefulWidget {
+  const _ContactCard({required this.entry});
+
+  final _Entry entry;
 
   @override
   State<_ContactCard> createState() => _ContactCardState();
@@ -100,60 +160,116 @@ class _ContactCard extends StatefulWidget {
 class _ContactCardState extends State<_ContactCard> {
   bool _hovering = false;
 
-  // This MouseRegion + setState + AnimatedContainer trio is the site's
-  // standard hover pattern, repeated with small variations in
-  // site_header.dart, hobbies_section.dart and elsewhere: MouseRegion just
-  // reports enter/exit, a bool in State tracks whether the pointer is
-  // currently over the widget, and AnimatedContainer/AnimatedScale smoothly
-  // tweens between the "resting" and "hovering" look whenever that bool
-  // flips (rather than snapping instantly).
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    final scale = heightScale(context);
+    final entry = widget.entry;
+    final outlined = entry.outlined;
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: EdgeInsets.all(24 * scale),
+        constraints: const BoxConstraints(minHeight: 120),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          color: palette.surface(_hovering ? 0.08 : 0.05),
+          color: outlined ? Colors.transparent : palette.card,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: palette.surface(_hovering ? 0.2 : 0.1)),
+          border: Border.all(
+            color: palette.surface(
+              outlined ? 0.16 : (_hovering ? 0.28 : 0.08),
+            ),
+          ),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(widget.icon, size: 22 * scale, color: kBlue),
-            SizedBox(height: 16 * scale),
-            Text(
-              widget.label,
-              style: GoogleFonts.inter(
-                fontSize: 13 * scale,
-                fontWeight: FontWeight.w500,
-                color: kGray,
-              ),
+            Icon(
+              entry.icon,
+              size: 22,
+              color: outlined ? palette.tertiary : palette.accent,
             ),
-            SizedBox(height: 4 * scale),
+            const SizedBox(height: 18),
             Text(
-              widget.value,
-              // Two-column mobile cards leave ~113px for this text — a long
-              // real handle (the LinkedIn slug especially) has almost no
-              // natural break points in that width and was wrapping into 6-7
-              // illegible fragments instead of the couple of clean lines
-              // this caps it to.
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: 15 * scale,
-                fontWeight: FontWeight.w500,
+              entry.label,
+              style: interStyle(size: 13, color: palette.tertiary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              entry.value,
+              style: interStyle(
+                size: 15,
                 color: palette.ink,
+                weight: FontWeight.w600,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Phone: one rounded container holding a row per contact method.
+class _PhoneList extends StatelessWidget {
+  const _PhoneList({required this.entries});
+
+  final List<_Entry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: palette.surface(0.08)),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < entries.length; i++)
+            Container(
+              constraints: const BoxConstraints(minHeight: 64),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: i == entries.length - 1
+                    ? null
+                    : Border(bottom: BorderSide(color: palette.surface(0.08))),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    entries[i].icon,
+                    size: 22,
+                    color: entries[i].outlined ? palette.tertiary : palette.accent,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          entries[i].label,
+                          style: interStyle(size: 12, color: palette.tertiary),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          entries[i].phoneValue ?? entries[i].value,
+                          style: interStyle(
+                            size: 15,
+                            color: palette.ink,
+                            weight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -27,24 +27,56 @@ class Strings {
 
   // About ------------------------------------------------------------------
 
-  String get heroGreeting => _fr ? "Salut, je suis Samuel" : "Hi, I'm Samuel";
+  String get openToInternships => _fr
+      ? 'Ouvert aux stages · mars 2027'
+      : 'Open to internships · March 2027';
+
+  String get heroGreeting => _fr ? "Salut, je suis Samuel." : "Hi, I'm Samuel.";
+  String get heroTagline =>
+      _fr ? 'De la torche au clavier.' : 'From the torch to the keyboard.';
 
   String get aboutBio => _fr
       ? "Étudiant en programmation informatique au Cégep Édouard-Montpetit, "
-            "à la recherche d'un stage en mars 2027, puis d'un baccalauréat "
-            "en génie logiciel. Avant le code, c'était la soudure et la "
-            "mécanique — j'ai troqué le chalumeau et la boîte à outils pour "
-            "un clavier, à la recherche d'un métier plus stable à bâtir, en "
-            "gardant la même exigence de bien faire le travail."
+            "à la recherche d'un stage en mars 2027 qui mènera à mon premier "
+            "emploi de développeur junior. Avant le code, c'était la "
+            "soudure et la mécanique — j'ai gardé la même exigence de bien "
+            "faire le travail."
       : 'Computer programming student at Cégep Édouard-Montpetit, looking '
-            'for an internship in March 2027 and a software engineering '
-            'degree after that. Before code it was welding and mechanics — '
-            'I traded the torch and the toolbox for a keyboard, chasing a '
-            'more stable place to build a career, and kept the same '
-            'insistence on doing the work properly.';
+            'for an internship in March 2027 that leads to my first job as '
+            'a junior developer. Before code it was welding and mechanics — '
+            'I kept the same insistence on doing the work properly.';
+
+  String get seeMyWork => _fr ? 'Voir mes projets' : 'See my work';
+  String get getInTouch => _fr ? 'Me contacter' : 'Get in touch';
 
   String get languagesAndTools =>
       _fr ? 'LANGAGES & OUTILS' : 'LANGUAGES & TOOLS';
+
+  String get pathBefore => _fr ? 'AVANT' : 'BEFORE';
+  String get pathNow => _fr ? 'MAINTENANT' : 'NOW';
+  String get pathNext => _fr ? 'ENSUITE' : 'NEXT';
+  String get pathAfter => _fr ? 'APRÈS' : 'AFTER';
+
+  String get pathBeforeTitle =>
+      _fr ? 'Soudure et mécanique' : 'Welding & mechanics';
+  String get pathBeforeBody =>
+      _fr ? "Des années sur le plancher d'usine." : 'Years on the shop floor.';
+  String get pathNowTitle =>
+      _fr ? 'Diplôme en programmation' : 'Programming diploma';
+  String get pathNowBody => _fr
+      ? "Cégep Édouard-Montpetit, et tutorat auprès d'autres étudiants."
+      : 'Cégep Édouard-Montpetit, and tutoring other students.';
+  String get pathNowShort => _fr
+      ? 'Diplôme en programmation + tutorat'
+      : 'Programming diploma + tutoring';
+  String get pathNextTitle =>
+      _fr ? 'Stage, mars 2027' : 'Internship, March 2027';
+  String get pathNextBody =>
+      _fr ? 'Pour terminer le diplôme.' : 'To complete the diploma.';
+  String get pathAfterTitle => _fr ? 'Développeur junior' : 'Junior developer';
+  String get pathAfterBody => _fr
+      ? "Lancer ma carrière dans l'industrie."
+      : 'Starting my career in the industry.';
 
   // Projects -----------------------------------------------------------------
 
@@ -59,23 +91,29 @@ class Strings {
             'your mistakes for you.';
 
   String get projectDescription => _fr
-      ? "Une extension VS Code qui transforme les erreurs que vous faites "
-            "en codant en quelque chose d'utile : des indices contextuels "
-            "juste à côté de l'erreur, un tableau de bord qui suit les "
-            "tendances dans le temps, et des rapports de session "
-            "exportables à apporter à un mentor ou un tuteur."
-      : 'A VS Code extension that turns the mistakes you make while '
-            'coding into something useful: contextual hints right next to '
-            'the error, a dashboard tracking patterns over time, and '
-            'exportable session reports to bring to a mentor or tutor.';
+      ? "Transforme les erreurs que vous faites en codant en quelque chose "
+            "d'utile."
+      : 'Turns the mistakes you make while coding into something useful.';
 
   String get tagVsCodeExtension =>
       _fr ? 'Extension VS Code' : 'VS Code Extension';
   String get tagPublished => _fr ? 'Publiée' : 'Published';
 
-  String get publishedOnMarketplace => _fr
-      ? 'Publiée sur le VS Code Marketplace'
-      : 'Published on the VS Code Marketplace';
+  String get featureHintsTitle =>
+      _fr ? 'Indices contextuels' : 'Contextual hints';
+  String get featureHintsBody => _fr
+      ? "Juste à côté de l'erreur, en langage clair."
+      : 'Right next to the error, in plain language.';
+  String get featureDashboardTitle =>
+      _fr ? 'Tableau des tendances' : 'Pattern dashboard';
+  String get featureDashboardBody => _fr
+      ? 'Suit les erreurs qui reviennent, au fil du temps.'
+      : 'Tracks which mistakes keep coming back, over time.';
+  String get featureReportsTitle =>
+      _fr ? 'Rapports de session' : 'Session reports';
+  String get featureReportsBody => _fr
+      ? 'Exportables, à apporter à un mentor ou un tuteur.'
+      : 'Exportable, to bring to a mentor or tutor.';
 
   // Contact ------------------------------------------------------------------
 
@@ -90,6 +128,8 @@ class Strings {
             'building.';
 
   String get locationLabel => _fr ? 'Localisation' : 'Location';
+  String get builtWithFlutter =>
+      _fr ? 'Conçu avec Flutter' : 'Built with Flutter';
 
   // Hobbies ------------------------------------------------------------------
 
@@ -99,14 +139,26 @@ class Strings {
   String get buildHeadline => _fr ? 'Construire.' : 'Build.';
 
   String get buildParagraph => _fr
-      ? "Après quelques années sur le plancher d'usine comme soudeur et "
-            "mécanicien, le plan à long terme est un baccalauréat en génie "
-            "logiciel — troquer le chalumeau pour un clavier, et un stage "
-            "en mars 2027 comme prochaine étape."
-      : 'After a few years on the shop floor as a welder and mechanic, '
-            'the long-term plan is a software engineering degree — trading '
-            'the torch for a keyboard, and a stage in March 2027 for the '
-            'next step toward it.';
+      ? "Terminer l'école, puis me mettre au travail — et continuer à "
+            "construire pour le plaisir."
+      : 'Finish school, then get to work — and keep building for fun.';
+
+  String get goalConnectionsTitle =>
+      _fr ? 'Créer des contacts' : 'Make connections';
+  String get goalConnectionsBody => _fr
+      ? "Rencontrer des gens de l'industrie à la fin de mes études."
+      : 'Meet people in the industry once school wraps up.';
+  String get goalJuniorTitle =>
+      _fr ? 'Commencer comme développeur junior' : 'Start as a junior developer';
+  String get goalJuniorBody => _fr
+      ? 'Lancer ma carrière en écrivant du code tous les jours.'
+      : 'Begin my career writing code every day.';
+  String get goalHomeTitle => _fr
+      ? 'Réaliser des projets amusants à la maison'
+      : 'Build fun projects at home';
+  String get goalHomeBody => _fr
+      ? 'Continuer à créer simplement par plaisir.'
+      : 'Keep making things just because I enjoy it.';
 
   String get tutoringTitle =>
       _fr ? "Tutorat à l'école, en ce moment" : 'Tutoring at school, right now';
@@ -134,9 +186,13 @@ class Strings {
             'get better with every one. The saddle stitch taught me more '
             'about patience than any deadline ever did.';
 
-  String get pastPiecesLabel =>
-      _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
+  String get pastPiecesLabel => _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
+  String get pastPiecesSwipeLabel =>
+      _fr ? 'CRÉATIONS PASSÉES · GLISSER' : 'PAST PIECES · SWIPE';
   String get addPhotoLabel => _fr ? 'Ajouter une photo' : 'Add photo';
+  String get photoAtTheBench =>
+      _fr ? '[PHOTO À\nL\'ÉTABLI]' : '[PHOTO AT\nTHE BENCH]';
+  String get photoPlaceholder => '[PHOTO]';
 }
 
 Strings stringsOf(BuildContext context) => Strings(languageOf(context));

@@ -41,6 +41,34 @@ class AppPalette {
 
   Color get blue => kBlue;
 
+  /// The slightly offset band behind Projects and Contact, so the flat
+  /// sections read as separate bands on one continuous page.
+  Color get altBg => dark ? const Color(0xFF0B0B0C) : kPanelBg;
+
+  /// Raised card fill (project card, contact cards, stack chips).
+  Color get card => dark ? kDarkPanelBg : Colors.white;
+
+  /// The stack panel's fill — a step below [card] so chips sit on it.
+  Color get panel => dark ? const Color(0xFF111113) : Colors.white;
+
+  /// Body copy under a headline.
+  Color get secondary => dark ? const Color(0xFFA1A1A6) : const Color(0xFF515154);
+
+  /// Small labels and captions.
+  Color get tertiary => dark ? const Color(0xFF98989D) : const Color(0xFF6E6E73);
+
+  /// Decorative, lowest-emphasis text (the hero's second line, chevrons).
+  Color get muted => dark ? const Color(0xFF6E6E73) : kGray;
+
+  /// Brand accent. Light mode uses a deeper blue so white text on it passes.
+  Color get accent => dark ? kBlue : const Color(0xFF0071E3);
+
+  /// Text/icon colour that sits on top of [accent].
+  Color get onAccent => dark ? Colors.black : Colors.white;
+
+  /// Tinted accent text, e.g. the "Published" pill.
+  Color get accentText => dark ? const Color(0xFF7CC0FF) : const Color(0xFF0060C0);
+
   /// A translucent card/chip fill, white-on-dark or black-on-light at the
   /// same alpha the design already leans on for "frosted surface" panels.
   Color surface(double alpha) =>

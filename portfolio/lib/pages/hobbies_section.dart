@@ -1,274 +1,133 @@
-import 'dart:math' as math;
+import 'dart:ui' show PathMetric;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/app_language.dart';
 import '../i18n/strings.dart';
-import '../theme/palette.dart';
-import '../widgets/knowledge_graph_background.dart';
-import '../widgets/leather_background.dart';
+import '../widgets/section_layout.dart';
 
-// The leather side's small accents borrow from the same warm, tanned family
-// as its animated backdrop.
-const Color _kLeatherTan = Color(0xFFC99A62);
-const Color _kLeatherThread = Color(0xFFE7D3AE);
+// The two hobby cards are self-contained "objects" (a dot-grid notebook and a
+// stitched leather patch), so they keep their own dark palettes in light mode
+// too rather than flipping with the site theme.
+const Color _kInkBg = Color(0xFF0A1020);
+const Color _kInkAccent = Color(0xFF7CC0FF);
+const Color _kInkBody = Color(0xFFB4BCCB);
+const Color _kInkMuted = Color(0xFFA9B1C0);
+const Color _kInkTagText = Color(0xFFA8D3FF);
+const Color _kLeatherBg = Color(0xFF2A1B12);
+const Color _kLeatherStitch = Color(0xFFD6A36E);
+const Color _kLeatherAccent = Color(0xFFE0B07F);
+const Color _kLeatherHeading = Color(0xFFFBEFE3);
+const Color _kLeatherBody = Color(0xFFD9C3AE);
+const Color _kLeatherTile = Color(0xFF3A271B);
+const Color _kLeatherTileText = Color(0xFFB98E66);
+const Color _kLeatherLabel = Color(0xFFF1DFCC);
 
-/// [_kLeatherTan] reads fine against the near-black dark-mode hide, but
-/// nearly disappears against the pale tan hide in light mode — this picks a
-/// darker brown there instead so the same accent stays legible in both.
-const Color _kLeatherTanOnLight = Color(0xFF6B4322);
-
-Color _leatherAccent(bool dark) => dark ? _kLeatherTan : _kLeatherTanOnLight;
-
-// =============================================================================
-// Entry point — picks wide (diagonal) vs. narrow (stacked) layout.
-// =============================================================================
-
-/// This section breaks from the rest of the page on purpose: full bleed,
-/// no side gutters, split diagonally down the middle instead of stacked
-/// cards — a classroom on one side, a workbench on the other, stitched
-/// together at the seam.
 class HobbiesSection extends StatelessWidget {
   const HobbiesSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // `Home` gives this section a tight, bounded height already (it fills
-    // the screen below the pinned header) — sizing to that directly, rather
-    // than to the screen's full height, is what keeps this section from
-    // running 48px (the header's height) taller than the room it's actually
-    // given.
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
-        return wide ? const _DiagonalSplit() : const _StackedSplit();
-      },
+    final s = stringsOf(context);
+    final phone = isPhone(context);
+    return PageSection(
+      topPadding: phone ? 56 : null,
+      bottomPadding: phone ? 56 : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionHeading(
+            eyebrow: s.beyondTheCode,
+            headline: '${s.buildHeadline} ${s.craftHeadline}',
+          ),
+          SizedBox(height: phone ? 28 : 40),
+          const AutoFitGrid(
+            minItemWidth: 440,
+            spacing: 20,
+            children: [_InkCard(), _LeatherCard()],
+          ),
+        ],
+      ),
     );
   }
 }
 
-double _headlineSize(double width) {
-  if (width >= 1300) return 88;
-  if (width >= 900) return 68;
-  return 52;
-}
+// Goal / "Build." ------------------------------------------------------------
 
-// =============================================================================
-// Wide layout: the diagonal split.
-// =============================================================================
-
-/// Wide layout: one full-bleed field split by a diagonal, stitched seam.
-///
-/// The diagonal itself is defined by just two numbers: where it crosses the
-/// top edge of the section ([_topFraction], as a fraction of the total
-/// width) and where it crosses the bottom edge ([_bottomFraction]). Because
-/// those two x-positions differ, the line connecting them is a diagonal
-/// rather than a vertical line — see [_DiagonalClipper] below, which turns
-/// those two fractions into the actual clipped shape.
-class _DiagonalSplit extends StatelessWidget {
-  const _DiagonalSplit();
-
-  static const double _topFraction = 0.56;
-  static const double _bottomFraction = 0.44;
+class _InkCard extends StatelessWidget {
+  const _InkCard();
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final size = Size(width, constraints.maxHeight);
-        // The diagonal leans, so its x-position is different at the top of
-        // the section than at the bottom. That means the widest safe (i.e.
-        // guaranteed not to be cut by the diagonal) column for the *ink*
-        // side's text is bounded by wherever the diagonal is narrowest —
-        // its bottom position — and likewise the leather side's safe
-        // column has to start from wherever the diagonal is widest, its
-        // top position. Get this backwards and the text would overlap the
-        // diagonal cut at the top or bottom of the section.
-        final leftSafeWidth = width * _bottomFraction;
-        final rightSafeLeft = width * _topFraction;
-        final dark = paletteOf(context).dark;
-        final lang = languageOf(context);
+    final s = stringsOf(context);
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final padding = phone ? 22.0 : (width * 0.034).clamp(24.0, 44.0);
+    final hairline = _kInkAccent.withValues(alpha: 0.16);
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // Painted in back-to-front order: the leather background fills
-            // the whole section first, then the ink background is clipped
-            // to the diagonal wedge and painted on top of it — so the
-            // "ink" half is really just "leather with an ink-coloured
-            // shape covering part of it", not two separate halves.
-            LeatherBackground(dark: dark, lang: lang),
-            ClipPath(
-              clipper: const _DiagonalClipper(
-                topFraction: _topFraction,
-                bottomFraction: _bottomFraction,
-              ),
-              child: KnowledgeGraphBackground(dark: dark, lang: lang),
-            ),
-            CustomPaint(
-              painter: _SeamPainter(
-                topFraction: _topFraction,
-                bottomFraction: _bottomFraction,
-                color: _kLeatherThread.withValues(alpha: 0.55),
-              ),
-              size: size,
-            ),
-            Positioned(
-              top: 28,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Text(
-                  stringsOf(context).beyondTheCode,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 3,
-                    color: paletteOf(context).ink.withValues(alpha: 0.45),
-                  ),
+    final goals = [
+      (s.goalConnectionsTitle, s.goalConnectionsBody),
+      (s.goalJuniorTitle, s.goalJuniorBody),
+      (s.goalHomeTitle, s.goalHomeBody),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _kInkBg,
+        borderRadius: BorderRadius.circular(phone ? 22 : 28),
+        border: Border.all(color: hairline),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: CustomPaint(
+        painter: _DotGridPainter(color: _kInkAccent.withValues(alpha: 0.16), step: phone ? 20 : 22),
+        child: Padding(
+          padding: EdgeInsets.all(padding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MonoLabel(s.goalLabel, color: _kInkAccent, size: phone ? 11 : 12),
+              SizedBox(height: phone ? 16 : 22),
+              Text(
+                s.buildHeadline,
+                style: interStyle(
+                  size: phone ? 30 : 36,
+                  color: Colors.white,
+                  weight: FontWeight.w800,
+                  letterSpacing: phone ? -0.8 : -1,
                 ),
               ),
-            ),
-            // The ink content sits inside a box that starts 64px from the
-            // left edge and is `leftSafeWidth - 96` wide — leaving 32px of
-            // additional breathing room on the right, before the diagonal.
-            // `math.max(..., 260)` is a floor so the text column never gets
-            // squeezed narrower than 260px if the diagonal fractions above
-            // were ever changed to something more extreme.
-            Positioned(
-              left: 64,
-              top: 0,
-              bottom: 0,
-              width: math.max(leftSafeWidth - 96, 260),
-              child: _HoverPop(
-                child: _InkContent(headlineSize: _headlineSize(width)),
+              SizedBox(height: phone ? 16 : 22),
+              Text(
+                s.buildParagraph,
+                style: interStyle(
+                  size: phone ? 15 : 16,
+                  color: _kInkBody,
+                  height: phone ? 1.55 : 1.6,
+                ),
               ),
-            ),
-            // Mirror image of the block above: starts 40px past the
-            // diagonal's widest point and runs to 64px from the right edge.
-            Positioned(
-              left: rightSafeLeft + 40,
-              right: 64,
-              top: 0,
-              bottom: 0,
-              child: _HoverPop(
-                child: _LeatherContent(headlineSize: _headlineSize(width)),
+              SizedBox(height: phone ? 16 : 22),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: hairline)),
+                ),
+                child: Column(
+                  children: [
+                    for (var i = 0; i < goals.length; i++)
+                      _GoalRow(
+                        index: i + 1,
+                        title: goals[i].$1,
+                        body: goals[i].$2,
+                        hairline: hairline,
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// =============================================================================
-// Narrow layout: the stacked split.
-// =============================================================================
-
-/// Narrow layout: the same two halves, stacked full-width instead of
-/// diagonally split, joined by a horizontal stitched seam.
-class _StackedSplit extends StatelessWidget {
-  const _StackedSplit();
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = paletteOf(context).dark;
-    final lang = languageOf(context);
-    return Column(
-      children: [
-        Expanded(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              KnowledgeGraphBackground(dark: dark, lang: lang),
-              const _HoverPop(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: _InkContent(headlineSize: 30),
-              ),
+              // Pins the tutoring panel to the bottom when the neighbouring
+              // card is the taller one.
+              const Spacer(),
+              SizedBox(height: phone ? 16 : 22),
+              const _TutoringPanel(),
             ],
-          ),
-        ),
-        Container(
-          height: 18,
-          width: double.infinity,
-          // The dashed seam only paints the dashes themselves, leaving gaps
-          // between them — without an opaque fill behind it, those gaps show
-          // whatever happens to be painted further back in the tree instead
-          // of reading as a deliberate divider.
-          color: paletteOf(context).bg,
-          child: CustomPaint(
-            painter: _HorizontalSeamPainter(
-              color: _kLeatherThread.withValues(alpha: 0.55),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              LeatherBackground(dark: dark, lang: lang),
-              const _HoverPop(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: _LeatherContent(headlineSize: 30),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// =============================================================================
-// Shared hover-pop wrapper — used by both layouts above.
-// =============================================================================
-
-/// Wraps a half's content so it lifts and scales up slightly on hover —
-/// the whole side reads as one interactive card, not just static text.
-class _HoverPop extends StatefulWidget {
-  const _HoverPop({required this.child, this.padding = EdgeInsets.zero});
-
-  final Widget child;
-  final EdgeInsets padding;
-
-  @override
-  State<_HoverPop> createState() => _HoverPopState();
-}
-
-class _HoverPopState extends State<_HoverPop> {
-  bool _hovering = false;
-
-  // The same MouseRegion + setState hover pattern used across the site (see
-  // the comment in contact_section.dart's _ContactCardState) — here driving
-  // two animated properties (scale and a slight upward slide) at once,
-  // instead of just a colour or border.
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: Center(
-        // SingleChildScrollView is a safety net, not the primary intent:
-        // this content is normally short enough to fit in the half it's
-        // given, but on an unusually short/zoomed-in viewport it can
-        // scroll instead of overflowing and throwing a render error.
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          padding: widget.padding,
-          child: AnimatedScale(
-            scale: _hovering ? 1.045 : 1.0,
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            child: AnimatedSlide(
-              offset: _hovering ? const Offset(0, -0.015) : Offset.zero,
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              child: widget.child,
-            ),
           ),
         ),
       ),
@@ -276,670 +135,407 @@ class _HoverPopState extends State<_HoverPop> {
   }
 }
 
-// =============================================================================
-// Geometry & painters for the diagonal/horizontal seam.
-// =============================================================================
-
-/// A jagged quadrilateral: wider at the top, narrower at the bottom — the
-/// ink wedge cut into the leather field.
-class _DiagonalClipper extends CustomClipper<Path> {
-  const _DiagonalClipper({
-    required this.topFraction,
-    required this.bottomFraction,
+class _GoalRow extends StatelessWidget {
+  const _GoalRow({
+    required this.index,
+    required this.title,
+    required this.body,
+    required this.hairline,
   });
 
-  final double topFraction;
-  final double bottomFraction;
-
-  @override
-  Path getClip(Size size) {
-    final topX = size.width * topFraction;
-    final bottomX = size.width * bottomFraction;
-    // Traces the shape's outline as four corners, clockwise from the
-    // top-left: top-left corner -> across to the diagonal's top point ->
-    // down to the diagonal's bottom point -> across to the bottom-left
-    // corner -> `close()` draws the final edge back up to the start. The
-    // result is everything to the left of the diagonal line.
-    return Path()
-      ..moveTo(0, 0)
-      ..lineTo(topX, 0)
-      ..lineTo(bottomX, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant _DiagonalClipper oldClipper) =>
-      oldClipper.topFraction != topFraction ||
-      oldClipper.bottomFraction != bottomFraction;
-}
-
-/// A dashed saddle-stitch running along the diagonal seam between the two
-/// halves.
-class _SeamPainter extends CustomPainter {
-  const _SeamPainter({
-    required this.topFraction,
-    required this.bottomFraction,
-    required this.color,
-  });
-
-  final double topFraction;
-  final double bottomFraction;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final top = Offset(size.width * topFraction, 0);
-    final bottom = Offset(size.width * bottomFraction, size.height);
-    final length = (bottom - top).distance;
-    final direction = (bottom - top) / length;
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-
-    const dash = 10.0, gap = 8.0;
-    var travelled = 0.0;
-    while (travelled < length) {
-      final start = top + direction * travelled;
-      final end = top + direction * math.min(travelled + dash, length);
-      canvas.drawLine(start, end, paint);
-      travelled += dash + gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SeamPainter oldDelegate) =>
-      oldDelegate.topFraction != topFraction ||
-      oldDelegate.bottomFraction != bottomFraction ||
-      oldDelegate.color != color;
-}
-
-/// The stacked layout's straight-across stitch, for narrow screens.
-class _HorizontalSeamPainter extends CustomPainter {
-  const _HorizontalSeamPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    final y = size.height / 2;
-    const dash = 10.0, gap = 8.0;
-    var x = 0.0;
-    while (x < size.width) {
-      canvas.drawLine(Offset(x, y), Offset(x + dash, y), paint);
-      x += dash + gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _HorizontalSeamPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-// =============================================================================
-// Ink half: content.
-// =============================================================================
-
-/// Left/ink half: the goal, and the tutoring already underway toward it.
-class _InkContent extends StatelessWidget {
-  const _InkContent({required this.headlineSize});
-
-  final double headlineSize;
+  final int index;
+  final String title;
+  final String body;
+  final Color hairline;
 
   @override
   Widget build(BuildContext context) {
-    final palette = paletteOf(context);
-    final s = stringsOf(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          s.goalLabel,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2,
-            color: kBlue,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          s.buildHeadline,
-          style: GoogleFonts.inter(
-            fontSize: headlineSize,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -2,
-            height: 1,
-            color: palette.ink,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Text(
-            s.buildParagraph,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              height: 1.4,
-              color: palette.ink.withValues(alpha: 0.68),
+    final phone = isPhone(context);
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: phone ? 12 : 14),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: hairline)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Text(
+              index.toString().padLeft(2, '0'),
+              style: monoStyle(size: phone ? 11 : 12, color: _kInkAccent),
             ),
           ),
-        ),
-        // 8, not the 16 used elsewhere in this stack — the French
-        // buildParagraph runs long enough to tip this stacked mobile layout
-        // a few pixels past its scroll allowance, and this is the cheapest
-        // place to claw that back without touching type sizes.
-        const SizedBox(height: 8),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: palette.surface(0.06),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: palette.surface(0.1)),
-            ),
+          SizedBox(width: phone ? 14 : 16),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.groups_outlined,
-                      size: 18,
-                      color: kBlue.withValues(alpha: 0.9),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        s.tutoringTitle,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: palette.ink,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
                 Text(
-                  s.tutoringParagraph,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: palette.ink.withValues(alpha: 0.6),
+                  title,
+                  style: interStyle(
+                    size: phone ? 15 : 16,
+                    color: Colors.white,
+                    weight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _Tag(s.tagPatience, color: kBlue),
-                    _Tag(s.tagEmpathy, color: kBlue),
-                    _Tag(s.tagTeamPlayer, color: kBlue),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: interStyle(size: 14, color: _kInkMuted, height: 1.5),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-// =============================================================================
-// Leather half: content, avatar placeholder, and the product carousel.
-// =============================================================================
-
-/// Right/leather half: the bench, a place for a photo, and a carousel of
-/// past pieces.
-class _LeatherContent extends StatelessWidget {
-  const _LeatherContent({required this.headlineSize});
-
-  final double headlineSize;
+class _TutoringPanel extends StatelessWidget {
+  const _TutoringPanel();
 
   @override
   Widget build(BuildContext context) {
-    final ink = paletteOf(context).ink;
     final s = stringsOf(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const _AvatarPlaceholder(),
-            const SizedBox(width: 16),
-            Text(
-              s.hobbyLabel,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 2,
-                color: _leatherAccent(paletteOf(context).dark),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text(
-          s.craftHeadline,
-          style: GoogleFonts.inter(
-            fontSize: headlineSize,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -2,
-            height: 1,
-            color: ink,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Text(
-            s.craftParagraph,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              height: 1.4,
-              color: ink.withValues(alpha: 0.72),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          s.pastPiecesLabel,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
-            color: _leatherAccent(paletteOf(context).dark),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // ConstrainedBox rather than a fixed-width SizedBox: on an iPhone-
-        // width screen this half's available width is well under 380px, and
-        // a fixed width there would push the carousel past the edge of the
-        // screen instead of shrinking to fit it.
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 380),
-          child: SizedBox(width: double.infinity, child: _LeatherCarousel()),
-        ),
-      ],
-    );
-  }
-}
-
-/// A small pill/chip. Used by [_InkContent] for the subject tags — kept
-/// here rather than up near that class because it's a generic, reusable
-/// piece rather than ink-specific content.
-class _Tag extends StatelessWidget {
-  const _Tag(this.label, {required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
+    final phone = isPhone(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.all(phone ? 18 : 22),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(100),
+        color: _kInkBg.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(phone ? 16 : 18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            s.tutoringTitle,
+            style: interStyle(
+              size: phone ? 16 : 17,
+              color: Colors.white,
+              weight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: phone ? 10 : 12),
+          Text(
+            s.tutoringParagraph,
+            style: interStyle(size: 14, color: _kInkMuted, height: 1.55),
+          ),
+          SizedBox(height: phone ? 10 : 12),
+          Wrap(
+            spacing: phone ? 6 : 8,
+            runSpacing: phone ? 6 : 8,
+            children: [
+              for (final tag in [s.tagPatience, s.tagEmpathy, s.tagTeamPlayer])
+                Pill(
+                  tag,
+                  background: Colors.transparent,
+                  color: _kInkTagText,
+                  borderColor: _kInkAccent.withValues(alpha: 0.35),
+                  vertical: phone ? 5 : 6,
+                  horizontal: phone ? 10 : 12,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Faint dot grid behind the goal card, like the page of a dot-grid notebook.
+class _DotGridPainter extends CustomPainter {
+  const _DotGridPainter({required this.color, required this.step});
+
+  final Color color;
+  final double step;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    for (var y = step / 2; y < size.height; y += step) {
+      for (var x = step / 2; x < size.width; x += step) {
+        canvas.drawCircle(Offset(x, y), 0.6, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DotGridPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.step != step;
+}
+
+// Hobby / "Craft." -----------------------------------------------------------
+
+class _LeatherCard extends StatelessWidget {
+  const _LeatherCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = stringsOf(context);
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final padding = phone ? 18.0 : (width * 0.03).clamp(18.0, 34.0);
+    return Container(
+      padding: EdgeInsets.all(phone ? 8 : 10),
+      decoration: BoxDecoration(
+        color: _kLeatherBg,
+        borderRadius: BorderRadius.circular(phone ? 22 : 28),
+      ),
+      child: CustomPaint(
+        // The stitched seam, drawn just inside the patch's edge.
+        painter: _DashedRRectPainter(
+          color: _kLeatherStitch.withValues(alpha: 0.55),
+          radius: phone ? 16 : 22,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(padding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MonoLabel(
+                          s.hobbyLabel,
+                          color: _kLeatherAccent,
+                          size: phone ? 11 : 12,
+                        ),
+                        SizedBox(height: phone ? 16 : 22),
+                        Text(
+                          s.craftHeadline,
+                          style: interStyle(
+                            size: phone ? 30 : 36,
+                            color: _kLeatherHeading,
+                            weight: FontWeight.w800,
+                            letterSpacing: phone ? -0.8 : -1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _BenchPhoto(size: phone ? 72 : 88),
+                ],
+              ),
+              SizedBox(height: phone ? 16 : 22),
+              Text(
+                s.craftParagraph,
+                style: interStyle(
+                  size: phone ? 15 : 16,
+                  color: _kLeatherBody,
+                  height: phone ? 1.55 : 1.6,
+                ),
+              ),
+              SizedBox(height: phone ? 16 : 22),
+              MonoLabel(
+                phone ? s.pastPiecesSwipeLabel : s.pastPiecesLabel,
+                color: _kLeatherAccent,
+                size: phone ? 11 : 12,
+              ),
+              SizedBox(height: phone ? 16 : 22),
+              phone ? const _PiecesStrip() : const _PiecesGrid(),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// A dashed ring standing in for a future photo of me at the bench.
-class _AvatarPlaceholder extends StatelessWidget {
-  const _AvatarPlaceholder();
+/// The empty circular photo slot beside the "Craft." heading.
+class _BenchPhoto extends StatelessWidget {
+  const _BenchPhoto({required this.size});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
+    final phone = size < 80;
     return SizedBox(
-      width: 60,
-      height: 60,
+      width: size,
+      height: size,
       child: CustomPaint(
         painter: _DashedCirclePainter(
-          color: _leatherAccent(paletteOf(context).dark).withValues(alpha: 0.6),
+          color: _kLeatherAccent.withValues(alpha: 0.6),
         ),
         child: Center(
-          child: Icon(
-            Icons.person_outline,
-            size: 22,
-            color: paletteOf(context).ink.withValues(alpha: 0.5),
+          child: Text(
+            phone ? stringsOf(context).photoPlaceholder : stringsOf(context).photoAtTheBench,
+            textAlign: TextAlign.center,
+            style: interStyle(
+              size: phone ? 10 : 11,
+              color: _kLeatherAccent,
+              height: 1.3,
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Past pieces: [_pieces] in order.
+enum _Piece { cardHolder, bifoldWallet, belt, toteBag, keychain }
+
+String _pieceTitle(AppLanguage lang, _Piece piece) {
+  final fr = lang == AppLanguage.fr;
+  return switch (piece) {
+    _Piece.cardHolder => fr ? 'Porte-cartes' : 'Card holder',
+    _Piece.bifoldWallet => fr ? 'Portefeuille bifold' : 'Bifold wallet',
+    _Piece.belt => fr ? 'Ceinture' : 'Belt',
+    _Piece.toteBag => fr ? 'Sac fourre-tout' : 'Tote bag',
+    _Piece.keychain => fr ? 'Porte-clés' : 'Keychain',
+  };
+}
+
+class _PieceTile extends StatelessWidget {
+  const _PieceTile({required this.piece, this.height});
+
+  final _Piece piece;
+
+  /// Fixed tile height, or null for the 4:5 ratio the grid uses.
+  final double? height;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(
+      _pieceTitle(languageOf(context), piece),
+      style: interStyle(
+        size: 13,
+        color: _kLeatherLabel,
+        weight: FontWeight.w500,
+      ),
+    );
+    final tile = Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _kLeatherTile,
+        borderRadius: BorderRadius.circular(height == null ? 14 : 12),
+      ),
+      child: Text(
+        stringsOf(context).photoPlaceholder,
+        style: monoStyle(size: 11, color: _kLeatherTileText),
+      ),
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        height == null
+            ? AspectRatio(aspectRatio: 4 / 5, child: tile)
+            : SizedBox(height: height, child: tile),
+        const SizedBox(height: 8),
+        label,
+      ],
+    );
+  }
+}
+
+/// Desktop: the first three pieces in a grid.
+class _PiecesGrid extends StatelessWidget {
+  const _PiecesGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    // Not an AutoFitGrid: this sits inside the outer grid's IntrinsicHeight
+    // row, which can't measure the LayoutBuilder an AutoFitGrid contains.
+    const shown = [_Piece.cardHolder, _Piece.bifoldWallet, _Piece.belt];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < shown.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(child: _PieceTile(piece: shown[i])),
+        ],
+      ],
+    );
+  }
+}
+
+/// Phone: every piece in a sideways-scrolling strip.
+class _PiecesStrip extends StatelessWidget {
+  const _PiecesStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    // Sized by its content (not a fixed height) so a longer French label
+    // can't overflow the tile.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < _Piece.values.length; i++) ...[
+            if (i > 0) const SizedBox(width: 10),
+            SizedBox(
+              width: 132,
+              child: _PieceTile(piece: _Piece.values[i], height: 160),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A dashed rounded rectangle just inside its box — the stitched seam.
+class _DashedRRectPainter extends CustomPainter {
+  const _DashedRRectPainter({required this.color, required this.radius});
+
+  final Color color;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(1);
+    final path = Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
+    _drawDashed(canvas, path, color);
+  }
+
+  @override
+  bool shouldRepaint(_DashedRRectPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.radius != radius;
 }
 
 class _DashedCirclePainter extends CustomPainter {
   const _DashedCirclePainter({required this.color});
 
   final Color color;
-  static const int _dashCount = 20;
-  static const double _dashFraction = 0.55;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
-    final rect = (Offset.zero & size).deflate(1.5);
-    final segment = (2 * math.pi) / _dashCount;
-    for (var i = 0; i < _dashCount; i++) {
-      canvas.drawArc(rect, i * segment, segment * _dashFraction, false, paint);
-    }
+    final path = Path()..addOval((Offset.zero & size).deflate(1));
+    _drawDashed(canvas, path, color);
   }
 
   @override
-  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
+  bool shouldRepaint(_DashedCirclePainter oldDelegate) =>
       oldDelegate.color != color;
 }
 
-enum _ProductKind { cardHolder, bifoldWallet, belt, toteBag, keychain }
-
-class _LeatherProduct {
-  const _LeatherProduct(this.kind);
-
-  final _ProductKind kind;
-}
-
-const _products = [
-  _LeatherProduct(_ProductKind.cardHolder),
-  _LeatherProduct(_ProductKind.bifoldWallet),
-  _LeatherProduct(_ProductKind.belt),
-  _LeatherProduct(_ProductKind.toteBag),
-  _LeatherProduct(_ProductKind.keychain),
-];
-
-/// Small, closed data tied one-to-one to [_ProductKind] — lives next to it
-/// as a plain switch rather than in the shared [Strings] class, the same
-/// reasoning as [navLabel] in site_header.dart.
-String _productTitle(AppLanguage lang, _ProductKind kind) {
-  final fr = lang == AppLanguage.fr;
-  return switch (kind) {
-    _ProductKind.cardHolder => fr ? 'Porte-cartes' : 'Card holder',
-    _ProductKind.bifoldWallet => fr ? 'Portefeuille bifold' : 'Bifold wallet',
-    _ProductKind.belt => fr ? 'Ceinture' : 'Belt',
-    _ProductKind.toteBag => fr ? 'Sac fourre-tout' : 'Tote bag',
-    _ProductKind.keychain => fr ? 'Porte-clés' : 'Keychain',
-  };
-}
-
-/// A peek-style, snapping carousel of past pieces. Each card is a
-/// placeholder — swap `_products` for real pieces and drop a photo into
-/// each [_ProductCard] once there is something to show.
-class _LeatherCarousel extends StatefulWidget {
-  const _LeatherCarousel();
-
-  @override
-  State<_LeatherCarousel> createState() => _LeatherCarouselState();
-}
-
-class _LeatherCarouselState extends State<_LeatherCarousel> {
-  late final PageController _controller = PageController(
-    viewportFraction: 0.42,
-  );
-  double _page = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(() {
-      setState(() => _page = _controller.page ?? 0);
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _goToPage(int page) {
-    _controller.animateToPage(
-      page.clamp(0, _products.length - 1),
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 112,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // ScrollConfiguration is needed here because Flutter's default
-              // scroll behaviour only lets touch/stylus/trackpad *drag* to
-              // scroll — a mouse can only turn a scroll wheel by default, so
-              // without this override, clicking and dragging the carousel
-              // with a mouse (the only option on desktop/web) does nothing.
-              ScrollConfiguration(
-                behavior: _MouseDragScrollBehavior(),
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: _products.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: _ProductCard(product: _products[index]),
-                    );
-                  },
-                ),
-              ),
-              // Arrow buttons give a guaranteed way to move the carousel
-              // even where dragging is inconvenient (e.g. a trackpad-less
-              // mouse), rather than relying on drag/swipe alone.
-              Positioned(
-                left: 0,
-                child: _CarouselArrow(
-                  icon: Icons.chevron_left,
-                  onTap: () => _goToPage(_page.round() - 1),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                child: _CarouselArrow(
-                  icon: Icons.chevron_right,
-                  onTap: () => _goToPage(_page.round() + 1),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            for (var i = 0; i < _products.length; i++)
-              GestureDetector(
-                onTap: () => _goToPage(i),
-                // The dot itself is only 6px tall — far too small to hit
-                // reliably with a finger. behavior: opaque plus this padding
-                // gives each one a ~36px tap zone without changing how big
-                // the dots look.
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 4,
-                  ),
-                  child: _CarouselDot(active: (_page.round() == i)),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// The default [ScrollBehavior] only treats touch/stylus/trackpad input as a
-/// drag gesture; this adds the mouse so the carousel can be click-dragged on
-/// desktop and web too.
-class _MouseDragScrollBehavior extends MaterialScrollBehavior {
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-    ...super.dragDevices,
-    PointerDeviceKind.mouse,
-  };
-}
-
-class _CarouselArrow extends StatelessWidget {
-  const _CarouselArrow({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black.withValues(alpha: 0.35),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        // 44x44 keeps the tap target at Apple/Google's recommended minimum
-        // for a finger — the icon itself stays the same visual size, just
-        // centred in a roomier hit area than the old 4px padding gave it.
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Center(
-            child: Icon(
-              icon,
-              size: 20,
-              color: Colors.white.withValues(alpha: 0.85),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CarouselDot extends StatelessWidget {
-  const _CarouselDot({required this.active});
-
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(right: 6),
-      width: active ? 16 : 6,
-      height: 6,
-      decoration: BoxDecoration(
-        color: active
-            ? _leatherAccent(paletteOf(context).dark)
-            : paletteOf(context).surface(0.25),
-        borderRadius: BorderRadius.circular(100),
-      ),
-    );
-  }
-}
-
-class _ProductCard extends StatefulWidget {
-  const _ProductCard({required this.product});
-
-  final _LeatherProduct product;
-
-  @override
-  State<_ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<_ProductCard> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = paletteOf(context);
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: AnimatedScale(
-        scale: _hovering ? 1.06 : 1.0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          decoration: BoxDecoration(
-            color: palette.surface(_hovering ? 0.1 : 0.06),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: _kLeatherTan.withValues(alpha: _hovering ? 0.5 : 0.25),
-            ),
-            boxShadow: _hovering
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : const [],
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.image_outlined,
-                  size: 24,
-                  color: palette.ink.withValues(alpha: 0.4),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _productTitle(languageOf(context), widget.product.kind),
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: palette.ink.withValues(alpha: 0.85),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  stringsOf(context).addPhotoLabel,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: palette.ink.withValues(alpha: 0.35),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+void _drawDashed(Canvas canvas, Path path, Color color) {
+  const dash = 6.0;
+  const gap = 4.0;
+  final paint = Paint()
+    ..color = color
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2;
+  for (final PathMetric metric in path.computeMetrics()) {
+    var distance = 0.0;
+    while (distance < metric.length) {
+      final end = (distance + dash).clamp(0.0, metric.length);
+      canvas.drawPath(metric.extractPath(distance, end), paint);
+      distance += dash + gap;
+    }
   }
 }
