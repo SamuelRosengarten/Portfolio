@@ -7,11 +7,10 @@ import 'contact_section.dart';
 import 'hobbies_section.dart';
 import 'project_section.dart';
 
-/// The whole page: a pinned header on top of exactly one section at a time,
-/// filling the rest of the screen — on phone and desktop alike. Picking a
-/// section (the header's nav row on desktop, the drawer everywhere) swaps
-/// which one is built; the others aren't reachable by scrolling past it,
-/// only by picking them from the nav again.
+/// The whole page: a pinned header above one continuously scrolling column of
+/// sections. Picking a section in the header (or the drawer on a phone)
+/// scrolls to it, and the header highlights whichever section is currently
+/// at the top of the viewport.
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -20,36 +19,98 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  SiteSection _section = SiteSection.about;
+  final _scroll = ScrollController();
+  final _viewportKey = GlobalKey();
+  final _sectionKeys = {for (final s in SiteSection.values) s: GlobalKey()};
+  final _active = ValueNotifier(SiteSection.about);
 
-  void _onSelected(SiteSection section) => setState(() => _section = section);
+  /// How far below the top of the viewport a section's top edge may sit and
+  /// still count as "the current section".
+  static const _activeThreshold = 120.0;
 
-  Widget _sectionFor(SiteSection section) {
-    return switch (section) {
-      SiteSection.about => const AboutSection(),
-      SiteSection.projects => const ProjectSection(),
-      SiteSection.hobbies => const HobbiesSection(),
-      SiteSection.contact => const ContactSection(),
-    };
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_updateActive);
+  }
+
+  @override
+  void dispose() {
+    _scroll
+      ..removeListener(_updateActive)
+      ..dispose();
+    _active.dispose();
+    super.dispose();
+  }
+
+  void _updateActive() {
+    final viewport = _viewportKey.currentContext?.findRenderObject();
+    if (viewport is! RenderBox || !viewport.attached || !_scroll.hasClients) {
+      return;
+    }
+    // Short last sections can never reach the threshold; at the very bottom
+    // the last one is the one being read.
+    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 8) {
+      _active.value = SiteSection.values.last;
+      return;
+    }
+    final viewportTop = viewport.localToGlobal(Offset.zero).dy;
+    var current = SiteSection.about;
+    for (final section in SiteSection.values) {
+      final box = _sectionKeys[section]!.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.attached) continue;
+      if (box.localToGlobal(Offset.zero).dy - viewportTop <= _activeThreshold) {
+        current = section;
+      }
+    }
+    _active.value = current;
+  }
+
+  void _onSelected(SiteSection section) {
+    final context = _sectionKeys[section]!.currentContext;
+    if (context == null) return;
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: NavDrawer(onSelected: _onSelected),
-      body: Container(
-        // A plain fill in the site's own background colour, not the
-        // Material seed colour's gradient: sections that don't paint an
-        // opaque background edge-to-edge (e.g. the dashed-seam gap between
-        // Hobbies' two halves) used to let that seed colour show through as
-        // a stray tint. The site's own palette has no such surprise colour.
-        color: paletteOf(context).bg,
-        child: Column(
-          children: [
-            SiteHeader(onSelected: _onSelected),
-            Expanded(child: _sectionFor(_section)),
-          ],
-        ),
+      backgroundColor: paletteOf(context).bg,
+      body: Column(
+        children: [
+          SiteHeader(active: _active, onSelected: _onSelected),
+          Expanded(
+            child: SingleChildScrollView(
+              key: _viewportKey,
+              controller: _scroll,
+              child: Column(
+                children: [
+                  KeyedSubtree(
+                    key: _sectionKeys[SiteSection.about],
+                    child: AboutSection(onSelected: _onSelected),
+                  ),
+                  KeyedSubtree(
+                    key: _sectionKeys[SiteSection.projects],
+                    child: const ProjectSection(),
+                  ),
+                  KeyedSubtree(
+                    key: _sectionKeys[SiteSection.hobbies],
+                    child: const HobbiesSection(),
+                  ),
+                  KeyedSubtree(
+                    key: _sectionKeys[SiteSection.contact],
+                    child: const ContactSection(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
