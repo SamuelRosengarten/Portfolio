@@ -72,4 +72,46 @@ void main() {
     // instead of leaving it pending.
     await tester.pump(const Duration(milliseconds: 700));
   });
+
+  testWidgets('desktop nav highlights the section being shown', (tester) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      AppTheme(
+        controller: ThemeController(),
+        child: AppLocale(
+          controller: LocaleController(),
+          child: AppMotion(
+            controller: MotionController(),
+            child: const MaterialApp(home: Home()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+
+    FontWeight? weightOf(String label) => tester
+        .widget<AnimatedDefaultTextStyle>(
+          find
+              .ancestor(
+                of: find.text(label).first,
+                matching: find.byType(AnimatedDefaultTextStyle),
+              )
+              .first,
+        )
+        .style
+        .fontWeight;
+
+    expect(weightOf('About'), FontWeight.w600);
+    expect(weightOf('Projects'), FontWeight.w400);
+
+    await tester.tap(find.text('Projects').first);
+    await tester.pump();
+    expect(weightOf('Projects'), FontWeight.w600);
+    expect(weightOf('About'), FontWeight.w400);
+
+    await tester.pump(const Duration(milliseconds: 700));
+  });
 }

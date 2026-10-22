@@ -37,7 +37,14 @@ String navLabel(AppLanguage lang, SiteSection section) {
 }
 
 class SiteHeader extends StatelessWidget {
-  const SiteHeader({super.key, required this.onSelected});
+  const SiteHeader({
+    super.key,
+    required this.current,
+    required this.onSelected,
+  });
+
+  /// The section being shown, highlighted in the desktop nav.
+  final SiteSection current;
 
   /// Called with the section the visitor asked to jump to.
   final ValueChanged<SiteSection> onSelected;
@@ -94,7 +101,7 @@ class SiteHeader extends StatelessWidget {
               Expanded(
                 child: mobile
                     ? const SizedBox.shrink()
-                    : _DesktopNav(onSelected: onSelected),
+                    : _DesktopNav(current: current, onSelected: onSelected),
               ),
               SizedBox(
                 width: mobile ? 144 : 240,
@@ -269,8 +276,9 @@ class _LanguageToggleButton extends StatelessWidget {
 
 /// The row of nav links shown across the top of the header on wider screens.
 class _DesktopNav extends StatelessWidget {
-  const _DesktopNav({required this.onSelected});
+  const _DesktopNav({required this.current, required this.onSelected});
 
+  final SiteSection current;
   final ValueChanged<SiteSection> onSelected;
 
   @override
@@ -288,6 +296,7 @@ class _DesktopNav extends StatelessWidget {
           for (final section in SiteSection.values)
             _HeaderItem(
               navLabel(lang, section),
+              selected: section == current,
               onTap: () => onSelected(section),
             ),
         ],
@@ -297,9 +306,10 @@ class _DesktopNav extends StatelessWidget {
 }
 
 class _HeaderItem extends StatefulWidget {
-  const _HeaderItem(this.label, {required this.onTap});
+  const _HeaderItem(this.label, {required this.selected, required this.onTap});
 
   final String label;
+  final bool selected;
   final VoidCallback onTap;
 
   @override
@@ -312,6 +322,7 @@ class _HeaderItemState extends State<_HeaderItem> {
   @override
   Widget build(BuildContext context) {
     final ink = paletteOf(context).ink;
+    final emphasis = widget.selected ? 1.0 : (_hovering ? 0.95 : 0.65);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
@@ -325,8 +336,8 @@ class _HeaderItemState extends State<_HeaderItem> {
             style: GoogleFonts.inter(
               fontSize: 14,
               letterSpacing: -0.1,
-              fontWeight: FontWeight.w400,
-              color: ink.withValues(alpha: _hovering ? 0.95 : 0.65),
+              fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w400,
+              color: ink.withValues(alpha: emphasis),
             ),
             child: Text(widget.label),
           ),

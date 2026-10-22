@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
         color: paletteOf(context).bg,
         child: Column(
           children: [
-            SiteHeader(onSelected: _onSelected),
+            SiteHeader(current: _section, onSelected: _onSelected),
             Expanded(child: _sectionFor(_section)),
           ],
         ),
