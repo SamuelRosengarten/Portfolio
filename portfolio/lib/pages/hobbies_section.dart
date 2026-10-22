@@ -31,8 +31,6 @@ class HobbiesSection extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     return PageSection(
-      topPadding: phone ? 56 : null,
-      bottomPadding: phone ? 56 : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

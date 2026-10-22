@@ -15,10 +15,7 @@ class AboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
     return PageSection(
-      topPadding: isPhone(context) ? 40 : (width * 0.09).clamp(56.0, 120.0),
-      bottomPadding: isPhone(context) ? 48 : 56,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

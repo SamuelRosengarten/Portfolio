@@ -71,4 +71,36 @@ void main() {
     expect(find.text('À propos'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  for (final size in [
+    const Size(390, 844),
+    const Size(768, 1024),
+    const Size(1440, 900),
+    const Size(1440, 600),
+  ]) {
+    testWidgets(
+      'no section is taller than the window at ${size.width.toInt()}x${size.height.toInt()}',
+      (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(const MyApp());
+        await tester.pump();
+
+        for (final section in [
+          AboutSection,
+          ProjectSection,
+          HobbiesSection,
+          ContactSection,
+        ]) {
+          final height = tester.getSize(find.byType(section)).height;
+          expect(height, lessThan(size.height), reason: '$section');
+          // Fills the space below the header rather than leaving a gap.
+          expect(height, greaterThan(size.height * 0.5), reason: '$section');
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }
