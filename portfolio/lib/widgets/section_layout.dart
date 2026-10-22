@@ -45,17 +45,34 @@ TextStyle monoStyle({
   letterSpacing: letterSpacing,
 );
 
-/// One full-width band of the page. Paints [background] edge to edge and
-/// holds [child] in a column capped at [kMaxContentWidth] with responsive
-/// side and vertical padding.
+/// The height of the area sections are shown in (the window minus the pinned
+/// header). `Home` provides it so every [PageSection] can be exactly one
+/// screen tall.
+class ViewportHeight extends InheritedWidget {
+  const ViewportHeight({super.key, required this.height, required super.child});
+
+  final double height;
+
+  static double? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ViewportHeight>()?.height;
+
+  @override
+  bool updateShouldNotify(ViewportHeight oldWidget) =>
+      oldWidget.height != height;
+}
+
+/// One full-width band of the page, never taller than the window.
+///
+/// The band is exactly one screen tall (the height `Home` gives it through
+/// [ViewportHeight]); [child] is centred in it, held to [kMaxContentWidth],
+/// and scaled down uniformly, text included, if it would otherwise be taller
+/// than the screen. A section short enough to fit is left at its natural size.
 class PageSection extends StatelessWidget {
   const PageSection({
     super.key,
     required this.child,
     this.background,
     this.bordered = false,
-    this.topPadding,
-    this.bottomPadding,
   });
 
   final Widget child;
@@ -64,17 +81,16 @@ class PageSection extends StatelessWidget {
   /// Hairline above and below, for the alternate-background bands.
   final bool bordered;
 
-  /// Overrides for the default vertical padding.
-  final double? topPadding;
-  final double? bottomPadding;
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final vertical = (width * 0.08).clamp(64.0, 112.0);
+    final height = ViewportHeight.maybeOf(context);
+    final vertical = isPhone(context) ? 20.0 : 40.0;
     final hairline = paletteOf(context).surface(0.08);
     return Container(
       width: double.infinity,
+      height: height,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: background,
         border: bordered
@@ -84,17 +100,19 @@ class PageSection extends StatelessWidget {
               )
             : null,
       ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              pageGutter(width),
-              topPadding ?? vertical,
-              pageGutter(width),
-              bottomPadding ?? vertical,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: pageGutter(width),
+            vertical: vertical,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) => FittedBox(
+              // Scales down only: a section that already fits is untouched.
+              fit: BoxFit.scaleDown,
+              child: SizedBox(width: constraints.maxWidth, child: child),
             ),
-            child: child,
           ),
         ),
       ),

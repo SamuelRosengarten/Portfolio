@@ -66,7 +66,7 @@ void main() {
     // The whole page is one scroll, so the project buttons come first in tab
     // order; the contact cards are the mailto link and the two profiles.
     final contactLinks = {
-      Uri(scheme: 'mailto', path: 'samrosengarten2@pm.me'),
+      Uri(scheme: 'mailto', path: 'samrosengarten1@gmail.com'),
       Uri.parse('https://github.com/SamuelRosengarten'),
       Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
     };
@@ -105,7 +105,7 @@ void main() {
     final handle = tester.ensureSemantics();
     await _openSection(tester, 'Contact');
     for (final label in [
-      'Email: samrosengarten2@pm.me',
+      'Email: samrosengarten1@gmail.com',
       'GitHub: github.com/SamuelRosengarten',
       'LinkedIn: linkedin.com/in/samuel-rosengarten',
     ]) {

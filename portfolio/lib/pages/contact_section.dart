@@ -13,102 +13,73 @@ class ContactSection extends StatelessWidget {
     final palette = paletteOf(context);
     final s = stringsOf(context);
     final phone = isPhone(context);
-    final width = MediaQuery.sizeOf(context).width;
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: palette.altBg,
-        border: Border(top: BorderSide(color: palette.surface(0.06))),
-      ),
+    return PageSection(
+      background: palette.altBg,
+      bordered: true,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PageSection(
-            topPadding: phone ? 56 : null,
-            bottomPadding: phone ? 32 : null,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          SectionHeading(
+            eyebrow: 'Contact',
+            headline: s.contactHeadline,
+            subhead: s.contactSubhead,
+          ),
+          SizedBox(height: phone ? 24 : 40),
+          _ContactCards(
+            entries: [
+              _Entry(
+                icon: Icons.mail_outline_rounded,
+                label: 'Email',
+                value: 'samrosengarten1@gmail.com',
+                url: Uri(scheme: 'mailto', path: 'samrosengarten1@gmail.com'),
+              ),
+              _Entry(
+                icon: Icons.code_rounded,
+                label: 'GitHub',
+                value: 'github.com/SamuelRosengarten',
+                url: Uri.parse('https://github.com/SamuelRosengarten'),
+                phoneValue: 'SamuelRosengarten',
+              ),
+              _Entry(
+                icon: Icons.work_outline_rounded,
+                label: 'LinkedIn',
+                value: 'linkedin.com/in/samuel-rosengarten',
+                url: Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
+                phoneValue: 'samuel-rosengarten',
+              ),
+              _Entry(
+                icon: Icons.place_outlined,
+                label: s.locationLabel,
+                value: 'Longueuil, QC',
+              ),
+            ],
+          ),
+          SizedBox(height: phone ? 20 : 32),
+          Container(
+            padding: EdgeInsets.only(top: phone ? 16 : 24),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: palette.surface(0.08))),
+            ),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                SectionHeading(
-                  eyebrow: 'Contact',
-                  headline: s.contactHeadline,
-                  subhead: s.contactSubhead,
+                Text(
+                  '© 2026 Samuel Rosengarten',
+                  style: interStyle(
+                    size: phone ? 12 : 13,
+                    color: palette.tertiary,
+                  ),
                 ),
-                SizedBox(height: phone ? 24 : 40),
-                _ContactCards(
-                  entries: [
-                    _Entry(
-                      icon: Icons.mail_outline_rounded,
-                      label: 'Email',
-                      value: 'samrosengarten2@pm.me',
-                      url: Uri(scheme: 'mailto', path: 'samrosengarten2@pm.me'),
-                    ),
-                    _Entry(
-                      icon: Icons.code_rounded,
-                      label: 'GitHub',
-                      value: 'github.com/SamuelRosengarten',
-                      url: Uri.parse('https://github.com/SamuelRosengarten'),
-                      phoneValue: 'SamuelRosengarten',
-                    ),
-                    _Entry(
-                      icon: Icons.work_outline_rounded,
-                      label: 'LinkedIn',
-                      value: 'linkedin.com/in/samuel-rosengarten',
-                      url: Uri.parse(
-                        'https://linkedin.com/in/samuel-rosengarten',
-                      ),
-                      phoneValue: 'samuel-rosengarten',
-                    ),
-                    _Entry(
-                      icon: Icons.place_outlined,
-                      label: s.locationLabel,
-                      value: 'Longueuil, QC',
-                    ),
-                  ],
+                Text(
+                  s.builtWithFlutter,
+                  style: monoStyle(
+                    size: phone ? 12 : 13,
+                    color: palette.tertiary,
+                  ),
                 ),
               ],
-            ),
-          ),
-          // Footer rule and line.
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  pageGutter(width),
-                  0,
-                  pageGutter(width),
-                  phone ? 32 : 40,
-                ),
-                child: Container(
-                  padding: EdgeInsets.only(top: phone ? 20 : 28),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: palette.surface(0.08)),
-                    ),
-                  ),
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      Text(
-                        '© 2026 Samuel Rosengarten',
-                        style: interStyle(
-                          size: phone ? 12 : 13,
-                          color: palette.tertiary,
-                        ),
-                      ),
-                      Text(
-                        s.builtWithFlutter,
-                        style: monoStyle(
-                          size: phone ? 12 : 13,
-                          color: palette.tertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -217,16 +188,24 @@ class _ContactCard extends StatelessWidget {
             style: interStyle(size: 13, color: palette.tertiary),
           ),
           const SizedBox(height: 4),
-          Text(
-            entry.value,
-            style: interStyle(
-              size: 15,
-              color: palette.ink,
-              weight: FontWeight.w600,
-            ),
-          ),
+          _value(palette),
         ],
       ),
+    );
+  }
+
+  /// A value with no natural break point (the email) shrinks to one line
+  /// rather than splitting mid-word; paths wrap at their slashes.
+  Widget _value(AppPalette palette) {
+    final text = Text(
+      entry.value,
+      style: interStyle(size: 15, color: palette.ink, weight: FontWeight.w600),
+    );
+    if (entry.value.contains('/') || entry.value.contains(' ')) return text;
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: text,
     );
   }
 }

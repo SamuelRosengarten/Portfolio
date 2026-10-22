@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/palette.dart';
+import '../widgets/section_layout.dart';
 import '../widgets/site_header.dart';
 import 'about_section.dart';
 import 'contact_section.dart';
@@ -85,28 +86,34 @@ class _HomeState extends State<Home> {
         children: [
           SiteHeader(active: _active, onSelected: _onSelected),
           Expanded(
-            child: SingleChildScrollView(
-              key: _viewportKey,
-              controller: _scroll,
-              child: Column(
-                children: [
-                  KeyedSubtree(
-                    key: _sectionKeys[SiteSection.about],
-                    child: AboutSection(onSelected: _onSelected),
+            // Every section is exactly this tall: the window below the header.
+            child: LayoutBuilder(
+              builder: (context, constraints) => ViewportHeight(
+                height: constraints.maxHeight,
+                child: SingleChildScrollView(
+                  key: _viewportKey,
+                  controller: _scroll,
+                  child: Column(
+                    children: [
+                      KeyedSubtree(
+                        key: _sectionKeys[SiteSection.about],
+                        child: AboutSection(onSelected: _onSelected),
+                      ),
+                      KeyedSubtree(
+                        key: _sectionKeys[SiteSection.projects],
+                        child: const ProjectSection(),
+                      ),
+                      KeyedSubtree(
+                        key: _sectionKeys[SiteSection.hobbies],
+                        child: const HobbiesSection(),
+                      ),
+                      KeyedSubtree(
+                        key: _sectionKeys[SiteSection.contact],
+                        child: const ContactSection(),
+                      ),
+                    ],
                   ),
-                  KeyedSubtree(
-                    key: _sectionKeys[SiteSection.projects],
-                    child: const ProjectSection(),
-                  ),
-                  KeyedSubtree(
-                    key: _sectionKeys[SiteSection.hobbies],
-                    child: const HobbiesSection(),
-                  ),
-                  KeyedSubtree(
-                    key: _sectionKeys[SiteSection.contact],
-                    child: const ContactSection(),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

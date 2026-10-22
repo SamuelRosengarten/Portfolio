@@ -17,8 +17,6 @@ class ProjectSection extends StatelessWidget {
     return PageSection(
       background: palette.altBg,
       bordered: true,
-      topPadding: phone ? 56 : null,
-      bottomPadding: phone ? 56 : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
