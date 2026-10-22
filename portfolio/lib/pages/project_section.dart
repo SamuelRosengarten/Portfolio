@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/code_coach_demo.dart';
+import '../widgets/link_target.dart';
 import '../widgets/section_layout.dart';
 
 class ProjectSection extends StatelessWidget {
@@ -172,7 +172,7 @@ class _Tag extends StatelessWidget {
 /// A pill-shaped link that opens [address] (host and path, no scheme) in a
 /// new tab: solid accent when [primary], outlined otherwise. Brightens on
 /// hover with a pointer cursor.
-class _PillButton extends StatefulWidget {
+class _PillButton extends StatelessWidget {
   const _PillButton({
     required this.label,
     required this.address,
@@ -184,64 +184,50 @@ class _PillButton extends StatefulWidget {
   final bool primary;
 
   @override
-  State<_PillButton> createState() => _PillButtonState();
-}
-
-class _PillButtonState extends State<_PillButton> {
-  bool _hovering = false;
-
-  @override
   Widget build(BuildContext context) {
+    return LinkTarget(
+      uri: Uri.parse('https://$address'),
+      semanticLabel: label,
+      builder: _pill,
+    );
+  }
+
+  Widget _pill(BuildContext context, bool hovering) {
     final palette = paletteOf(context);
-    final fg = widget.primary ? Colors.black : palette.ink;
+    final fg = primary ? Colors.black : palette.ink;
     final mobile = MediaQuery.sizeOf(context).width < 600;
-    return Semantics(
-      link: true,
-      label: widget.label,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovering = true),
-        onExit: (_) => setState(() => _hovering = false),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => launchUrl(Uri.parse('https://${widget.address}')),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            constraints: BoxConstraints(minHeight: mobile ? 40 : 48),
-            padding: EdgeInsets.symmetric(horizontal: mobile ? 16 : 22),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: widget.primary
-                  ? (_hovering ? const Color(0xFF5CB0FF) : kBlue)
-                  : (_hovering ? palette.surface(0.08) : Colors.transparent),
-              borderRadius: BorderRadius.circular(100),
-              border: widget.primary
-                  ? null
-                  : Border.all(color: palette.surface(0.22)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(
-                    widget.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: mobile ? 13 : 15,
-                      fontWeight: FontWeight.w600,
-                      color: fg,
-                    ),
-                  ),
-                ),
-                if (widget.primary) ...[
-                  const SizedBox(width: 6),
-                  Icon(Icons.arrow_outward_rounded, size: 16, color: fg),
-                ],
-              ],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      constraints: BoxConstraints(minHeight: mobile ? 40 : 48),
+      padding: EdgeInsets.symmetric(horizontal: mobile ? 16 : 22),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: primary
+            ? (hovering ? const Color(0xFF5CB0FF) : kBlue)
+            : (hovering ? palette.surface(0.08) : Colors.transparent),
+        borderRadius: BorderRadius.circular(100),
+        border: primary ? null : Border.all(color: palette.surface(0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: mobile ? 13 : 15,
+                fontWeight: FontWeight.w600,
+                color: fg,
+              ),
             ),
           ),
-        ),
+          if (primary) ...[
+            const SizedBox(width: 6),
+            Icon(Icons.arrow_outward_rounded, size: 16, color: fg),
+          ],
+        ],
       ),
     );
   }

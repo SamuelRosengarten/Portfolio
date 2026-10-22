@@ -98,13 +98,20 @@ class SiteHeader extends StatelessWidget {
               ),
               SizedBox(
                 width: mobile ? 144 : 240,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    _MotionToggleButton(),
-                    _LanguageToggleButton(),
-                    _ThemeToggleButton(),
-                  ],
+                // Icons grow with the system font size, so at large text
+                // the three buttons can outgrow their slot. Shrinking them
+                // to fit keeps all three reachable instead of clipping one.
+                child: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _MotionToggleButton(),
+                      _LanguageToggleButton(),
+                      _ThemeToggleButton(),
+                    ],
+                  ),
                 ),
               ),
             ],

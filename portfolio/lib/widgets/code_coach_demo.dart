@@ -109,15 +109,23 @@ class _CodeCoachDemoState extends State<CodeCoachDemo> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: _windowBg,
-              border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
-              borderRadius: BorderRadius.circular(20),
+        // The window is a picture of another app, laid out in fixed pixel
+        // sizes (12px editor text, a 44px chart). Scaling its text with the
+        // system font size breaks that layout without making the real copy
+        // around it any easier to read, so it stays at its drawn size while
+        // everything else on the page follows the user's setting.
+        MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: _windowBg,
+                border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: mobile ? _mobileBody(s) : _desktopBody(s),
             ),
-            child: mobile ? _mobileBody(s) : _desktopBody(s),
           ),
         ),
         if (!mobile) ...[
