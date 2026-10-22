@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
+import '../widgets/link_target.dart';
 import '../widgets/section_layout.dart';
 
 class ContactSection extends StatelessWidget {
@@ -86,7 +86,7 @@ class _ContactGrid extends StatelessWidget {
   }
 }
 
-class _ContactCard extends StatefulWidget {
+class _ContactCard extends StatelessWidget {
   const _ContactCard({
     required this.icon,
     required this.label,
@@ -103,38 +103,34 @@ class _ContactCard extends StatefulWidget {
   /// informational, which stay unclickable.
   final Uri? url;
 
-  @override
-  State<_ContactCard> createState() => _ContactCardState();
-}
-
-class _ContactCardState extends State<_ContactCard> {
-  bool _hovering = false;
-
-  // This MouseRegion + setState + AnimatedContainer trio is the site's
-  // standard hover pattern, repeated with small variations in
-  // site_header.dart, hobbies_section.dart and elsewhere: MouseRegion just
-  // reports enter/exit, a bool in State tracks whether the pointer is
-  // currently over the widget, and AnimatedContainer/AnimatedScale smoothly
-  // tweens between the "resting" and "hovering" look whenever that bool
-  // flips (rather than snapping instantly).
+  // Hovering and keyboard focus share one highlight, supplied by LinkTarget.
+  // Location, which has no link, never highlights.
   @override
   Widget build(BuildContext context) {
+    final url = this.url;
+    if (url == null) return _card(context, false);
+    return LinkTarget(
+      uri: url,
+      semanticLabel: '$label: $value',
+      builder: _card,
+    );
+  }
+
+  Widget _card(BuildContext context, bool hovering) {
     final palette = paletteOf(context);
     final scale = heightScale(context);
     final card = AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       padding: EdgeInsets.all(22 * scale),
       decoration: BoxDecoration(
-        color: widget.url == null
+        color: url == null
             ? Colors.transparent
             : (palette.dark
-                  ? (_hovering ? const Color(0xFF232326) : kDarkPanelBg)
-                  : palette.surface(_hovering ? 0.08 : 0.05)),
+                  ? (hovering ? const Color(0xFF232326) : kDarkPanelBg)
+                  : palette.surface(hovering ? 0.08 : 0.05)),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: palette.surface(
-            widget.url == null ? 0.16 : (_hovering ? 0.28 : 0.08),
-          ),
+          color: palette.surface(url == null ? 0.16 : (hovering ? 0.28 : 0.08)),
         ),
       ),
       child: Column(
@@ -145,11 +141,11 @@ class _ContactCardState extends State<_ContactCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Icon(
-                widget.icon,
+                icon,
                 size: 22 * scale,
-                color: widget.url == null ? palette.muted : kBlue,
+                color: url == null ? palette.muted : kBlue,
               ),
-              if (widget.url != null)
+              if (url != null)
                 Icon(
                   Icons.arrow_outward_rounded,
                   size: 16 * scale,
@@ -159,7 +155,7 @@ class _ContactCardState extends State<_ContactCard> {
           ),
           SizedBox(height: 18 * scale),
           Text(
-            widget.label,
+            label,
             style: GoogleFonts.inter(
               fontSize: 13 * scale,
               fontWeight: FontWeight.w500,
@@ -168,7 +164,7 @@ class _ContactCardState extends State<_ContactCard> {
           ),
           SizedBox(height: 4 * scale),
           Text(
-            widget.value,
+            value,
             // Two-column mobile cards leave ~113px for this text — a long
             // real handle (the LinkedIn slug especially) has almost no
             // natural break points in that width and was wrapping into 6-7
@@ -185,15 +181,6 @@ class _ContactCardState extends State<_ContactCard> {
         ],
       ),
     );
-
-    final url = widget.url;
-    return MouseRegion(
-      cursor: url == null ? MouseCursor.defer : SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: url == null
-          ? card
-          : GestureDetector(onTap: () => launchUrl(url), child: card),
-    );
+    return card;
   }
 }
