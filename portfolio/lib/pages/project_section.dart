@@ -15,7 +15,7 @@ class ProjectSection extends StatelessWidget {
     final dark = paletteOf(context).dark;
     final s = stringsOf(context);
     return SectionShell(
-      background: paletteOf(context).bg,
+      background: paletteOf(context).band,
       child: Column(
         // .min, not the default .max: this sizes to its own content instead
         // of trying to fill the fixed section height, which would demand an
@@ -88,38 +88,37 @@ class _ProjectShowcase extends StatelessWidget {
                   ? _descriptionFontSize(s.projectDescription)
                   : 16 * scale,
               height: mobile ? 1.4 : 1.6,
-              color: kGray,
+              color: palette.muted,
             ),
           ),
         ),
-        SizedBox(height: mobile ? 6 : 8 * scale),
-        // Both links keep one line and truncate: neither URL has a break
-        // point that fits a phone width (on the repo link the owner's name
-        // used to wrap across two lines).
-        _LinkText(
-          'marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
-          style: GoogleFonts.inter(
-            fontSize: mobile ? 12 : 13 * scale,
-            fontWeight: FontWeight.w500,
-            color: kBlue,
+        // The tags repeat what the subhead already says on a phone, where
+        // every line of height counts toward the one-screen budget.
+        if (!mobile) ...[
+          SizedBox(height: 18 * scale),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _Tag(s.tagVsCodeExtension, palette: palette),
+              _Tag(s.tagPublished, palette: palette, highlight: true),
+            ],
           ),
-        ),
-        SizedBox(height: mobile ? 2 : 4 * scale),
-        _LinkText(
-          'github.com/SamuelRosengarten/code-coach',
-          style: GoogleFonts.inter(
-            fontSize: mobile ? 12 : 13 * scale,
-            fontWeight: FontWeight.w500,
-            color: kGray,
-          ),
-        ),
-        SizedBox(height: mobile ? 14 : 20 * scale),
+        ],
+        SizedBox(height: mobile ? 12 : 20 * scale),
         Wrap(
-          spacing: 10,
+          spacing: 12,
           runSpacing: 10,
           children: [
-            _Tag(s.tagVsCodeExtension, palette: palette),
-            _Tag(s.tagPublished, palette: palette),
+            _PillButton(
+              label: s.viewOnMarketplace,
+              address: 'marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
+              primary: true,
+            ),
+            _PillButton(
+              label: s.sourceOnGitHub,
+              address: 'github.com/SamuelRosengarten/code-coach',
+            ),
           ],
         ),
       ],
@@ -136,52 +135,69 @@ double _descriptionFontSize(String description) {
 }
 
 class _Tag extends StatelessWidget {
-  const _Tag(this.label, {required this.palette});
+  const _Tag(this.label, {required this.palette, this.highlight = false});
 
   final String label;
   final AppPalette palette;
 
+  /// The "Published" tag borrows the accent blue; the rest stay neutral.
+  final bool highlight;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: palette.surface(0.08),
+        color: highlight
+            ? kBlue.withValues(alpha: 0.16)
+            : palette.surface(0.08),
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: palette.surface(0.12)),
       ),
       child: Text(
         label,
         style: GoogleFonts.inter(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: palette.ink.withValues(alpha: 0.8),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: highlight
+              ? (palette.dark
+                    ? const Color(0xFF7CC0FF)
+                    : const Color(0xFF0066CC))
+              : palette.ink.withValues(alpha: 0.85),
         ),
       ),
     );
   }
 }
 
-/// A URL shown without its scheme that opens in a new tab when tapped — with
-/// a pointer cursor and an underline on hover so it reads as a link.
-class _LinkText extends StatefulWidget {
-  const _LinkText(this.address, {required this.style});
+/// A pill-shaped link that opens [address] (host and path, no scheme) in a
+/// new tab: solid accent when [primary], outlined otherwise. Brightens on
+/// hover with a pointer cursor.
+class _PillButton extends StatefulWidget {
+  const _PillButton({
+    required this.label,
+    required this.address,
+    this.primary = false,
+  });
 
-  /// Host and path, e.g. `github.com/SamuelRosengarten/code-coach`.
+  final String label;
   final String address;
-  final TextStyle style;
+  final bool primary;
 
   @override
-  State<_LinkText> createState() => _LinkTextState();
+  State<_PillButton> createState() => _PillButtonState();
 }
 
-class _LinkTextState extends State<_LinkText> {
+class _PillButtonState extends State<_PillButton> {
   bool _hovering = false;
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    final fg = widget.primary ? Colors.black : palette.ink;
+    final mobile = MediaQuery.sizeOf(context).width < 600;
     return Semantics(
       link: true,
+      label: widget.label,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _hovering = true),
@@ -189,13 +205,40 @@ class _LinkTextState extends State<_LinkText> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => launchUrl(Uri.parse('https://${widget.address}')),
-          child: Text(
-            widget.address,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: widget.style.copyWith(
-              decoration: _hovering ? TextDecoration.underline : null,
-              decorationColor: widget.style.color,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            constraints: BoxConstraints(minHeight: mobile ? 40 : 48),
+            padding: EdgeInsets.symmetric(horizontal: mobile ? 16 : 22),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: widget.primary
+                  ? (_hovering ? const Color(0xFF5CB0FF) : kBlue)
+                  : (_hovering ? palette.surface(0.08) : Colors.transparent),
+              borderRadius: BorderRadius.circular(100),
+              border: widget.primary
+                  ? null
+                  : Border.all(color: palette.surface(0.22)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: mobile ? 13 : 15,
+                      fontWeight: FontWeight.w600,
+                      color: fg,
+                    ),
+                  ),
+                ),
+                if (widget.primary) ...[
+                  const SizedBox(width: 6),
+                  Icon(Icons.arrow_outward_rounded, size: 16, color: fg),
+                ],
+              ],
             ),
           ),
         ),

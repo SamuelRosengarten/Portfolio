@@ -6,10 +6,13 @@ import 'package:portfolio/pages/contact_section.dart';
 import 'package:portfolio/pages/hobbies_section.dart';
 import 'package:portfolio/pages/home.dart';
 import 'package:portfolio/pages/project_section.dart';
+import 'package:portfolio/theme/motion_controller.dart';
 import 'package:portfolio/theme/theme_controller.dart';
 
 void main() {
-  testWidgets('header items swap which section is shown, one at a time', (tester) async {
+  testWidgets('header items swap which section is shown, one at a time', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -23,7 +26,10 @@ void main() {
         controller: ThemeController(),
         child: AppLocale(
           controller: LocaleController(),
-          child: const MaterialApp(home: Home()),
+          child: AppMotion(
+            controller: MotionController(),
+            child: const MaterialApp(home: Home()),
+          ),
         ),
       ),
     );

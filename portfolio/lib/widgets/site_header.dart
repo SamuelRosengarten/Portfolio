@@ -9,7 +9,10 @@ import '../theme/motion_controller.dart';
 import '../theme/palette.dart';
 import '../theme/theme_controller.dart';
 
-const double kSiteHeaderHeight = 48;
+/// Desktop header height; phones use [kMobileSiteHeaderHeight] to leave
+/// their sections more room.
+const double kSiteHeaderHeight = 56;
+const double kMobileSiteHeaderHeight = 48;
 
 /// Below this width the header switches from the centered row of nav links
 /// to a single menu button that opens [NavDrawer].
@@ -55,14 +58,12 @@ class SiteHeader extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          height: kSiteHeaderHeight,
+          height: mobile ? kMobileSiteHeaderHeight : kSiteHeaderHeight,
           decoration: BoxDecoration(
             color: palette.dark
-                ? Colors.black.withValues(alpha: 0.55)
+                ? Colors.black.withValues(alpha: 0.72)
                 : Colors.white.withValues(alpha: 0.7),
-            border: Border(
-              bottom: BorderSide(color: palette.surface(0.08), width: 0.5),
-            ),
+            border: Border(bottom: BorderSide(color: palette.surface(0.08))),
           ),
           // A Row with a fixed-width leading/trailing slot rather than a
           // Stack of loosely-positioned children: the centered nav row's
@@ -79,17 +80,25 @@ class SiteHeader extends StatelessWidget {
               // the Expanded gets) lands in the true middle of the header
               // instead of drifting toward whichever side is narrower.
               SizedBox(
-                width: 144,
-                child: mobile ? const Center(child: _MenuButton()) : null,
+                width: mobile ? 144 : 240,
+                child: mobile
+                    ? const Center(child: _MenuButton())
+                    : const Padding(
+                        padding: EdgeInsets.only(left: 24),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _LogoMark(),
+                        ),
+                      ),
               ),
               Expanded(
                 child: mobile
                     ? const SizedBox.shrink()
                     : _DesktopNav(onSelected: onSelected),
               ),
-              const SizedBox(
-                width: 144,
-                child: Row(
+              SizedBox(
+                width: mobile ? 144 : 240,
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     _MotionToggleButton(),
@@ -102,6 +111,48 @@ class SiteHeader extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The "SR" monogram and name pinned to the header's left on desktop.
+class _LogoMark extends StatelessWidget {
+  const _LogoMark();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: kBlue,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'SR',
+            style: monoLabel(size: 13, color: Colors.black, letterSpacing: 0),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(
+            'Samuel Rosengarten',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
+              color: palette.ink,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -261,14 +312,14 @@ class _HeaderItemState extends State<_HeaderItem> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 120),
             style: GoogleFonts.inter(
-              fontSize: 13,
+              fontSize: 14,
               letterSpacing: -0.1,
               fontWeight: FontWeight.w400,
-              color: ink.withValues(alpha: _hovering ? 0.9 : 0.65),
+              color: ink.withValues(alpha: _hovering ? 0.95 : 0.65),
             ),
             child: Text(widget.label),
           ),

@@ -206,21 +206,16 @@ class SectionIntro extends StatelessWidget {
       children: [
         Text(
           eyebrow.toUpperCase(),
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-            color: dark ? kBlue : kGray,
-          ),
+          style: monoLabel(size: 12, color: dark ? kBlue : kGray),
         ),
         const SizedBox(height: 14),
         Text(
           headline,
           style: GoogleFonts.inter(
             fontSize: _headlineSize(width, scale),
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1.4,
-            height: 1.08,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1.6,
+            height: 1.05,
             color: dark ? Colors.white : kInk,
           ),
         ),
@@ -241,7 +236,7 @@ class SectionIntro extends StatelessWidget {
               fontSize: width < 600 ? _subheadFontSize(subhead) : 20 * scale,
               height: width < 600 ? 1.45 : 1.55,
               letterSpacing: -0.2,
-              color: kGray,
+              color: dark ? kDarkMuted : kGray,
             ),
           ),
         ),

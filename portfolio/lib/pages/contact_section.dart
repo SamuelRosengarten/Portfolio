@@ -14,7 +14,7 @@ class ContactSection extends StatelessWidget {
     final dark = paletteOf(context).dark;
     final s = stringsOf(context);
     return SectionShell(
-      background: paletteOf(context).bg,
+      background: paletteOf(context).band,
       child: Column(
         // .min, not the default .max: this sizes to its own content instead
         // of trying to fill the fixed section height, which would demand an
@@ -74,9 +74,7 @@ class _ContactGrid extends StatelessWidget {
           icon: Icons.work_outline_rounded,
           label: 'LinkedIn',
           value: 'linkedin.com/in/samuel-rosengarten',
-          url: Uri.parse(
-            'https://linkedin.com/in/samuel-rosengarten',
-          ),
+          url: Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
         ),
         _ContactCard(
           icon: Icons.place_outlined,
@@ -125,24 +123,47 @@ class _ContactCardState extends State<_ContactCard> {
     final scale = heightScale(context);
     final card = AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      padding: EdgeInsets.all(24 * scale),
+      padding: EdgeInsets.all(22 * scale),
       decoration: BoxDecoration(
-        color: palette.surface(_hovering ? 0.08 : 0.05),
+        color: widget.url == null
+            ? Colors.transparent
+            : (palette.dark
+                  ? (_hovering ? const Color(0xFF232326) : kDarkPanelBg)
+                  : palette.surface(_hovering ? 0.08 : 0.05)),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.surface(_hovering ? 0.2 : 0.1)),
+        border: Border.all(
+          color: palette.surface(
+            widget.url == null ? 0.16 : (_hovering ? 0.28 : 0.08),
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(widget.icon, size: 22 * scale, color: kBlue),
-          SizedBox(height: 16 * scale),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(
+                widget.icon,
+                size: 22 * scale,
+                color: widget.url == null ? palette.muted : kBlue,
+              ),
+              if (widget.url != null)
+                Icon(
+                  Icons.arrow_outward_rounded,
+                  size: 16 * scale,
+                  color: const Color(0xFF6E6E73),
+                ),
+            ],
+          ),
+          SizedBox(height: 18 * scale),
           Text(
             widget.label,
             style: GoogleFonts.inter(
               fontSize: 13 * scale,
               fontWeight: FontWeight.w500,
-              color: kGray,
+              color: palette.muted,
             ),
           ),
           SizedBox(height: 4 * scale),
@@ -157,7 +178,7 @@ class _ContactCardState extends State<_ContactCard> {
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.inter(
               fontSize: 15 * scale,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: palette.ink,
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'theme_controller.dart';
 
@@ -18,6 +19,25 @@ const Color kInk = Color(0xFF1D1D1F);
 const Color kGray = Color(0xFF86868B);
 const Color kBlue = Color(0xFF2997FF);
 
+/// Dark-mode secondary text and the alternating-band / raised-panel greys
+/// the redesign layers over pure black (page → band → panel → card).
+const Color kDarkMuted = Color(0xFFA1A1A6);
+const Color kDarkBand = Color(0xFF0B0B0C);
+const Color kDarkRaised = Color(0xFF111113);
+
+/// The redesign's small-caps label style (eyebrows, counters, step numbers).
+TextStyle monoLabel({
+  double size = 12,
+  Color? color,
+  double letterSpacing = 1.2,
+  FontWeight weight = FontWeight.w500,
+}) => GoogleFonts.jetBrainsMono(
+  fontSize: size,
+  fontWeight: weight,
+  letterSpacing: letterSpacing,
+  color: color,
+);
+
 /// Bundles the handful of colours that flip between the site's light and
 /// dark modes, so a section only has to ask "what's my background/ink/
 /// surface right now" instead of branching on [ThemeController.isDark]
@@ -33,6 +53,15 @@ class AppPalette {
   Color get bg => dark ? kDarkBg : kLightBg;
 
   Color get panelBg => dark ? kDarkPanelBg : kPanelBg;
+
+  /// Slightly lifted band for the Projects / Contact sections.
+  Color get band => dark ? kDarkBand : kPanelBg;
+
+  /// Large framed panels (the stack panel) sit between band and card.
+  Color get raised => dark ? kDarkRaised : Colors.white;
+
+  /// Secondary copy: subheads, descriptions.
+  Color get muted => dark ? kDarkMuted : kGray;
 
   /// Primary text colour: white on a dark surface, near-black on a light one.
   Color get ink => dark ? Colors.white : kInk;

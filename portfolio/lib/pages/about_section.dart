@@ -112,14 +112,15 @@ class _AboutIntro extends StatelessWidget {
       MediaQuery.sizeOf(context).width,
       scale,
     );
-    final ink = paletteOf(context).ink;
+    final palette = paletteOf(context);
     final s = stringsOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 14),
+        _StatusPill(label: s.openToInternships),
+        SizedBox(height: 18 * scale),
         SizedBox(
           height: headlineSize + 12,
           // ParticleText's `expand: true` default fills all the width it's
@@ -144,11 +145,54 @@ class _AboutIntro extends StatelessWidget {
               fontSize: 17 * scale,
               height: 1.6,
               letterSpacing: -0.2,
-              color: ink.withValues(alpha: 0.75),
+              color: palette.muted,
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The "open to internships" pill above the greeting: an outlined capsule
+/// with a small accent dot.
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: palette.surface(0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: kBlue,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: palette.ink.withValues(alpha: 0.82),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -285,8 +329,10 @@ class _LanguagePanel extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 28 * scale, horizontal: 8),
         decoration: BoxDecoration(
-          color: palette.surface(0.035),
-          borderRadius: BorderRadius.circular(28),
+          color: palette.dark
+              ? kDarkRaised.withValues(alpha: 0.82)
+              : palette.surface(0.035),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: palette.surface(0.08)),
         ),
         child: Column(
@@ -294,11 +340,9 @@ class _LanguagePanel extends StatelessWidget {
           children: [
             Text(
               stringsOf(context).languagesAndTools,
-              style: GoogleFonts.inter(
-                fontSize: 12 * scale,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1.4,
-                color: kBlue,
+              style: monoLabel(
+                size: 12 * scale,
+                color: palette.dark ? const Color(0xFF98989D) : kGray,
               ),
             ),
             SizedBox(height: 20 * scale),
@@ -526,20 +570,8 @@ class _LanguageChip extends StatelessWidget {
         vertical: 12 * scale,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [palette.surface(0.07), palette.surface(0.03)],
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: palette.surface(0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: palette.dark ? kDarkPanelBg : palette.surface(0.05),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

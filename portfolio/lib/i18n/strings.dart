@@ -46,6 +46,10 @@ class Strings {
             'more stable place to build a career, and kept the same '
             'insistence on doing the work properly.';
 
+  String get openToInternships => _fr
+      ? 'Ouvert aux stages · mars 2027'
+      : 'Open to internships · March 2027';
+
   String get languagesAndTools =>
       _fr ? 'LANGAGES & OUTILS' : 'LANGUAGES & TOOLS';
 
@@ -71,6 +75,10 @@ class Strings {
             'coding into something useful: contextual hints right next to '
             'the error, a dashboard tracking patterns over time, and '
             'exportable session reports to bring to a mentor or tutor.';
+
+  String get viewOnMarketplace =>
+      _fr ? 'Voir le Marketplace' : 'View on Marketplace';
+  String get sourceOnGitHub => _fr ? 'Code source' : 'Source on GitHub';
 
   String get tagVsCodeExtension =>
       _fr ? 'Extension VS Code' : 'VS Code Extension';
