@@ -27,13 +27,15 @@ void main() {
           expect(tester.takeException(), isNull, reason: 'About (initial)');
 
           final mobile = size.width < 600;
-          for (final label in ['Projects', 'Hobbies', 'Contact', 'About']) {
+          for (final label in ['Synapse OS', 'Contact', 'About']) {
             if (mobile) {
               await tester.tap(find.byIcon(Icons.menu));
               await tester.pump();
               await tester.pump(const Duration(milliseconds: 300));
+              await tester.tap(find.text(label).last);
+            } else {
+              await tester.tap(find.text(label).first);
             }
-            await tester.tap(find.text(label).first);
             await tester.pump();
             await tester.pump(const Duration(milliseconds: 700));
             expect(

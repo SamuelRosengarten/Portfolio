@@ -5,8 +5,7 @@ import '../widgets/section_layout.dart';
 import '../widgets/site_header.dart';
 import 'about_section.dart';
 import 'contact_section.dart';
-import 'hobbies_section.dart';
-import 'project_section.dart';
+import 'synapse_os_section.dart';
 
 /// The whole page: a pinned header above one continuously scrolling column of
 /// sections. Picking a section in the header (or the drawer on a phone)
@@ -86,7 +85,6 @@ class _HomeState extends State<Home> {
         children: [
           SiteHeader(active: _active, onSelected: _onSelected),
           Expanded(
-            // Every section is exactly this tall: the window below the header.
             child: LayoutBuilder(
               builder: (context, constraints) => ViewportHeight(
                 height: constraints.maxHeight,
@@ -100,12 +98,8 @@ class _HomeState extends State<Home> {
                         child: AboutSection(onSelected: _onSelected),
                       ),
                       KeyedSubtree(
-                        key: _sectionKeys[SiteSection.projects],
-                        child: const ProjectSection(),
-                      ),
-                      KeyedSubtree(
-                        key: _sectionKeys[SiteSection.hobbies],
-                        child: const HobbiesSection(),
+                        key: _sectionKeys[SiteSection.synapseOs],
+                        child: const SynapseOsSection(),
                       ),
                       KeyedSubtree(
                         key: _sectionKeys[SiteSection.contact],

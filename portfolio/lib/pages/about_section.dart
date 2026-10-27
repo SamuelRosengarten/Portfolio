@@ -149,7 +149,7 @@ class _Intro extends StatelessWidget {
                   label: s.seeMyWork,
                   filled: true,
                   expand: true,
-                  onPressed: () => onSelected!(SiteSection.projects),
+                  onPressed: () => onSelected!(SiteSection.synapseOs),
                 ),
                 const SizedBox(height: 10),
                 PillButton(
@@ -168,7 +168,7 @@ class _Intro extends StatelessWidget {
                   label: s.seeMyWork,
                   filled: true,
                   icon: Icons.arrow_downward_rounded,
-                  onPressed: () => onSelected!(SiteSection.projects),
+                  onPressed: () => onSelected!(SiteSection.synapseOs),
                 ),
                 PillButton(
                   label: s.getInTouch,
@@ -190,12 +190,14 @@ class _Tool {
 }
 
 const _tools = [
-  _Tool('C#', 'C#'),
-  _Tool('Da', 'Dart'),
-  _Tool('Fl', 'Flutter'),
-  _Tool('Kt', 'Kotlin'),
   _Tool('TS', 'TypeScript'),
-  _Tool('JS', 'JavaScript'),
+  _Tool('Nx', 'Next.js'),
+  _Tool('SQL', 'SQLite'),
+  _Tool('AI', 'Ollama'),
+  _Tool('Fl', 'Flutter'),
+  _Tool('Da', 'Dart'),
+  _Tool('C#', 'C#'),
+  _Tool('Nd', 'Node.js'),
 ];
 
 class _StackPanel extends StatelessWidget {

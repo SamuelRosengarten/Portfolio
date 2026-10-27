@@ -73,6 +73,7 @@ class PageSection extends StatelessWidget {
     required this.child,
     this.background,
     this.bordered = false,
+    this.fitToScreen = true,
   });
 
   final Widget child;
@@ -80,6 +81,11 @@ class PageSection extends StatelessWidget {
 
   /// Hairline above and below, for the alternate-background bands.
   final bool bordered;
+
+  /// When true (default), forces the section to match [ViewportHeight] and scales
+  /// content down if it exceeds the window. When false, the section sizes naturally
+  /// and scrolls smoothly.
+  final bool fitToScreen;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +95,10 @@ class PageSection extends StatelessWidget {
     final hairline = paletteOf(context).surface(0.08);
     return Container(
       width: double.infinity,
-      height: height,
+      height: fitToScreen ? height : null,
+      constraints: fitToScreen
+          ? null
+          : BoxConstraints(minHeight: height ?? 0),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: background,
@@ -107,13 +116,15 @@ class PageSection extends StatelessWidget {
             horizontal: pageGutter(width),
             vertical: vertical,
           ),
-          child: LayoutBuilder(
-            builder: (context, constraints) => FittedBox(
-              // Scales down only: a section that already fits is untouched.
-              fit: BoxFit.scaleDown,
-              child: SizedBox(width: constraints.maxWidth, child: child),
-            ),
-          ),
+          child: fitToScreen
+              ? LayoutBuilder(
+                  builder: (context, constraints) => FittedBox(
+                    // Scales down only: a section that already fits is untouched.
+                    fit: BoxFit.scaleDown,
+                    child: SizedBox(width: constraints.maxWidth, child: child),
+                  ),
+                )
+              : child,
         ),
       ),
     );

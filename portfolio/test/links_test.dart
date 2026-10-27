@@ -27,7 +27,7 @@ Future<void> _openSection(WidgetTester tester, String label) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(const MyApp());
   await tester.pump(const Duration(milliseconds: 700));
-  await tester.tap(find.text(label));
+  await tester.tap(find.text(label).first);
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 700));
 }
@@ -125,15 +125,13 @@ void main() {
   });
 
   testWidgets('the project buttons are keyboard links too', (tester) async {
-    await _openSection(tester, 'Projects');
+    await _openSection(tester, 'Synapse OS');
     final links = await _tabThroughLinks(tester);
     expect(
       links,
       containsAll([
-        Uri.parse(
-          'https://marketplace.visualstudio.com/items?itemName=samuelrosengarten.code-coach-ai',
-        ),
-        Uri.parse('https://github.com/SamuelRosengarten/code-coach'),
+        Uri.parse('https://synapse-os.ca'),
+        Uri.parse('https://github.com/SamuelRosengarten/Synapse-OS'),
       ]),
     );
   });

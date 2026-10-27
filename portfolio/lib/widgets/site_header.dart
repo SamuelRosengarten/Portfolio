@@ -9,7 +9,7 @@ import 'section_layout.dart';
 
 /// The sections of the page, in the order they are stacked — the header renders
 /// one item per value and [Home] anchors one section to each.
-enum SiteSection { about, projects, hobbies, contact }
+enum SiteSection { about, synapseOs, contact }
 
 /// [SiteSection]'s label is small, closed data tied one-to-one to the enum
 /// itself, so it lives next to it as a plain switch rather than in the
@@ -19,8 +19,7 @@ String navLabel(AppLanguage lang, SiteSection section) {
   final fr = lang == AppLanguage.fr;
   return switch (section) {
     SiteSection.about => fr ? 'À propos' : 'About',
-    SiteSection.projects => fr ? 'Projets' : 'Projects',
-    SiteSection.hobbies => fr ? 'Loisirs' : 'Hobbies',
+    SiteSection.synapseOs => 'Synapse OS',
     SiteSection.contact => 'Contact',
   };
 }

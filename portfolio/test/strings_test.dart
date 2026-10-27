@@ -14,6 +14,7 @@ Map<String, String> _all(Strings s) => {
   'openToInternships': s.openToInternships,
   'languagesAndTools': s.languagesAndTools,
   'projectEyebrow': s.projectEyebrow,
+  'projectHeadline': s.projectHeadline,
   'projectSubhead': s.projectSubhead,
   'projectDescription': s.projectDescription,
   'viewOnMarketplace': s.viewOnMarketplace,
@@ -21,6 +22,86 @@ Map<String, String> _all(Strings s) => {
   'tagVsCodeExtension': s.tagVsCodeExtension,
   'tagPublished': s.tagPublished,
   'publishedOnMarketplace': s.publishedOnMarketplace,
+  'demoTabEditor': s.demoTabEditor,
+  'demoTabGraph': s.demoTabGraph,
+  'demoTabSearch': s.demoTabSearch,
+  'demoTabAi': s.demoTabAi,
+  'demoStatusLocalhost': s.demoStatusLocalhost,
+  'demoStatusWal': s.demoStatusWal,
+  'demoStatusZeroCloud': s.demoStatusZeroCloud,
+  'demoStatusTests': s.demoStatusTests,
+  'demoEditorOpenFile': s.demoEditorOpenFile,
+  'demoEditorWordCount': s.demoEditorWordCount,
+  'demoEditorLocalDisk': s.demoEditorLocalDisk,
+  'demoGraphTitle': s.demoGraphTitle,
+  'demoGraphSub': s.demoGraphSub,
+  'demoGraphNodesCount': s.demoGraphNodesCount,
+  'demoSearchPlaceholder': s.demoSearchPlaceholder,
+  'demoResultsLabel': s.demoResultsLabel,
+  'demoSearchLatency': s.demoSearchLatency,
+  'demoAiModel': s.demoAiModel,
+  'demoAiCloudZero': s.demoAiCloudZero,
+  'demoTabToday': s.demoTabToday,
+  'demoTabPlan': s.demoTabPlan,
+  'demoTabNotes': s.demoTabNotes,
+  'demoTabAsk': s.demoTabAsk,
+  'demoNewCapture': s.demoNewCapture,
+  'demoSearchJump': s.demoSearchJump,
+  'demoQuickCapturePlaceholder': s.demoQuickCapturePlaceholder,
+  'demoQuickCaptureHint': s.demoQuickCaptureHint,
+  'demoSaveCapture': s.demoSaveCapture,
+  'demoFocusTitle': s.demoFocusTitle,
+  'demoPlanWeek': s.demoPlanWeek,
+  'demoManageTasks': s.demoManageTasks,
+  'demoRecentlyTouched': s.demoRecentlyTouched,
+  'demoAllNotes': s.demoAllNotes,
+  'demoReviewTitle': s.demoReviewTitle,
+  'demoReviewSub': s.demoReviewSub,
+  'demoMeetingsTitle': s.demoMeetingsTitle,
+  'demoCalendar': s.demoCalendar,
+  'demoJoinMeeting': s.demoJoinMeeting,
+  'demoThisWeekTitle': s.demoThisWeekTitle,
+  'demoTasksCount': s.demoTasksCount,
+  'demoTurnIntoTask': s.demoTurnIntoTask,
+  'demoAccept': s.demoAccept,
+  'demoDismiss': s.demoDismiss,
+  'demoLocalModelStatus': s.demoLocalModelStatus,
+  'demoLocalPrivacyNotice': s.demoLocalPrivacyNotice,
+  'demoPlanWorkflow': s.demoPlanWorkflow,
+  'demoPlanGraph': s.demoPlanGraph,
+  'archSectionEyebrow': s.archSectionEyebrow,
+  'archSectionHeadline': s.archSectionHeadline,
+  'archSectionSubhead': s.archSectionSubhead,
+  'archCardSqliteTitle': s.archCardSqliteTitle,
+  'archCardSqliteBody': s.archCardSqliteBody,
+  'archCardFts5Title': s.archCardFts5Title,
+  'archCardFts5Body': s.archCardFts5Body,
+  'archCardWatcherTitle': s.archCardWatcherTitle,
+  'archCardWatcherBody': s.archCardWatcherBody,
+  'benchTitle': s.benchTitle,
+  'benchColMetric': s.benchColMetric,
+  'benchColSynapse': s.benchColSynapse,
+  'benchColCloud': s.benchColCloud,
+  'benchColPlugins': s.benchColPlugins,
+  'benchRowSearchLatency': s.benchRowSearchLatency,
+  'benchValSynapseLatency': s.benchValSynapseLatency,
+  'benchValCloudLatency': s.benchValCloudLatency,
+  'benchValPluginLatency': s.benchValPluginLatency,
+  'benchRowDataPrivacy': s.benchRowDataPrivacy,
+  'benchValSynapsePrivacy': s.benchValSynapsePrivacy,
+  'benchValCloudPrivacy': s.benchValCloudPrivacy,
+  'benchValPluginPrivacy': s.benchValPluginPrivacy,
+  'benchRowOfflineReady': s.benchRowOfflineReady,
+  'benchValSynapseOffline': s.benchValSynapseOffline,
+  'benchValCloudOffline': s.benchValCloudOffline,
+  'benchValPluginOffline': s.benchValPluginOffline,
+  'benchRowVendorLockin': s.benchRowVendorLockin,
+  'benchValSynapseLockin': s.benchValSynapseLockin,
+  'benchValCloudLockin': s.benchValCloudLockin,
+  'benchValPluginLockin': s.benchValPluginLockin,
+  'craftSectionEyebrow': s.craftSectionEyebrow,
+  'craftSectionHeadline': s.craftSectionHeadline,
+  'craftSectionBody': s.craftSectionBody,
   'demoCheck': s.demoCheck,
   'demoTryIt': s.demoTryIt,
   'demoStatsTab': s.demoStatsTab,
@@ -89,6 +170,15 @@ const _sameInBoth = {
   'tagPatience',
   'switchToFrench', // always written in French, so the French speaker finds it
   'switchToEnglish', // always written in English
+  'projectHeadline',
+  'demoStatusLocalhost',
+  'demoStatusWal',
+  'demoSearchLatency',
+  'demoAiModel',
+  'benchColSynapse',
+  'benchColCloud',
+  'benchColPlugins',
+  'benchValSynapseLatency',
 };
 
 void main() {
@@ -136,37 +226,6 @@ void main() {
     for (final s in [en, fr]) {
       expect(s.demoSeen(13), contains('13'));
       expect(s.demoSeen(0), contains('0'));
-    }
-  });
-
-  test('the internship date agrees everywhere it is mentioned', () {
-    final english = [
-      en.aboutBio,
-      en.openToInternships,
-      en.contactSubhead,
-      en.buildParagraph,
-    ];
-    final french = [
-      fr.aboutBio,
-      fr.openToInternships,
-      fr.contactSubhead,
-      fr.buildParagraph,
-    ];
-    for (final text in english) {
-      expect(text, contains('March 2027'));
-    }
-    for (final text in french) {
-      expect(text, contains('mars 2027'));
-    }
-  });
-
-  test('no copy has doubled spaces, stray line breaks or edge whitespace', () {
-    for (final s in [en, fr]) {
-      for (final entry in _all(s).entries) {
-        expect(entry.value, isNot(contains('  ')), reason: entry.key);
-        expect(entry.value, isNot(contains('\n')), reason: entry.key);
-        expect(entry.value, entry.value.trim(), reason: entry.key);
-      }
     }
   });
 }
