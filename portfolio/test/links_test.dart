@@ -61,7 +61,7 @@ void main() {
   testWidgets('contact cards can be reached with Tab and opened with Enter', (
     tester,
   ) async {
-    await _openSection(tester, 'Contact');
+    await _openSection(tester, 'COMMS');
 
     // The whole page is one scroll, so the project buttons come first in tab
     // order; the contact cards are the mailto link and the two profiles.
@@ -93,7 +93,7 @@ void main() {
   });
 
   testWidgets('tapping a contact card opens its link', (tester) async {
-    await _openSection(tester, 'Contact');
+    await _openSection(tester, 'COMMS');
     await tester.tap(find.text('github.com/SamuelRosengarten'));
     await tester.pump();
     expect(opened, [Uri.parse('https://github.com/SamuelRosengarten')]);
@@ -103,7 +103,7 @@ void main() {
     tester,
   ) async {
     final handle = tester.ensureSemantics();
-    await _openSection(tester, 'Contact');
+    await _openSection(tester, 'COMMS');
     for (final label in [
       'Email: samrosengarten1@gmail.com',
       'GitHub: github.com/SamuelRosengarten',
@@ -125,7 +125,7 @@ void main() {
   });
 
   testWidgets('the project buttons are keyboard links too', (tester) async {
-    await _openSection(tester, 'Synapse OS');
+    await _openSection(tester, 'SYNAPSE');
     final links = await _tabThroughLinks(tester);
     expect(
       links,

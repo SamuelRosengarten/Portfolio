@@ -20,7 +20,8 @@ class ContactSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeading(
-            eyebrow: 'Contact',
+            module: 'MOD_02',
+            eyebrow: s.commsKicker,
             headline: s.contactHeadline,
             subhead: s.contactSubhead,
           ),
@@ -29,12 +30,14 @@ class ContactSection extends StatelessWidget {
             entries: [
               _Entry(
                 icon: Icons.mail_outline_rounded,
+                code: 'EMAIL_RELAY',
                 label: 'Email',
                 value: 'samrosengarten1@gmail.com',
                 url: Uri(scheme: 'mailto', path: 'samrosengarten1@gmail.com'),
               ),
               _Entry(
                 icon: Icons.code_rounded,
+                code: 'GITHUB_UPLINK',
                 label: 'GitHub',
                 value: 'github.com/SamuelRosengarten',
                 url: Uri.parse('https://github.com/SamuelRosengarten'),
@@ -42,6 +45,7 @@ class ContactSection extends StatelessWidget {
               ),
               _Entry(
                 icon: Icons.work_outline_rounded,
+                code: 'LINKEDIN_NODE',
                 label: 'LinkedIn',
                 value: 'linkedin.com/in/samuel-rosengarten',
                 url: Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
@@ -49,6 +53,7 @@ class ContactSection extends StatelessWidget {
               ),
               _Entry(
                 icon: Icons.place_outlined,
+                code: 'NODE_LOCATION',
                 label: s.locationLabel,
                 value: 'Longueuil, QC',
               ),
@@ -65,19 +70,15 @@ class ContactSection extends StatelessWidget {
               spacing: 12,
               runSpacing: 12,
               children: [
-                Text(
-                  '© 2026 Samuel Rosengarten',
-                  style: interStyle(
-                    size: phone ? 12 : 13,
-                    color: palette.tertiary,
-                  ),
+                MonoLabel(
+                  '© ${DateTime.now().year} SAMUEL ROSENGARTEN // SR_NEURAL_OS',
+                  color: palette.tertiary,
+                  size: phone ? 10.5 : 11,
                 ),
-                Text(
-                  s.builtWithFlutter,
-                  style: monoStyle(
-                    size: phone ? 12 : 13,
-                    color: palette.tertiary,
-                  ),
+                MonoLabel(
+                  s.builtWithFlutter.toUpperCase(),
+                  color: palette.tertiary,
+                  size: phone ? 10.5 : 11,
                 ),
               ],
             ),
@@ -91,6 +92,7 @@ class ContactSection extends StatelessWidget {
 class _Entry {
   const _Entry({
     required this.icon,
+    required this.code,
     required this.label,
     required this.value,
     this.url,
@@ -98,6 +100,10 @@ class _Entry {
   });
 
   final IconData icon;
+
+  /// The terminal-style name shown on the card ("GITHUB_UPLINK"); [label] is
+  /// the plain name screen readers announce.
+  final String code;
   final String label;
   final String value;
 
@@ -150,16 +156,14 @@ class _ContactCard extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       constraints: const BoxConstraints(minHeight: 120),
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: info
-            ? Colors.transparent
-            : (highlighted
-                  ? Color.alphaBlend(palette.surface(0.04), palette.card)
-                  : palette.card),
-        borderRadius: BorderRadius.circular(20),
+        color: highlighted ? palette.accentAlpha(0.06) : palette.card,
+        borderRadius: BorderRadius.circular(kHudRadius),
         border: Border.all(
-          color: palette.surface(info ? 0.16 : (highlighted ? 0.28 : 0.08)),
+          color: info
+              ? palette.surface(0.16)
+              : palette.accentAlpha(highlighted ? 1 : 0.32),
         ),
       ),
       child: Column(
@@ -183,9 +187,11 @@ class _ContactCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          Text(
-            entry.label,
-            style: interStyle(size: 13, color: palette.tertiary),
+          MonoLabel(
+            entry.code,
+            color: info ? palette.tertiary : palette.accent,
+            size: 11,
+            weight: FontWeight.w700,
           ),
           const SizedBox(height: 4),
           _value(palette),
@@ -199,7 +205,7 @@ class _ContactCard extends StatelessWidget {
   Widget _value(AppPalette palette) {
     final text = Text(
       entry.value,
-      style: interStyle(size: 15, color: palette.ink, weight: FontWeight.w600),
+      style: monoStyle(size: 13.5, color: palette.ink, weight: FontWeight.w600),
     );
     if (entry.value.contains('/') || entry.value.contains(' ')) return text;
     return FittedBox(
@@ -221,11 +227,7 @@ class _PhoneList extends StatelessWidget {
     final palette = paletteOf(context);
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.surface(0.08)),
-      ),
+      decoration: hudDecoration(palette),
       child: Column(
         children: [
           for (var i = 0; i < entries.length; i++)
@@ -260,7 +262,7 @@ class _PhoneRow extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 64),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: highlighted ? palette.surface(0.05) : null,
+        color: highlighted ? palette.accentAlpha(0.06) : null,
         border: last
             ? null
             : Border(bottom: BorderSide(color: palette.surface(0.08))),
@@ -277,15 +279,17 @@ class _PhoneRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  entry.label,
-                  style: interStyle(size: 12, color: palette.tertiary),
+                MonoLabel(
+                  entry.code,
+                  color: info ? palette.tertiary : palette.accent,
+                  size: 10.5,
+                  weight: FontWeight.w700,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   entry.phoneValue ?? entry.value,
-                  style: interStyle(
-                    size: 15,
+                  style: monoStyle(
+                    size: 13.5,
                     color: palette.ink,
                     weight: FontWeight.w600,
                   ),

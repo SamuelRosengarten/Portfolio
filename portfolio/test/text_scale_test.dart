@@ -27,7 +27,7 @@ void main() {
           expect(tester.takeException(), isNull, reason: 'About (initial)');
 
           final mobile = size.width < 600;
-          for (final label in ['Synapse OS', 'Contact', 'About']) {
+          for (final label in ['SYNAPSE', 'COMMS', 'MAINFRAME']) {
             if (mobile) {
               await tester.tap(find.byIcon(Icons.menu));
               await tester.pump();

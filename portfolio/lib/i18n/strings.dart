@@ -24,7 +24,28 @@ class Strings {
   String get switchToFrench => 'Passer au français';
   String get switchToEnglish => 'Switch to English';
 
+  String get cliReady => _fr
+      ? "CLI PRÊT — en attente d'une commande"
+      : 'CLI READY — awaiting operator command';
+  String get cliEmailLabel => _fr
+      ? 'Lancer recruit_me.sh : écrire un courriel à Samuel'
+      : 'Run recruit_me.sh: email Samuel';
+  String get cliLinkedInLabel =>
+      _fr ? 'Pinger le LinkedIn de Samuel' : "Ping Samuel's LinkedIn";
+
   // About ------------------------------------------------------------------
+
+  String get systemTitle => _fr
+      ? "SYSTÈME D'EXPLOITATION NEURAL // ID OPÉRATEUR"
+      : 'NEURAL COMMAND OPERATING SYSTEM // OPERATOR ID';
+  String get heroRole => _fr ? 'DÉVELOPPEUR FULL-STACK' : 'FULL-STACK DEVELOPER';
+  String get heroFocus => _fr
+      ? 'SYSTÈMES LOCAL-FIRST / IA PRIVÉE'
+      : 'LOCAL-FIRST SYSTEMS / PRIVATE AI';
+  String get execute => _fr ? 'EXÉCUTER' : 'EXECUTE';
+  String get viewProcesses => _fr ? 'Voir les processus' : 'View processes';
+  String get openComms => _fr ? 'Ouvrir les comms' : 'Open comms';
+  String get modulesLoaded => _fr ? 'MODULES CHARGÉS' : 'MODULES LOADED';
 
   String get heroGreeting => _fr ? "Salut, je suis Samuel" : "Hi, I'm Samuel";
 
@@ -291,6 +312,7 @@ class Strings {
           'and local AI.';
 
   String get locationLabel => _fr ? 'Localisation' : 'Location';
+  String get commsKicker => _fr ? 'LIAISON // COMMS' : 'UPLINK // COMMS';
 
   // Hobbies ------------------------------------------------------------------
 

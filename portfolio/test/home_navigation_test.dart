@@ -24,11 +24,11 @@ void main() {
     expect(find.byType(AboutSection), findsOneWidget);
     expect(find.byType(SynapseOsSection), findsOneWidget);
     expect(find.byType(ContactSection), findsOneWidget);
-    expect(find.text("Hi, I'm Samuel."), findsOneWidget);
+    expect(find.text('ROSEN'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('header links scroll to their section', (tester) async {
+  testWidgets('rail links scroll to their section', (tester) async {
     tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -38,7 +38,7 @@ void main() {
     expect(_pageOffset(tester), 0);
 
     var previous = 0.0;
-    for (final label in ['Synapse OS', 'Contact']) {
+    for (final label in ['SYNAPSE', 'COMMS']) {
       await tester.tap(find.text(label).first);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: label);
@@ -46,7 +46,7 @@ void main() {
       previous = _pageOffset(tester);
     }
 
-    await tester.tap(find.text('About').first);
+    await tester.tap(find.text('MAINFRAME').first);
     await tester.pumpAndSettle();
     expect(_pageOffset(tester), 0);
   });
@@ -65,8 +65,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Passer au français'));
     await tester.pump();
-    expect(find.text('Salut, je suis Samuel.'), findsOneWidget);
-    expect(find.text('À propos'), findsWidgets);
+    expect(find.text('VOIR LES PROCESSUS'), findsOneWidget);
+    expect(find.text('DÉVELOPPEUR FULL-STACK'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

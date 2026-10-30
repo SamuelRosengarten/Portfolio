@@ -58,7 +58,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Contact').last);
+    await tester.tap(find.text('COMMS').last);
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);

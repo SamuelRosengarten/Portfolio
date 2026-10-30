@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/section_layout.dart';
 import '../widgets/site_header.dart';
 
-/// Hero: greeting and calls to action beside the language/tools panel, with
-/// the four-step career path underneath.
+/// Hero ("MAINFRAME"): the operator ID — status readouts, the stacked name,
+/// role and calls to action — beside the language/tools spec panel, with the
+/// four-step career path underneath.
 class AboutSection extends StatelessWidget {
   const AboutSection({super.key, required this.onSelected});
 
@@ -63,119 +65,122 @@ class _Intro extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     final width = MediaQuery.sizeOf(context).width;
-    final headline = phone ? 44.0 : (width * 0.064).clamp(44.0, 88.0);
+
+    // Smaller on a phone: the section is shrunk to fit one screen, and a huge
+    // name would shrink everything else with it.
+    final nameSize = phone ? 40.0 : (width * 0.075).clamp(64.0, 116.0);
+    TextStyle name(Color color) => monoStyle(
+      size: nameSize,
+      color: color,
+      weight: FontWeight.w800,
+      height: 0.92,
+      letterSpacing: -nameSize * 0.02,
+    );
+    // GARTEN is drawn as an outline, like the design's third line.
+    final outline = GoogleFonts.jetBrainsMono(
+      fontSize: nameSize,
+      fontWeight: FontWeight.w800,
+      height: 0.92,
+      letterSpacing: -nameSize * 0.02,
+      foreground: Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = phone ? 1.4 : 2
+        ..color = palette.dark ? const Color(0xFFB8B8B8) : palette.tertiary,
+    );
+
+    final buttons = [
+      PillButton(
+        label: s.viewProcesses,
+        caption: s.execute,
+        filled: true,
+        expand: phone,
+        icon: Icons.arrow_forward,
+        onPressed: () => onSelected!(SiteSection.synapseOs),
+      ),
+      PillButton(
+        label: s.openComms,
+        expand: phone,
+        onPressed: () => onSelected!(SiteSection.contact),
+      ),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: phone ? 12 : 14,
-            vertical: phone ? 7 : 8,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: palette.surface(0.14)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: palette.accent,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  s.openToInternships,
-                  style: interStyle(
-                    size: phone ? 12 : 13,
-                    color: palette.ink.withValues(alpha: 0.82),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        MonoLabel(s.systemTitle, size: phone ? 10 : 11),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 18,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            StatusTag(s.openToInternships.toUpperCase(), color: palette.ok),
+            MonoLabel(
+              'QUEBEC_DEV_NODE // SESSION_${DateTime.now().year}',
+              color: palette.tertiary,
+              size: 11,
+            ),
+          ],
         ),
-        SizedBox(height: phone ? 24 : 28),
-        Text(
-          '${s.heroGreeting}.',
-          style: interStyle(
-            size: headline,
-            color: palette.ink,
-            weight: FontWeight.w800,
-            height: 1.02,
-            letterSpacing: phone ? -1.6 : -2.4,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: phone ? 8 : 0),
-          child: Text(
-            s.heroTagline,
-            style: interStyle(
-              // Two-thirds of the greeting's size (44 -> 30 on a phone), so
-              // the tagline reads as a subtitle rather than a third line of
-              // the headline when the column is only ~500px wide.
-              size: (headline * 0.68).roundToDouble(),
-              color: palette.muted,
-              weight: FontWeight.w800,
-              height: 1.1,
-              letterSpacing: phone ? -0.9 : -1.6,
+        SizedBox(height: phone ? 22 : 28),
+        Semantics(
+          header: true,
+          label: 'Samuel Rosengarten',
+          excludeSemantics: true,
+          // scaleDown keeps the longest line inside a narrow column instead
+          // of clipping it.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('SAMUEL', style: name(palette.ink)),
+                Text('ROSEN', style: name(palette.accent)),
+                Text('GARTEN', style: outline),
+              ],
             ),
           ),
         ),
-        SizedBox(height: phone ? 24 : 28),
+        SizedBox(height: phone ? 20 : 26),
+        Text(
+          s.heroRole,
+          style: monoStyle(
+            size: phone ? 13 : 16,
+            color: palette.ink,
+            weight: FontWeight.w700,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        MonoLabel(s.heroFocus, size: phone ? 11 : 12),
+        const SizedBox(height: 4),
+        MonoLabel(
+          'LONGUEUIL, QUÉBEC, CANADA',
+          color: palette.tertiary,
+          size: phone ? 11 : 12,
+        ),
+        SizedBox(height: phone ? 18 : 22),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Text(
             s.aboutBio,
             style: interStyle(
-              size: phone ? 16 : (width * 0.015).clamp(17.0, 20.0),
+              size: phone ? 15 : (width * 0.013).clamp(15.0, 17.0),
               color: palette.secondary,
-              height: 1.55,
+              height: 1.6,
             ),
           ),
         ),
-        SizedBox(height: phone ? 24 : 28),
+        SizedBox(height: phone ? 22 : 28),
         if (onSelected != null)
           if (phone)
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PillButton(
-                  label: s.seeMyWork,
-                  filled: true,
-                  expand: true,
-                  onPressed: () => onSelected!(SiteSection.synapseOs),
-                ),
-                const SizedBox(height: 10),
-                PillButton(
-                  label: s.getInTouch,
-                  expand: true,
-                  onPressed: () => onSelected!(SiteSection.contact),
-                ),
-              ],
+              children: [buttons[0], const SizedBox(height: 10), buttons[1]],
             )
           else
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                PillButton(
-                  label: s.seeMyWork,
-                  filled: true,
-                  icon: Icons.arrow_downward_rounded,
-                  onPressed: () => onSelected!(SiteSection.synapseOs),
-                ),
-                PillButton(
-                  label: s.getInTouch,
-                  onPressed: () => onSelected!(SiteSection.contact),
-                ),
-              ],
-            ),
+            Wrap(spacing: 12, runSpacing: 12, children: buttons),
       ],
     );
   }
@@ -209,34 +214,27 @@ class _StackPanel extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     return Container(
-      padding: EdgeInsets.all(phone ? 20 : 28),
-      decoration: BoxDecoration(
-        color: palette.panel,
-        borderRadius: BorderRadius.circular(phone ? 20 : 24),
-        border: Border.all(color: palette.surface(0.08)),
-      ),
+      padding: EdgeInsets.all(phone ? 18 : 24),
+      decoration: hudDecoration(palette, highlighted: true),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 12,
+            runSpacing: 4,
             children: [
-              Flexible(
-                child: Text(
-                  s.languagesAndTools,
-                  style: monoStyle(
-                    size: phone ? 11 : 12,
-                    color: palette.tertiary,
-                    letterSpacing: 1.2,
-                  ),
-                ),
+              MonoLabel(
+                'SYS_SPECS::${s.languagesAndTools}',
+                size: phone ? 11 : 12,
+                weight: FontWeight.w700,
               ),
-              if (!phone)
-                Text(
-                  _tools.length.toString().padLeft(2, '0'),
-                  style: monoStyle(size: 12, color: palette.muted),
-                ),
+              MonoLabel(
+                '${s.modulesLoaded}: ${_tools.length.toString().padLeft(2, '0')}',
+                color: palette.ok,
+                size: 10.5,
+              ),
             ],
           ),
           SizedBox(height: phone ? 16 : 20),
@@ -262,11 +260,11 @@ class _ToolChip extends StatelessWidget {
     final phone = isPhone(context);
     final badge = phone ? 30.0 : 36.0;
     return Container(
-      padding: EdgeInsets.all(phone ? 10 : 14),
+      padding: EdgeInsets.all(phone ? 10 : 12),
       decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: BorderRadius.circular(phone ? 12 : 14),
-        border: palette.dark ? null : Border.all(color: palette.surface(0.06)),
+        color: palette.surface(0.03),
+        borderRadius: BorderRadius.circular(kHudButtonRadius),
+        border: Border.all(color: palette.surface(0.12)),
       ),
       child: Row(
         children: [
@@ -275,12 +273,16 @@ class _ToolChip extends StatelessWidget {
             height: badge,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: palette.surface(0.06),
-              borderRadius: BorderRadius.circular(phone ? 8 : 10),
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(color: palette.accent),
             ),
             child: Text(
               tool.badge,
-              style: monoStyle(size: phone ? 11 : 12, color: palette.accent),
+              style: monoStyle(
+                size: phone ? 11 : 12,
+                color: palette.accent,
+                weight: FontWeight.w700,
+              ),
             ),
           ),
           SizedBox(width: phone ? 10 : 12),
@@ -288,10 +290,10 @@ class _ToolChip extends StatelessWidget {
             child: Text(
               tool.name,
               overflow: TextOverflow.ellipsis,
-              style: interStyle(
-                size: phone ? 14 : 15,
+              style: monoStyle(
+                size: phone ? 13 : 14,
                 color: palette.ink,
-                weight: FontWeight.w500,
+                weight: FontWeight.w600,
               ),
             ),
           ),
@@ -387,10 +389,10 @@ class _PathStep extends StatelessWidget {
         SizedBox(height: phone ? 4 : 8),
         Text(
           title,
-          style: interStyle(
-            size: phone ? 16 : 17,
-            color: palette.ink,
-            weight: FontWeight.w600,
+          style: monoStyle(
+            size: phone ? 14 : 15,
+            color: current ? palette.accent : palette.ink,
+            weight: FontWeight.w700,
           ),
         ),
         if (body != null) ...[

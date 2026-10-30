@@ -66,6 +66,7 @@ class _WorkstationHeroScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeading(
+          module: 'MOD_01',
           eyebrow: s.projectEyebrow,
           headline: s.projectHeadline,
           subhead: s.projectSubhead,
@@ -82,8 +83,8 @@ class _WorkstationHeroScreen extends StatelessWidget {
             ),
             Pill(
               s.tagZeroCloudAi,
-              background: palette.blue.withValues(alpha: 0.16),
-              color: palette.accentText,
+              background: palette.accentAlpha(0.1),
+              color: palette.accent,
             ),
             Pill(
               s.tagNextJsSqlite,
@@ -92,8 +93,8 @@ class _WorkstationHeroScreen extends StatelessWidget {
             ),
             Pill(
               s.demoStatusTests,
-              background: const Color(0xFF34D399).withValues(alpha: 0.14),
-              color: const Color(0xFF34D399),
+              background: palette.ok.withValues(alpha: 0.1),
+              color: palette.ok,
             ),
           ],
         ),
@@ -115,6 +116,7 @@ class _ArchitectureAndBenchmarkScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     final s = stringsOf(context);
     final phone = isPhone(context);
 
@@ -134,21 +136,21 @@ class _ArchitectureAndBenchmarkScreen extends StatelessWidget {
           children: [
             _ArchCard(
               icon: Icons.storage_rounded,
-              accentColor: const Color(0xFF38BDF8),
+              accentColor: palette.accent,
               title: s.archCardSqliteTitle,
               body: s.archCardSqliteBody,
               codeSnippet: 'better-sqlite3 · PRAGMA journal_mode = WAL;',
             ),
             _ArchCard(
               icon: Icons.bolt_rounded,
-              accentColor: const Color(0xFF34D399),
+              accentColor: palette.ok,
               title: s.archCardFts5Title,
               body: s.archCardFts5Body,
               codeSnippet: 'CREATE VIRTUAL TABLE notes_fts USING fts5(content, tokenize="porter");',
             ),
             _ArchCard(
               icon: Icons.sync_rounded,
-              accentColor: const Color(0xFFA78BFA),
+              accentColor: palette.highlight,
               title: s.archCardWatcherTitle,
               body: s.archCardWatcherBody,
               codeSnippet: 'fs.watch(vaultDir, { recursive: true }, onAtomicChange);',
@@ -185,27 +187,23 @@ class _ArchCard extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.all(phone ? 18 : 22),
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: BorderRadius.circular(phone ? 18 : 22),
-        border: Border.all(color: palette.surface(0.1)),
-      ),
+      decoration: hudDecoration(palette),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(color: accentColor),
             ),
             child: Icon(icon, size: 20, color: accentColor),
           ),
           const SizedBox(height: 14),
           Text(
             title,
-            style: interStyle(
-              size: phone ? 16 : 17,
+            style: monoStyle(
+              size: phone ? 14.5 : 15.5,
               color: palette.ink,
               weight: FontWeight.w700,
             ),
@@ -224,8 +222,8 @@ class _ArchCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: palette.surface(0.06),
-              borderRadius: BorderRadius.circular(6),
+              color: palette.surface(0.04),
+              borderRadius: BorderRadius.circular(3),
               border: Border.all(color: palette.surface(0.1)),
             ),
             child: Text(
@@ -279,11 +277,7 @@ class _BenchmarkMatrixCard extends StatelessWidget {
     ];
 
     return Container(
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: BorderRadius.circular(phone ? 20 : 24),
-        border: Border.all(color: palette.surface(0.1)),
-      ),
+      decoration: hudDecoration(palette),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -299,17 +293,17 @@ class _BenchmarkMatrixCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.compare_arrows_rounded,
                   size: 18,
-                  color: Color(0xFF38BDF8),
+                  color: palette.accent,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     s.benchTitle,
-                    style: interStyle(
-                      size: phone ? 15 : 16,
+                    style: monoStyle(
+                      size: phone ? 13.5 : 14.5,
                       color: palette.ink,
                       weight: FontWeight.w700,
                     ),
@@ -381,7 +375,7 @@ class _TableCellHeader extends StatelessWidget {
         style: monoStyle(
           size: 12,
           weight: FontWeight.w700,
-          color: isHighlight ? const Color(0xFF38BDF8) : palette.ink,
+          color: isHighlight ? palette.accent : palette.ink,
         ),
       ),
     );
@@ -411,7 +405,7 @@ class _TableCellText extends StatelessWidget {
             : monoStyle(
                 size: 12,
                 weight: isHighlight ? FontWeight.w600 : FontWeight.w400,
-                color: isHighlight ? const Color(0xFF34D399) : palette.tertiary,
+                color: isHighlight ? palette.ok : palette.tertiary,
               ),
       ),
     );
@@ -433,19 +427,19 @@ class _PhilosophyAndFeaturesScreen extends StatelessWidget {
     final features = [
       (
         icon: Icons.psychology_outlined,
-        color: const Color(0xFF38BDF8),
+        color: palette.accent,
         title: s.featureHintsTitle,
         body: s.featureHintsBody,
       ),
       (
         icon: Icons.hub_outlined,
-        color: const Color(0xFFA78BFA),
+        color: palette.highlight,
         title: s.featureDashboardTitle,
         body: s.featureDashboardBody,
       ),
       (
         icon: Icons.search_rounded,
-        color: const Color(0xFF34D399),
+        color: palette.ok,
         title: s.featureReportsTitle,
         body: s.featureReportsBody,
       ),
@@ -462,27 +456,23 @@ class _PhilosophyAndFeaturesScreen extends StatelessWidget {
             for (final f in features)
               Container(
                 padding: EdgeInsets.all(phone ? 20 : 24),
-                decoration: BoxDecoration(
-                  color: palette.card,
-                  borderRadius: BorderRadius.circular(phone ? 18 : 22),
-                  border: Border.all(color: palette.surface(0.1)),
-                ),
+                decoration: hudDecoration(palette),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: f.color.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(3),
+                        border: Border.all(color: f.color),
                       ),
                       child: Icon(f.icon, size: 20, color: f.color),
                     ),
                     const SizedBox(height: 14),
                     Text(
                       f.title,
-                      style: interStyle(
-                        size: phone ? 16 : 17,
+                      style: monoStyle(
+                        size: phone ? 14.5 : 15.5,
                         color: palette.ink,
                         weight: FontWeight.w700,
                       ),
@@ -506,11 +496,7 @@ class _PhilosophyAndFeaturesScreen extends StatelessWidget {
         // Craftsmanship & Sovereignty Banner
         Container(
           padding: EdgeInsets.all(phone ? 22 : 36),
-          decoration: BoxDecoration(
-            color: palette.card,
-            borderRadius: BorderRadius.circular(phone ? 22 : 28),
-            border: Border.all(color: palette.surface(0.12)),
-          ),
+          decoration: hudDecoration(palette, highlighted: true),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -518,11 +504,11 @@ class _PhilosophyAndFeaturesScreen extends StatelessWidget {
               SizedBox(height: phone ? 12 : 16),
               Text(
                 s.craftSectionHeadline,
-                style: interStyle(
-                  size: phone ? 24 : 32,
+                style: monoStyle(
+                  size: phone ? 22 : 30,
                   color: palette.ink,
                   weight: FontWeight.w800,
-                  letterSpacing: -0.6,
+                  letterSpacing: -0.8,
                 ),
               ),
               SizedBox(height: phone ? 12 : 16),
@@ -558,8 +544,8 @@ class _PhilosophyAndFeaturesScreen extends StatelessWidget {
   }
 }
 
-/// A pill-shaped link that opens [uri]: solid accent when [primary], outlined
-/// otherwise. Reachable by keyboard and announced as a link.
+/// A HUD link button that opens [uri]: solid yellow when [primary], yellow
+/// outline otherwise. Reachable by keyboard and announced as a link.
 class _LinkButton extends StatelessWidget {
   const _LinkButton({
     required this.label,
@@ -578,7 +564,9 @@ class _LinkButton extends StatelessWidget {
       semanticLabel: label,
       builder: (context, highlighted) {
         final palette = paletteOf(context);
-        final fg = primary ? palette.onAccent : palette.ink;
+        final fg = primary
+            ? palette.onAccent
+            : (highlighted ? palette.accent : palette.ink);
         final phone = isPhone(context);
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -588,23 +576,24 @@ class _LinkButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: primary
                 ? (highlighted
-                      ? Color.lerp(palette.accent, Colors.white, 0.18)
+                      ? Color.lerp(palette.accent, Colors.white, 0.25)
                       : palette.accent)
-                : (highlighted ? palette.surface(0.08) : Colors.transparent),
-            borderRadius: BorderRadius.circular(999),
-            border: primary ? null : Border.all(color: palette.surface(0.22)),
+                : (highlighted ? palette.accentAlpha(0.08) : Colors.transparent),
+            borderRadius: BorderRadius.circular(kHudButtonRadius),
+            border: primary ? null : Border.all(color: palette.accent),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
                 child: Text(
-                  label,
+                  label.toUpperCase(),
                   overflow: TextOverflow.ellipsis,
-                  style: interStyle(
-                    size: phone ? 14 : 15,
+                  style: monoStyle(
+                    size: phone ? 12 : 13,
                     color: fg,
-                    weight: FontWeight.w600,
+                    weight: FontWeight.w700,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
