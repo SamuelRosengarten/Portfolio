@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:portfolio/main.dart';
 import 'package:portfolio/pages/about_section.dart';
 import 'package:portfolio/pages/contact_section.dart';
-import 'package:portfolio/pages/synapse_os_section.dart';
+import 'package:portfolio/pages/hobbies_section.dart';
+import 'package:portfolio/pages/project_section.dart';
 
 double _pageOffset(WidgetTester tester) => tester
     .state<ScrollableState>(find.byType(Scrollable).first)
@@ -11,9 +12,7 @@ double _pageOffset(WidgetTester tester) => tester
     .pixels;
 
 void main() {
-  testWidgets('every section is on one continuously scrolling page', (
-    tester,
-  ) async {
+  testWidgets('every section is on one continuously scrolling page', (tester) async {
     tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -22,13 +21,14 @@ void main() {
     await tester.pump();
 
     expect(find.byType(AboutSection), findsOneWidget);
-    expect(find.byType(SynapseOsSection), findsOneWidget);
+    expect(find.byType(ProjectSection), findsOneWidget);
+    expect(find.byType(HobbiesSection), findsOneWidget);
     expect(find.byType(ContactSection), findsOneWidget);
-    expect(find.text('ROSEN'), findsOneWidget);
+    expect(find.text("Hi, I'm Samuel."), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rail links scroll to their section', (tester) async {
+  testWidgets('header links scroll to their section', (tester) async {
     tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -38,7 +38,7 @@ void main() {
     expect(_pageOffset(tester), 0);
 
     var previous = 0.0;
-    for (final label in ['SYNAPSE', 'COMMS']) {
+    for (final label in ['Projects', 'Hobbies', 'Contact']) {
       await tester.tap(find.text(label).first);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: label);
@@ -46,7 +46,7 @@ void main() {
       previous = _pageOffset(tester);
     }
 
-    await tester.tap(find.text('MAINFRAME').first);
+    await tester.tap(find.text('About').first);
     await tester.pumpAndSettle();
     expect(_pageOffset(tester), 0);
   });
@@ -65,48 +65,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Passer au français'));
     await tester.pump();
-    expect(find.text('VOIR LES PROCESSUS'), findsOneWidget);
-    expect(find.text('DÉVELOPPEUR FULL-STACK'), findsOneWidget);
+    expect(find.text('Salut, je suis Samuel.'), findsOneWidget);
+    expect(find.text('À propos'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
-
-  for (final size in [
-    const Size(390, 844),
-    const Size(768, 1024),
-    const Size(1440, 900),
-    const Size(1440, 600),
-  ]) {
-    testWidgets(
-      'sections fit properly at ${size.width.toInt()}x${size.height.toInt()}',
-      (tester) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.reset);
-
-        await tester.pumpWidget(const MyApp());
-        await tester.pump();
-
-        for (final section in [
-          AboutSection,
-          ContactSection,
-        ]) {
-          final height = tester.getSize(find.byType(section)).height;
-          expect(height, lessThan(size.height), reason: '$section');
-          // Fills the space below the header rather than leaving a gap.
-          expect(height, greaterThan(size.height * 0.5), reason: '$section');
-        }
-
-        // Synapse OS is an expanded multi-screen deep dive:
-        final synapseHeight =
-            tester.getSize(find.byType(SynapseOsSection)).height;
-        expect(
-          synapseHeight,
-          greaterThan(size.height * 0.8),
-          reason: 'SynapseOsSection',
-        );
-
-        expect(tester.takeException(), isNull);
-      },
-    );
-  }
 }

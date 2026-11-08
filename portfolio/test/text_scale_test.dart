@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:portfolio/main.dart';
 
 /// People who raise their system font size must still be able to read every
-/// section without anything painting outside its box. A section is allowed to
-/// scroll (SectionShell falls back to that), but must not overflow.
+/// section without anything painting outside its box. The whole page scrolls, so
+/// a section may grow taller, but nothing may overflow its box.
 void main() {
   for (final scale in [1.3, 1.6, 2.0]) {
     for (final size in [
@@ -27,7 +27,7 @@ void main() {
           expect(tester.takeException(), isNull, reason: 'About (initial)');
 
           final mobile = size.width < 600;
-          for (final label in ['SYNAPSE', 'COMMS', 'MAINFRAME']) {
+          for (final label in ['Projects', 'Hobbies', 'Contact', 'About']) {
             if (mobile) {
               await tester.tap(find.byIcon(Icons.menu));
               await tester.pump();

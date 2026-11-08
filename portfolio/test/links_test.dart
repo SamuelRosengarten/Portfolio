@@ -61,9 +61,9 @@ void main() {
   testWidgets('contact cards can be reached with Tab and opened with Enter', (
     tester,
   ) async {
-    await _openSection(tester, 'COMMS');
+    await _openSection(tester, 'Contact');
 
-    // The whole page is one scroll, so the project buttons come first in tab
+    // The whole page is one scroll, so the Synapse OS link comes first in tab
     // order; the contact cards are the mailto link and the two profiles.
     final contactLinks = {
       Uri(scheme: 'mailto', path: 'samrosengarten1@gmail.com'),
@@ -93,7 +93,7 @@ void main() {
   });
 
   testWidgets('tapping a contact card opens its link', (tester) async {
-    await _openSection(tester, 'COMMS');
+    await _openSection(tester, 'Contact');
     await tester.tap(find.text('github.com/SamuelRosengarten'));
     await tester.pump();
     expect(opened, [Uri.parse('https://github.com/SamuelRosengarten')]);
@@ -103,7 +103,7 @@ void main() {
     tester,
   ) async {
     final handle = tester.ensureSemantics();
-    await _openSection(tester, 'COMMS');
+    await _openSection(tester, 'Contact');
     for (final label in [
       'Email: samrosengarten1@gmail.com',
       'GitHub: github.com/SamuelRosengarten',
@@ -124,15 +124,9 @@ void main() {
     handle.dispose();
   });
 
-  testWidgets('the project buttons are keyboard links too', (tester) async {
-    await _openSection(tester, 'SYNAPSE');
+  testWidgets('the Synapse OS address is a keyboard link too', (tester) async {
+    await _openSection(tester, 'Projects');
     final links = await _tabThroughLinks(tester);
-    expect(
-      links,
-      containsAll([
-        Uri.parse('https://synapse-os.ca'),
-        Uri.parse('https://github.com/SamuelRosengarten/Synapse-OS'),
-      ]),
-    );
+    expect(links, contains(Uri.parse('https://synapse-os.ca')));
   });
 }

@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' show PathMetric;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -43,59 +46,19 @@ TextStyle monoStyle({
   fontWeight: weight,
   height: height,
   letterSpacing: letterSpacing,
-  // Identifiers like `SYS_SPECS::LOADOUT` should read literally, not as
-  // JetBrains Mono's code ligatures.
-  fontFeatures: const [FontFeature.disable('calt')],
 );
 
-/// Corner radius of HUD panels and cards; buttons and chips use
-/// [kHudButtonRadius].
-const double kHudRadius = 8;
-const double kHudButtonRadius = 5;
-
-/// The HUD card look: dark fill and a thin yellow border, at full strength
-/// (with a soft glow) when [highlighted].
-BoxDecoration hudDecoration(AppPalette palette, {bool highlighted = false}) =>
-    BoxDecoration(
-      color: palette.card.withValues(alpha: palette.dark ? 0.92 : 0.95),
-      borderRadius: BorderRadius.circular(kHudRadius),
-      border: Border.all(
-        color: palette.accentAlpha(highlighted ? 0.9 : 0.32),
-      ),
-      boxShadow: highlighted && palette.dark
-          ? [BoxShadow(color: palette.accentAlpha(0.12), blurRadius: 28)]
-          : null,
-    );
-
-/// The height of the area sections are shown in (the window minus the CLI
-/// bar, and the top bar on a phone). `Home` provides it so every [PageSection] can be exactly one
-/// screen tall.
-class ViewportHeight extends InheritedWidget {
-  const ViewportHeight({super.key, required this.height, required super.child});
-
-  final double height;
-
-  static double? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<ViewportHeight>()?.height;
-
-  @override
-  bool updateShouldNotify(ViewportHeight oldWidget) =>
-      oldWidget.height != height;
-}
-
-/// One full-width band of the page, never taller than the window.
-///
-/// The band is exactly one screen tall (the height `Home` gives it through
-/// [ViewportHeight]); [child] is centred in it, held to [kMaxContentWidth],
-/// and scaled down uniformly, text included, if it would otherwise be taller
-/// than the screen. A section short enough to fit is left at its natural size.
+/// One full-width band of the page. Paints [background] edge to edge and
+/// holds [child] in a column capped at [kMaxContentWidth] with responsive
+/// side and vertical padding.
 class PageSection extends StatelessWidget {
   const PageSection({
     super.key,
     required this.child,
     this.background,
     this.bordered = false,
-    this.fitToScreen = true,
+    this.topPadding,
+    this.bottomPadding,
   });
 
   final Widget child;
@@ -104,24 +67,17 @@ class PageSection extends StatelessWidget {
   /// Hairline above and below, for the alternate-background bands.
   final bool bordered;
 
-  /// When true (default), forces the section to match [ViewportHeight] and scales
-  /// content down if it exceeds the window. When false, the section sizes naturally
-  /// and scrolls smoothly.
-  final bool fitToScreen;
+  /// Overrides for the default vertical padding.
+  final double? topPadding;
+  final double? bottomPadding;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final height = ViewportHeight.maybeOf(context);
-    final vertical = isPhone(context) ? 20.0 : 40.0;
-    final hairline = paletteOf(context).surface(0.08);
+    final vertical = (width * 0.08).clamp(64.0, 112.0);
+    final hairline = paletteOf(context).line;
     return Container(
       width: double.infinity,
-      height: fitToScreen ? height : null,
-      constraints: fitToScreen
-          ? null
-          : BoxConstraints(minHeight: height ?? 0),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: background,
         border: bordered
@@ -131,191 +87,132 @@ class PageSection extends StatelessWidget {
               )
             : null,
       ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: pageGutter(width),
-            vertical: vertical,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              pageGutter(width),
+              topPadding ?? vertical,
+              pageGutter(width),
+              bottomPadding ?? vertical,
+            ),
+            child: child,
           ),
-          child: fitToScreen
-              ? LayoutBuilder(
-                  builder: (context, constraints) => FittedBox(
-                    // Scales down only: a section that already fits is untouched.
-                    fit: BoxFit.scaleDown,
-                    child: SizedBox(width: constraints.maxWidth, child: child),
-                  ),
-                )
-              : child,
         ),
       ),
     );
   }
 }
 
-/// Small monospace caps label ("WORK", "GOAL"...).
+/// Small monospace caps label ("GOAL", "PAST PIECES"...).
 class MonoLabel extends StatelessWidget {
-  const MonoLabel(
-    this.text, {
-    super.key,
-    this.color,
-    this.size = 12,
-    this.weight = FontWeight.w500,
-  });
+  const MonoLabel(this.text, {super.key, this.color, this.size = 12});
 
   final String text;
   final Color? color;
   final double size;
-  final FontWeight weight;
 
   @override
   Widget build(BuildContext context) => Text(
     text,
     style: monoStyle(
       size: size,
-      color: color ?? paletteOf(context).accent,
-      weight: weight,
-      letterSpacing: 1.2,
+      color: color ?? paletteOf(context).tertiary,
+      weight: FontWeight.w500,
+      letterSpacing: size * 0.08,
     ),
   );
 }
 
-/// A small glowing dot + caps label, e.g. "● ONLINE".
-class StatusTag extends StatelessWidget {
-  const StatusTag(this.label, {super.key, required this.color, this.size = 11});
+/// The app's mono kicker: a small lavender square, then an uppercase label in
+/// the faint text colour (`.eyebrow` on the Synapse site).
+class Eyebrow extends StatelessWidget {
+  const Eyebrow(this.text, {super.key, this.size = 12});
 
-  final String label;
-  final Color color;
+  final String text;
   final double size;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 6),
-          ],
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: palette.accent,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Flexible(
-        child: MonoLabel(
-          label,
-          color: color,
-          size: size,
-          weight: FontWeight.w700,
-        ),
-      ),
-    ],
-  );
+        const SizedBox(width: 9),
+        Flexible(child: MonoLabel(text.toUpperCase(), size: size)),
+      ],
+    );
+  }
 }
 
-/// The opening beat of a section, HUD style: a yellow `MOD_0x` tag and the
-/// eyebrow on one line, a big monospace headline, an optional subhead, and a
-/// hairline underneath.
+/// Eyebrow, headline and optional subhead — the opening beat of a section.
 class SectionHeading extends StatelessWidget {
   const SectionHeading({
     super.key,
     required this.eyebrow,
     required this.headline,
     this.subhead,
-    this.module,
   });
 
   final String eyebrow;
   final String headline;
   final String? subhead;
 
-  /// The `MOD_01`-style tag in front of the eyebrow, if any.
-  final String? module;
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final palette = paletteOf(context);
     final phone = isPhone(context);
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(bottom: phone ? 14 : 18),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: palette.surface(0.14))),
-      ),
-      // Align loosens the parent's (often tight, stretched) width so the 760px
-      // cap actually applies instead of being overridden by it.
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (module != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: palette.accent,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: MonoLabel(
-                        module!,
-                        color: palette.onAccent,
-                        size: phone ? 10 : 11,
-                        weight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  Flexible(
-                    child: MonoLabel(
-                      eyebrow.toUpperCase(),
-                      size: phone ? 11 : 12,
-                    ),
-                  ),
-                ],
+    // Align loosens the parent's (often tight, stretched) width so the 680px
+    // cap actually applies instead of being overridden by it.
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Eyebrow(eyebrow, size: phone ? 11 : 12),
+            SizedBox(height: phone ? 14 : 16),
+            Text(
+              headline,
+              style: interStyle(
+                size: (width * 0.036).clamp(32.0, 48.0),
+                color: palette.ink,
+                weight: FontWeight.w700,
+                height: 1.08,
+                letterSpacing: phone ? -1.0 : -1.5,
               ),
+            ),
+            if (subhead != null) ...[
               SizedBox(height: phone ? 12 : 14),
               Text(
-                headline,
-                style: monoStyle(
-                  size: (width * 0.04).clamp(30.0, 54.0),
-                  color: palette.ink,
-                  weight: FontWeight.w800,
-                  height: 1.05,
-                  letterSpacing: phone ? -1.0 : -1.6,
+                subhead!,
+                style: interStyle(
+                  size: (width * 0.013).clamp(16.0, 18.0),
+                  color: palette.secondary,
+                  height: 1.6,
                 ),
               ),
-              if (subhead != null) ...[
-                SizedBox(height: phone ? 12 : 14),
-                Text(
-                  subhead!,
-                  style: interStyle(
-                    size: (width * 0.014).clamp(15.0, 18.0),
-                    color: palette.secondary,
-                    height: 1.55,
-                  ),
-                ),
-              ],
             ],
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// A small square-cornered tag (tech stack, status).
+/// A fully rounded mono status pill, like the app's `.pill`. [dot] adds the
+/// small state dot the app puts in front of "done"/"iterating" pills.
 class Pill extends StatelessWidget {
   const Pill(
     this.label, {
@@ -323,9 +220,12 @@ class Pill extends StatelessWidget {
     required this.background,
     required this.color,
     this.borderColor,
-    this.vertical = 6,
-    this.horizontal = 12,
+    this.vertical = 5,
+    this.horizontal = 11,
+    this.dot = false,
   });
+
+  final bool dot;
 
   final String label;
   final Color background;
@@ -339,24 +239,33 @@ class Pill extends StatelessWidget {
     padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
     decoration: BoxDecoration(
       color: background,
-      borderRadius: BorderRadius.circular(3),
-      border: Border.all(color: borderColor ?? color.withValues(alpha: 0.35)),
+      borderRadius: BorderRadius.circular(999),
+      border: borderColor == null ? null : Border.all(color: borderColor!),
     ),
-    child: Text(
-      label.toUpperCase(),
-      style: monoStyle(
-        size: 11,
-        color: color,
-        weight: FontWeight.w600,
-        letterSpacing: 0.8,
-      ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (dot) ...[
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 7),
+        ],
+        Flexible(
+          child: Text(
+            label,
+            style: monoStyle(size: 11.5, color: color, weight: FontWeight.w500),
+          ),
+        ),
+      ],
     ),
   );
 }
 
-/// Filled (hazard yellow) or outlined (yellow border) HUD button. The filled
-/// one can carry a small [caption] above its label ("EXECUTE" over "VIEW
-/// PROCESSES").
+/// Primary (inverted text colour) or ghost (hairline) button used by the hero,
+/// matching the app's `.sb-btn-primary` / `.sb-btn-secondary`.
 class PillButton extends StatefulWidget {
   const PillButton({
     super.key,
@@ -365,14 +274,12 @@ class PillButton extends StatefulWidget {
     this.filled = false,
     this.icon,
     this.expand = false,
-    this.caption,
   });
 
   final String label;
   final VoidCallback onPressed;
   final bool filled;
   final IconData? icon;
-  final String? caption;
 
   /// Fill the available width (the phone layout stacks buttons full width).
   final bool expand;
@@ -387,14 +294,14 @@ class _PillButtonState extends State<PillButton> {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    // Primary inverts the page: ink fill, page-coloured text. Ghost is a
+    // hairline outline with muted text that lifts on hover.
     final fg = widget.filled
-        ? palette.onAccent
-        : (_hovering ? palette.accent : palette.ink);
+        ? palette.bg
+        : (_hovering ? palette.ink : palette.secondary);
     final bg = widget.filled
-        ? (_hovering
-              ? Color.lerp(palette.accent, Colors.white, 0.25)!
-              : palette.accent)
-        : (_hovering ? palette.accentAlpha(0.08) : Colors.transparent);
+        ? palette.ink.withValues(alpha: _hovering ? 0.9 : 1)
+        : (_hovering ? palette.hover : Colors.transparent);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
@@ -406,56 +313,34 @@ class _PillButtonState extends State<PillButton> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onPressed,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
+          child: Container(
             constraints: BoxConstraints(
-              minHeight: 50,
+              minHeight: 44,
               minWidth: widget.expand ? double.infinity : 0,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             decoration: BoxDecoration(
               color: bg,
-              borderRadius: BorderRadius.circular(kHudButtonRadius),
-              border: widget.filled ? null : Border.all(color: palette.accent),
-              boxShadow: widget.filled && _hovering
-                  ? [BoxShadow(color: palette.accentAlpha(0.35), blurRadius: 18)]
-                  : null,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: widget.filled ? Colors.transparent : palette.line,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Flexible so a large system font wraps the label instead of
-                // pushing it past the button's edge.
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.caption != null)
-                        Text(
-                          widget.caption!,
-                          style: monoStyle(
-                            size: 9,
-                            color: fg.withValues(alpha: 0.7),
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      Text(
-                        widget.label.toUpperCase(),
-                        style: monoStyle(
-                          size: 13,
-                          color: fg,
-                          weight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                    ],
+                Text(
+                  widget.label,
+                  style: interStyle(
+                    size: 14.5,
+                    color: fg,
+                    weight: widget.filled ? FontWeight.w600 : FontWeight.w500,
                   ),
                 ),
                 if (widget.icon != null) ...[
-                  const SizedBox(width: 10),
-                  Icon(widget.icon, size: 18, color: fg),
+                  const SizedBox(width: 8),
+                  Icon(widget.icon, size: 16, color: fg),
                 ],
               ],
             ),
@@ -466,89 +351,173 @@ class _PillButtonState extends State<PillButton> {
   }
 }
 
-/// Diagonal yellow/black hazard stripes filling whatever box it is given.
-class HazardStripes extends StatelessWidget {
-  const HazardStripes({super.key});
+/// A card with the app's dashed lavender "AI suggestion" border and faint
+/// lavender fill: used wherever the site shows something the AI proposes.
+class AiCard extends StatelessWidget {
+  const AiCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(14),
+    this.radius = 12,
+    this.palette,
+  });
 
-  @override
-  Widget build(BuildContext context) =>
-      const CustomPaint(painter: _HazardPainter(), child: SizedBox.expand());
-}
-
-class _HazardPainter extends CustomPainter {
-  const _HazardPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas
-      ..clipRect(Offset.zero & size)
-      ..drawRect(Offset.zero & size, Paint()..color = Colors.black);
-    final p = Paint()..color = kHudYellow;
-    const band = 10.0;
-    for (var x = -size.height; x < size.width + size.height; x += band * 2) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(x, size.height)
-          ..lineTo(x + band, size.height)
-          ..lineTo(x + band + size.height, 0)
-          ..lineTo(x + size.height, 0)
-          ..close(),
-        p,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_HazardPainter oldDelegate) => false;
-}
-
-/// The faint 20px grid, plus CRT scanlines in the dark theme, painted once
-/// behind the whole page.
-class GridBackdrop extends StatelessWidget {
-  const GridBackdrop({super.key});
+  /// Overrides the surrounding theme, for mock-ups that stay dark in both
+  /// site themes (the VS Code window).
+  final AppPalette? palette;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
-    final palette = paletteOf(context);
+    final palette = this.palette ?? paletteOf(context);
     return CustomPaint(
-      painter: _GridPainter(
-        line: palette.surface(palette.dark ? 0.07 : 0.06),
-        scan: palette.dark ? Colors.white.withValues(alpha: 0.018) : null,
+      foregroundPainter: DashedRRectPainter(
+        color: palette.aiLine,
+        radius: radius,
+        strokeWidth: 1,
       ),
-      child: const SizedBox.expand(),
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: palette.aiFaint,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: child,
+      ),
     );
   }
 }
 
-class _GridPainter extends CustomPainter {
-  _GridPainter({required this.line, this.scan});
+/// A dashed rounded rectangle just inside its box.
+class DashedRRectPainter extends CustomPainter {
+  const DashedRRectPainter({
+    required this.color,
+    required this.radius,
+    this.strokeWidth = 1,
+    this.dash = 5,
+    this.gap = 4,
+  });
 
-  final Color line;
-  final Color? scan;
+  final Color color;
+  final double radius;
+  final double strokeWidth;
+  final double dash;
+  final double gap;
 
   @override
   void paint(Canvas canvas, Size size) {
-    const cell = 20.0;
-    final p = Paint()
-      ..color = line
-      ..strokeWidth = 1;
-    for (var x = 0.0; x <= size.width; x += cell) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
-    }
-    for (var y = 0.0; y <= size.height; y += cell) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
-    }
-    if (scan != null) {
-      final s = Paint()..color = scan!;
-      for (var y = 0.0; y <= size.height; y += 3) {
-        canvas.drawRect(Rect.fromLTWH(0, y, size.width, 1), s);
+    final rect = (Offset.zero & size).deflate(strokeWidth / 2);
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    for (final PathMetric metric in path.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final end = math.min(distance + dash, metric.length);
+        canvas.drawPath(metric.extractPath(distance, end), paint);
+        distance += dash + gap;
       }
     }
   }
 
   @override
-  bool shouldRepaint(_GridPainter oldDelegate) =>
-      oldDelegate.line != line || oldDelegate.scan != scan;
+  bool shouldRepaint(DashedRRectPainter old) =>
+      old.color != color ||
+      old.radius != radius ||
+      old.strokeWidth != strokeWidth ||
+      old.dash != dash ||
+      old.gap != gap;
+}
+
+/// The app's graph canvas: a quiet dot grid that fades out away from the top
+/// centre (the website hero's `radial-gradient` mask).
+class DotGridPainter extends CustomPainter {
+  const DotGridPainter({required this.color, this.step = 22});
+
+  final Color color;
+  final double step;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Elliptical falloff: full strength near the top centre, gone by ~80%.
+    final cx = size.width / 2;
+    final rx = size.width * 0.8;
+    final ry = size.height * 0.7 + 1;
+    final paint = Paint();
+    for (var y = step / 2; y < size.height; y += step) {
+      for (var x = step / 2; x < size.width; x += step) {
+        final dx = (x - cx) / rx;
+        final dy = y / ry;
+        final d = math.sqrt(dx * dx + dy * dy);
+        final fade = d <= 0.2 ? 1.0 : (1 - (d - 0.2) / 0.6).clamp(0.0, 1.0);
+        if (fade <= 0) continue;
+        paint.color = color.withValues(alpha: color.a * fade);
+        canvas.drawCircle(Offset(x, y), 1.2, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(DotGridPainter old) =>
+      old.color != color || old.step != step;
+}
+
+/// The Synapse mark: three linked nodes on a deep-violet tile (the app's
+/// `public/img/mark.svg`), drawn natively so it needs no asset.
+class SynapseMark extends StatelessWidget {
+  const SynapseMark({super.key, this.size = 32});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    size: Size.square(size),
+    painter: const _MarkPainter(),
+  );
+}
+
+class _MarkPainter extends CustomPainter {
+  const _MarkPainter();
+
+  static const _tile = Color(0xFF1C1830);
+  static const _stroke = Color(0xFFB9A6FF);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final k = size.width / 32;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Radius.circular(9 * k),
+      ),
+      Paint()..color = _tile,
+    );
+    final paint = Paint()
+      ..color = _stroke
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8 * k
+      ..strokeCap = StrokeCap.round;
+    Offset p(double x, double y) => Offset((x + 4) * k, (y + 4) * k);
+    for (final c in [p(6, 7), p(18, 6), p(12, 18)]) {
+      canvas.drawCircle(c, 2.5 * k, paint);
+    }
+    final links = Path()
+      ..moveTo(p(7.4, 9.3).dx, p(7.4, 9.3).dy)
+      ..lineTo(p(10.8, 15.7).dx, p(10.8, 15.7).dy)
+      ..moveTo(p(16.8, 8.2).dx, p(16.8, 8.2).dy)
+      ..lineTo(p(13.2, 15.7).dx, p(13.2, 15.7).dy)
+      ..moveTo(p(8.5, 6.8).dx, p(8.5, 6.8).dy)
+      ..lineTo(p(16, 6.8).dx, p(16, 6.8).dy);
+    canvas.drawPath(links, paint);
+  }
+
+  @override
+  bool shouldRepaint(_MarkPainter old) => false;
 }
 
 /// Lays children out in equal-width columns sized from the real available

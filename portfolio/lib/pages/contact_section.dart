@@ -13,74 +13,102 @@ class ContactSection extends StatelessWidget {
     final palette = paletteOf(context);
     final s = stringsOf(context);
     final phone = isPhone(context);
-    return PageSection(
-      background: palette.altBg,
-      bordered: true,
+    final width = MediaQuery.sizeOf(context).width;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: palette.altBg,
+        border: Border(top: BorderSide(color: palette.line)),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SectionHeading(
-            module: 'MOD_02',
-            eyebrow: s.commsKicker,
-            headline: s.contactHeadline,
-            subhead: s.contactSubhead,
-          ),
-          SizedBox(height: phone ? 24 : 40),
-          _ContactCards(
-            entries: [
-              _Entry(
-                icon: Icons.mail_outline_rounded,
-                code: 'EMAIL_RELAY',
-                label: 'Email',
-                value: 'samrosengarten1@gmail.com',
-                url: Uri(scheme: 'mailto', path: 'samrosengarten1@gmail.com'),
-              ),
-              _Entry(
-                icon: Icons.code_rounded,
-                code: 'GITHUB_UPLINK',
-                label: 'GitHub',
-                value: 'github.com/SamuelRosengarten',
-                url: Uri.parse('https://github.com/SamuelRosengarten'),
-                phoneValue: 'SamuelRosengarten',
-              ),
-              _Entry(
-                icon: Icons.work_outline_rounded,
-                code: 'LINKEDIN_NODE',
-                label: 'LinkedIn',
-                value: 'linkedin.com/in/samuel-rosengarten',
-                url: Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
-                phoneValue: 'samuel-rosengarten',
-              ),
-              _Entry(
-                icon: Icons.place_outlined,
-                code: 'NODE_LOCATION',
-                label: s.locationLabel,
-                value: 'Longueuil, QC',
-              ),
-            ],
-          ),
-          SizedBox(height: phone ? 20 : 32),
-          Container(
-            padding: EdgeInsets.only(top: phone ? 16 : 24),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: palette.surface(0.08))),
-            ),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              spacing: 12,
-              runSpacing: 12,
+          PageSection(
+            topPadding: phone ? 56 : null,
+            bottomPadding: phone ? 32 : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                MonoLabel(
-                  '© ${DateTime.now().year} SAMUEL ROSENGARTEN // SR_NEURAL_OS',
-                  color: palette.tertiary,
-                  size: phone ? 10.5 : 11,
+                SectionHeading(
+                  eyebrow: 'Contact',
+                  headline: s.contactHeadline,
+                  subhead: s.contactSubhead,
                 ),
-                MonoLabel(
-                  s.builtWithFlutter.toUpperCase(),
-                  color: palette.tertiary,
-                  size: phone ? 10.5 : 11,
+                SizedBox(height: phone ? 24 : 40),
+                _ContactCards(
+                  entries: [
+                    _Entry(
+                      icon: Icons.mail_outline_rounded,
+                      label: 'Email',
+                      value: 'samrosengarten1@gmail.com',
+                      url: Uri(
+                        scheme: 'mailto',
+                        path: 'samrosengarten1@gmail.com',
+                      ),
+                    ),
+                    _Entry(
+                      icon: Icons.code_rounded,
+                      label: 'GitHub',
+                      value: 'github.com/SamuelRosengarten',
+                      url: Uri.parse('https://github.com/SamuelRosengarten'),
+                      phoneValue: 'SamuelRosengarten',
+                    ),
+                    _Entry(
+                      icon: Icons.work_outline_rounded,
+                      label: 'LinkedIn',
+                      value: 'linkedin.com/in/samuel-rosengarten',
+                      url: Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
+                      phoneValue: 'samuel-rosengarten',
+                    ),
+                    _Entry(
+                      icon: Icons.place_outlined,
+                      label: s.locationLabel,
+                      value: 'Longueuil, QC',
+                      outlined: true,
+                    ),
+                  ],
                 ),
               ],
+            ),
+          ),
+          // Footer rule and line.
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  pageGutter(width),
+                  0,
+                  pageGutter(width),
+                  phone ? 32 : 40,
+                ),
+                child: Container(
+                  padding: EdgeInsets.only(top: phone ? 20 : 28),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: palette.line)),
+                  ),
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      Text(
+                        '© 2026 Samuel Rosengarten',
+                        style: interStyle(
+                          size: phone ? 12 : 13,
+                          color: palette.tertiary,
+                        ),
+                      ),
+                      Text(
+                        s.builtWithFlutter,
+                        style: monoStyle(
+                          size: phone ? 12 : 13,
+                          color: palette.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -92,18 +120,14 @@ class ContactSection extends StatelessWidget {
 class _Entry {
   const _Entry({
     required this.icon,
-    required this.code,
     required this.label,
     required this.value,
     this.url,
     this.phoneValue,
+    this.outlined = false,
   });
 
   final IconData icon;
-
-  /// The terminal-style name shown on the card ("GITHUB_UPLINK"); [label] is
-  /// the plain name screen readers announce.
-  final String code;
   final String label;
   final String value;
 
@@ -113,6 +137,9 @@ class _Entry {
 
   /// A shorter form of [value] for the narrow phone list.
   final String? phoneValue;
+
+  /// Dashed, transparent card for info that isn't a link (the location).
+  final bool outlined;
 }
 
 class _ContactCards extends StatelessWidget {
@@ -152,66 +179,46 @@ class _ContactCard extends StatelessWidget {
 
   Widget _card(BuildContext context, bool highlighted) {
     final palette = paletteOf(context);
-    final info = entry.url == null;
+    final outlined = entry.outlined;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       constraints: const BoxConstraints(minHeight: 120),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: highlighted ? palette.accentAlpha(0.06) : palette.card,
-        borderRadius: BorderRadius.circular(kHudRadius),
+        color: outlined
+            ? Colors.transparent
+            : (highlighted ? palette.raised : palette.card),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: info
-              ? palette.surface(0.16)
-              : palette.accentAlpha(highlighted ? 1 : 0.32),
+          color: outlined || !highlighted ? palette.line : palette.lineStrong,
         ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(
-                entry.icon,
-                size: 22,
-                color: info ? palette.tertiary : palette.accent,
-              ),
-              if (!info)
-                Icon(
-                  Icons.arrow_outward_rounded,
-                  size: 16,
-                  color: palette.muted,
-                ),
-            ],
-          ),
+          _IconTile(icon: entry.icon, muted: outlined),
           const SizedBox(height: 18),
-          MonoLabel(
-            entry.code,
-            color: info ? palette.tertiary : palette.accent,
-            size: 11,
-            weight: FontWeight.w700,
+          Text(
+            entry.label.toUpperCase(),
+            style: monoStyle(
+              size: 11,
+              color: palette.tertiary,
+              weight: FontWeight.w500,
+              letterSpacing: 0.9,
+            ),
           ),
-          const SizedBox(height: 4),
-          _value(palette),
+          const SizedBox(height: 5),
+          Text(
+            entry.value,
+            style: interStyle(
+              size: 15,
+              color: palette.ink,
+              weight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  /// A value with no natural break point (the email) shrinks to one line
-  /// rather than splitting mid-word; paths wrap at their slashes.
-  Widget _value(AppPalette palette) {
-    final text = Text(
-      entry.value,
-      style: monoStyle(size: 13.5, color: palette.ink, weight: FontWeight.w600),
-    );
-    if (entry.value.contains('/') || entry.value.contains(' ')) return text;
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: text,
     );
   }
 }
@@ -227,79 +234,98 @@ class _PhoneList extends StatelessWidget {
     final palette = paletteOf(context);
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: hudDecoration(palette),
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.line),
+      ),
       child: Column(
         children: [
           for (var i = 0; i < entries.length; i++)
-            _PhoneRow(entry: entries[i], last: i == entries.length - 1),
+            _row(context, entries[i], last: i == entries.length - 1),
         ],
       ),
+    );
+  }
+
+  Widget _row(BuildContext context, _Entry entry, {required bool last}) {
+    final url = entry.url;
+    Widget build(BuildContext context, bool highlighted) {
+      final palette = paletteOf(context);
+      return Container(
+        constraints: const BoxConstraints(minHeight: 64),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: highlighted ? palette.raised : Colors.transparent,
+          border: last ? null : Border(bottom: BorderSide(color: palette.line)),
+        ),
+        child: Row(
+          children: [
+            _IconTile(icon: entry.icon, muted: entry.outlined, size: 36),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.label.toUpperCase(),
+                    style: monoStyle(
+                      size: 10.5,
+                      color: palette.tertiary,
+                      weight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    entry.phoneValue ?? entry.value,
+                    style: interStyle(
+                      size: 15,
+                      color: palette.ink,
+                      weight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (url == null) return build(context, false);
+    return LinkTarget(
+      uri: url,
+      semanticLabel: '${entry.label}: ${entry.value}',
+      builder: build,
     );
   }
 }
 
-class _PhoneRow extends StatelessWidget {
-  const _PhoneRow({required this.entry, required this.last});
+/// A small bordered tile holding a contact icon, like the app's `.icon-tile`.
+class _IconTile extends StatelessWidget {
+  const _IconTile({required this.icon, this.muted = false, this.size = 38});
 
-  final _Entry entry;
-  final bool last;
+  final IconData icon;
+  final bool muted;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    final url = entry.url;
-    if (url == null) return _row(context, false);
-    return LinkTarget(
-      uri: url,
-      semanticLabel: '${entry.label}: ${entry.value}',
-      builder: _row,
-    );
-  }
-
-  Widget _row(BuildContext context, bool highlighted) {
     final palette = paletteOf(context);
-    final info = entry.url == null;
     return Container(
-      constraints: const BoxConstraints(minHeight: 64),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      width: size,
+      height: size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: highlighted ? palette.accentAlpha(0.06) : null,
-        border: last
-            ? null
-            : Border(bottom: BorderSide(color: palette.surface(0.08))),
+        color: palette.raised,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: palette.line),
       ),
-      child: Row(
-        children: [
-          Icon(
-            entry.icon,
-            size: 22,
-            color: info ? palette.tertiary : palette.accent,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MonoLabel(
-                  entry.code,
-                  color: info ? palette.tertiary : palette.accent,
-                  size: 10.5,
-                  weight: FontWeight.w700,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  entry.phoneValue ?? entry.value,
-                  style: monoStyle(
-                    size: 13.5,
-                    color: palette.ink,
-                    weight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!info)
-            Icon(Icons.chevron_right_rounded, size: 18, color: palette.muted),
-        ],
+      child: Icon(
+        icon,
+        size: 19,
+        color: muted ? palette.tertiary : palette.ink2,
       ),
     );
   }
