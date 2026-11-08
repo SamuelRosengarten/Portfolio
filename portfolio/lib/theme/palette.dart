@@ -2,75 +2,171 @@ import 'package:flutter/material.dart';
 
 import 'theme_controller.dart';
 
-/// The shared palette every section paints from.
-///
-/// Keeping these in one place (instead of each section hardcoding its own
-/// hex values) is what makes the site look consistent: a light section uses
-/// [kLightBg]/[kInk]/[kGray], a dark one uses [kDarkBg]/[kBlue], and both
-/// share [kPanelBg] for card backgrounds. The hobbies section is the one
-/// exception — it defines its own ink/leather colours locally because
-/// nothing else on the site uses that palette.
-const Color kLightBg = Color(0xFFFBFBFD);
-const Color kDarkBg = Color(0xFF000000);
-const Color kDarkPanelBg = Color(0xFF1C1C1E);
-const Color kPanelBg = Color(0xFFF5F5F7);
-const Color kInk = Color(0xFF1D1D1F);
-const Color kGray = Color(0xFF86868B);
-const Color kBlue = Color(0xFF2997FF);
+/// The Synapse OS design tokens, ported from the app's `src/styles/tokens.css`
+/// so the portfolio and the app read as one product: quiet graphite surfaces,
+/// hairline borders, lavender reserved for AI/links, and status colours that
+/// only ever mean state. Dark is the default; light mirrors the app's light
+/// theme. Change colours here, not in the sections.
+class _Tokens {
+  const _Tokens({
+    required this.bg,
+    required this.side,
+    required this.panel,
+    required this.raised,
+    required this.hover,
+    required this.line,
+    required this.line2,
+    required this.text,
+    required this.text2,
+    required this.muted,
+    required this.faint,
+    required this.dim,
+    required this.canvasDot,
+    required this.ai,
+    required this.aiFg,
+    required this.due,
+    required this.ok,
+    required this.bad,
+    required this.info,
+  });
 
-/// Bundles the handful of colours that flip between the site's light and
-/// dark modes, so a section only has to ask "what's my background/ink/
-/// surface right now" instead of branching on [ThemeController.isDark]
-/// everywhere itself.
+  final Color bg;
+  final Color side;
+  final Color panel;
+  final Color raised;
+  final Color hover;
+  final Color line;
+  final Color line2;
+  final Color text;
+  final Color text2;
+  final Color muted;
+  final Color faint;
+  final Color dim;
+  final Color canvasDot;
+  final Color ai;
+  final Color aiFg;
+  final Color due;
+  final Color ok;
+  final Color bad;
+  final Color info;
+}
+
+const _dark = _Tokens(
+  bg: Color(0xFF0A0C10),
+  side: Color(0xFF0D1015),
+  panel: Color(0xFF11151B),
+  raised: Color(0xFF171C24),
+  hover: Color(0xFF1D232D),
+  line: Color(0xFF252C37),
+  line2: Color(0xFF3A4352),
+  text: Color(0xFFEEF0F4),
+  text2: Color(0xFFDFE3EA),
+  muted: Color(0xFFA6AFBD),
+  faint: Color(0xFF8B95A6),
+  dim: Color(0xFF6B7586),
+  canvasDot: Color(0xFF181D26),
+  ai: Color(0xFFB9A6FF),
+  aiFg: Color(0xFF15102A),
+  due: Color(0xFFF2C277),
+  ok: Color(0xFF5DD3A9),
+  bad: Color(0xFFFF9090),
+  info: Color(0xFF86B4FF),
+);
+
+const _light = _Tokens(
+  bg: Color(0xFFF7F8FA),
+  side: Color(0xFFF1F3F6),
+  panel: Color(0xFFFFFFFF),
+  raised: Color(0xFFEEF0F4),
+  hover: Color(0xFFE6E9EE),
+  line: Color(0xFFDCE0E6),
+  line2: Color(0xFFC4CAD3),
+  text: Color(0xFF14171C),
+  text2: Color(0xFF2B313A),
+  muted: Color(0xFF4A5361),
+  faint: Color(0xFF5F6978),
+  dim: Color(0xFF7A8494),
+  canvasDot: Color(0xFFD5DAE1),
+  ai: Color(0xFF5B3BC4),
+  aiFg: Color(0xFFFFFFFF),
+  due: Color(0xFF7A5200),
+  ok: Color(0xFF0D6444),
+  bad: Color(0xFFAB2530),
+  info: Color(0xFF2556BB),
+);
+
+/// Bundles the colours that flip between the site's light and dark modes, so
+/// a section only has to ask "what's my background/ink/surface right now"
+/// instead of branching on [ThemeController.isDark] itself.
 class AppPalette {
   const AppPalette({required this.dark});
 
   final bool dark;
 
-  /// The section-background colour for the flat (non-textured) sections —
-  /// Projects and Contact. About, Hobbies and the header paint their own
-  /// backgrounds but still read [ink]/[surface] from here.
-  Color get bg => dark ? kDarkBg : kLightBg;
+  _Tokens get _t => dark ? _dark : _light;
 
-  Color get panelBg => dark ? kDarkPanelBg : kPanelBg;
+  /// Page background (`--bg`).
+  Color get bg => _t.bg;
 
-  /// Primary text colour: white on a dark surface, near-black on a light one.
-  Color get ink => dark ? Colors.white : kInk;
+  /// The slightly offset band behind Projects and Contact (`--side`), so the
+  /// flat sections read as separate bands on one continuous page.
+  Color get altBg => _t.side;
 
-  Color get gray => kGray;
+  /// Card / panel fill (`--panel`).
+  Color get card => _t.panel;
+  Color get panel => _t.panel;
+  Color get panelBg => _t.panel;
 
-  Color get blue => kBlue;
+  /// A step above [card] (`--raised`): chips, badges, inset tiles.
+  Color get raised => _t.raised;
 
-  /// The slightly offset band behind Projects and Contact, so the flat
-  /// sections read as separate bands on one continuous page.
-  Color get altBg => dark ? const Color(0xFF0B0B0C) : kPanelBg;
+  /// Hover fill (`--hover`).
+  Color get hover => _t.hover;
 
-  /// Raised card fill (project card, contact cards, stack chips).
-  Color get card => dark ? kDarkPanelBg : Colors.white;
+  /// Hairline border (`--line`) and its stronger sibling (`--line2`).
+  Color get line => _t.line;
+  Color get lineStrong => _t.line2;
 
-  /// The stack panel's fill — a step below [card] so chips sit on it.
-  Color get panel => dark ? const Color(0xFF111113) : Colors.white;
+  /// Primary text (`--text`).
+  Color get ink => _t.text;
 
-  /// Body copy under a headline.
-  Color get secondary => dark ? const Color(0xFFA1A1A6) : const Color(0xFF515154);
+  /// Slightly softer primary text (`--text2`).
+  Color get ink2 => _t.text2;
 
-  /// Small labels and captions.
-  Color get tertiary => dark ? const Color(0xFF98989D) : const Color(0xFF6E6E73);
+  /// Body copy under a headline (`--muted`).
+  Color get secondary => _t.muted;
 
-  /// Decorative, lowest-emphasis text (the hero's second line, chevrons).
-  Color get muted => dark ? const Color(0xFF6E6E73) : kGray;
+  /// Small labels and captions (`--faint`).
+  Color get tertiary => _t.faint;
 
-  /// Brand accent. Light mode uses a deeper blue so white text on it passes.
-  Color get accent => dark ? kBlue : const Color(0xFF0071E3);
+  /// Decorative, lowest-emphasis text (`--dim`).
+  Color get muted => _t.dim;
 
-  /// Text/icon colour that sits on top of [accent].
-  Color get onAccent => dark ? Colors.black : Colors.white;
+  /// The dot-grid colour behind the hero (`--canvas-dot`).
+  Color get canvasDot => _t.canvasDot;
 
-  /// Tinted accent text, e.g. the "Published" pill.
-  Color get accentText => dark ? const Color(0xFF7CC0FF) : const Color(0xFF0060C0);
+  /// Lavender: reserved for AI and links, exactly like the app (`--ai`).
+  Color get accent => _t.ai;
+  Color get ai => _t.ai;
 
-  /// A translucent card/chip fill, white-on-dark or black-on-light at the
-  /// same alpha the design already leans on for "frosted surface" panels.
+  /// Text/icon colour that sits on a solid [accent] fill (`--ai-fg`).
+  Color get onAccent => _t.aiFg;
+
+  /// Tinted accent text, e.g. the status pill.
+  Color get accentText => _t.ai;
+
+  /// AI-card background / border / pill fill (`--ai-bg`, `--ai-line`).
+  Color get aiBg => _t.ai.withValues(alpha: dark ? 0.12 : 0.10);
+  Color get aiFaint => _t.ai.withValues(alpha: dark ? 0.05 : 0.04);
+  Color get aiLine => _t.ai.withValues(alpha: dark ? 0.50 : 0.45);
+
+  /// Status colours. They only ever mean state, never decoration.
+  Color get ok => _t.ok;
+  Color get due => _t.due;
+  Color get bad => _t.bad;
+  Color get info => _t.info;
+
+  /// A translucent fill, white-on-dark or black-on-light.
   Color surface(double alpha) =>
       (dark ? Colors.white : Colors.black).withValues(alpha: alpha);
 }

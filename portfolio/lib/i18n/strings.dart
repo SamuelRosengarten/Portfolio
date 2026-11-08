@@ -82,6 +82,13 @@ class Strings {
 
   String get projectEyebrow => _fr ? 'Projet' : 'Work';
 
+  String get projectsHeadline => _fr ? 'Ce que je construis.' : 'What I build.';
+  String get projectsSubhead => _fr
+      ? "Une extension VS Code publiée et un espace de travail à IA privée "
+            "pour les petites équipes de développement."
+      : 'A published VS Code extension and a private-AI workspace for '
+            'small dev teams.';
+
   String get projectSubhead => _fr
       ? "Une extension VS Code maintenant publiée sur le Marketplace — née "
             "du tutorat que je fais auprès d'autres étudiants et de l'envie "
@@ -94,6 +101,39 @@ class Strings {
       ? "Transforme les erreurs que vous faites en codant en quelque chose "
             "d'utile."
       : 'Turns the mistakes you make while coding into something useful.';
+
+  String get tagWebApp => _fr ? 'Application web' : 'Web app';
+  String get tagBeta => _fr ? 'Bêta sur invitation' : 'Invite-only beta';
+
+  String get synapseDescription => _fr
+      ? "Un espace de travail partagé pour les petites équipes de "
+            "développement — notes Markdown, tâches, projets et réunions — "
+            "avec une IA qui tourne sur votre propre ordinateur plutôt que "
+            "sur les serveurs de quelqu'un d'autre."
+      : 'A shared workspace for small dev teams — Markdown notes, tasks, '
+            'projects and meetings — with AI that runs on your own computer '
+            "instead of someone else's servers.";
+
+  String get featurePrivateAiTitle => _fr ? 'IA privée' : 'Private AI';
+  String get featurePrivateAiBody => _fr
+      ? 'Tourne sur votre machine via Synapse Bridge. Aucune requête ne '
+            'passe par un serveur.'
+      : 'Runs on your own machine through Synapse Bridge. Prompts never '
+            'reach a server.';
+  String get featureApproveTitle =>
+      _fr ? 'Vous approuvez tout' : 'You approve everything';
+  String get featureApproveBody => _fr
+      ? "Les suggestions de l'IA attendent dans une file de révision. Rien "
+            "ne change avant votre accord."
+      : 'AI suggestions wait in a review queue. Nothing changes until you '
+            'accept.';
+  String get featureTeamsTitle =>
+      _fr ? 'Pensé pour les équipes' : 'Built for teams';
+  String get featureTeamsBody => _fr
+      ? "Espaces de travail, rôles, synchronisation en direct, et conflits "
+            "conservés plutôt qu'écrasés."
+      : 'Workspaces, roles, live sync, and edit conflicts that are kept, '
+            'not overwritten.';
 
   String get tagVsCodeExtension =>
       _fr ? 'Extension VS Code' : 'VS Code Extension';

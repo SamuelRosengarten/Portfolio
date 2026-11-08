@@ -1,11 +1,11 @@
 {
-    "name": "portfolio",
-    "short_name": "portfolio",
+    "name": "Samuel Rosengarten",
+    "short_name": "Samuel",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0a0c10",
+    "theme_color": "#0a0c10",
+    "description": "Portfolio of Samuel Rosengarten: Code Coach, Synapse OS and more.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

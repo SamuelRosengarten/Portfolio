@@ -17,7 +17,7 @@ class ContactSection extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: palette.altBg,
-        border: Border(top: BorderSide(color: palette.surface(0.06))),
+        border: Border(top: BorderSide(color: palette.line)),
       ),
       child: Column(
         children: [
@@ -77,7 +77,7 @@ class ContactSection extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.only(top: phone ? 20 : 28),
                   decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: palette.surface(0.08))),
+                    border: Border(top: BorderSide(color: palette.line)),
                   ),
                   child: Wrap(
                     alignment: WrapAlignment.spaceBetween,
@@ -171,31 +171,32 @@ class _ContactCardState extends State<_ContactCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         constraints: const BoxConstraints(minHeight: 120),
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: outlined ? Colors.transparent : palette.card,
-          borderRadius: BorderRadius.circular(20),
+          color: outlined
+              ? Colors.transparent
+              : (_hovering ? palette.raised : palette.card),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: palette.surface(
-              outlined ? 0.16 : (_hovering ? 0.28 : 0.08),
-            ),
+            color: outlined || !_hovering ? palette.line : palette.lineStrong,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              entry.icon,
-              size: 22,
-              color: outlined ? palette.tertiary : palette.accent,
-            ),
+            _IconTile(icon: entry.icon, muted: outlined),
             const SizedBox(height: 18),
             Text(
-              entry.label,
-              style: interStyle(size: 13, color: palette.tertiary),
+              entry.label.toUpperCase(),
+              style: monoStyle(
+                size: 11,
+                color: palette.tertiary,
+                weight: FontWeight.w500,
+                letterSpacing: 0.9,
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 5),
             Text(
               entry.value,
               style: interStyle(
@@ -224,8 +225,8 @@ class _PhoneList extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: palette.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.surface(0.08)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.line),
       ),
       child: Column(
         children: [
@@ -236,14 +237,14 @@ class _PhoneList extends StatelessWidget {
               decoration: BoxDecoration(
                 border: i == entries.length - 1
                     ? null
-                    : Border(bottom: BorderSide(color: palette.surface(0.08))),
+                    : Border(bottom: BorderSide(color: palette.line)),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    entries[i].icon,
-                    size: 22,
-                    color: entries[i].outlined ? palette.tertiary : palette.accent,
+                  _IconTile(
+                    icon: entries[i].icon,
+                    muted: entries[i].outlined,
+                    size: 36,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -251,8 +252,13 @@ class _PhoneList extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          entries[i].label,
-                          style: interStyle(size: 12, color: palette.tertiary),
+                          entries[i].label.toUpperCase(),
+                          style: monoStyle(
+                            size: 10.5,
+                            color: palette.tertiary,
+                            weight: FontWeight.w500,
+                            letterSpacing: 0.8,
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -270,6 +276,35 @@ class _PhoneList extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// A small bordered tile holding a contact icon, like the app's `.icon-tile`.
+class _IconTile extends StatelessWidget {
+  const _IconTile({required this.icon, this.muted = false, this.size = 38});
+
+  final IconData icon;
+  final bool muted;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: palette.raised,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: palette.line),
+      ),
+      child: Icon(
+        icon,
+        size: 19,
+        color: muted ? palette.tertiary : palette.ink2,
       ),
     );
   }
