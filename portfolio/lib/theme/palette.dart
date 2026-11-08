@@ -2,87 +2,171 @@ import 'package:flutter/material.dart';
 
 import 'theme_controller.dart';
 
-/// The shared palette every section paints from: a black terminal/HUD look
-/// with one hazard-yellow accent, plus a green "online" and an orange
-/// "highlight" for status readouts.
-///
-/// Keeping these in one place (instead of each section hardcoding its own
-/// hex values) is what lets the light theme — an off-white printout of the
-/// same HUD — reuse every widget unchanged. The Synapse OS demo is the one
-/// exception: it recreates that app's own UI, so it keeps its own colours.
-const Color kHudBlack = Color(0xFF1A1A1A);
-const Color kHudPanel = Color(0xFF111111);
-const Color kHudYellow = Color(0xFFFFFF00);
-const Color kHudOrange = Color(0xFFFF6700);
-const Color kHudGreen = Color(0xFF00FF00);
-const Color kHudPaper = Color(0xFFF2F0E9);
+/// The Synapse OS design tokens, ported from the app's `src/styles/tokens.css`
+/// so the portfolio and the app read as one product: quiet graphite surfaces,
+/// hairline borders, lavender reserved for AI/links, and status colours that
+/// only ever mean state. Dark is the default; light mirrors the app's light
+/// theme. Change colours here, not in the sections.
+class _Tokens {
+  const _Tokens({
+    required this.bg,
+    required this.side,
+    required this.panel,
+    required this.raised,
+    required this.hover,
+    required this.line,
+    required this.line2,
+    required this.text,
+    required this.text2,
+    required this.muted,
+    required this.faint,
+    required this.dim,
+    required this.canvasDot,
+    required this.ai,
+    required this.aiFg,
+    required this.due,
+    required this.ok,
+    required this.bad,
+    required this.info,
+  });
 
-/// Pre-HUD colours, still used by the (currently unused) Code Coach demo.
-const Color kBlue = Color(0xFF2997FF);
-const Color kGray = Color(0xFF86868B);
+  final Color bg;
+  final Color side;
+  final Color panel;
+  final Color raised;
+  final Color hover;
+  final Color line;
+  final Color line2;
+  final Color text;
+  final Color text2;
+  final Color muted;
+  final Color faint;
+  final Color dim;
+  final Color canvasDot;
+  final Color ai;
+  final Color aiFg;
+  final Color due;
+  final Color ok;
+  final Color bad;
+  final Color info;
+}
 
-/// Bundles the handful of colours that flip between the site's light and
-/// dark modes, so a section only has to ask "what's my background/ink/
-/// surface right now" instead of branching on [ThemeController.isDark]
-/// everywhere itself.
+const _dark = _Tokens(
+  bg: Color(0xFF0A0C10),
+  side: Color(0xFF0D1015),
+  panel: Color(0xFF11151B),
+  raised: Color(0xFF171C24),
+  hover: Color(0xFF1D232D),
+  line: Color(0xFF252C37),
+  line2: Color(0xFF3A4352),
+  text: Color(0xFFEEF0F4),
+  text2: Color(0xFFDFE3EA),
+  muted: Color(0xFFA6AFBD),
+  faint: Color(0xFF8B95A6),
+  dim: Color(0xFF6B7586),
+  canvasDot: Color(0xFF181D26),
+  ai: Color(0xFFB9A6FF),
+  aiFg: Color(0xFF15102A),
+  due: Color(0xFFF2C277),
+  ok: Color(0xFF5DD3A9),
+  bad: Color(0xFFFF9090),
+  info: Color(0xFF86B4FF),
+);
+
+const _light = _Tokens(
+  bg: Color(0xFFF7F8FA),
+  side: Color(0xFFF1F3F6),
+  panel: Color(0xFFFFFFFF),
+  raised: Color(0xFFEEF0F4),
+  hover: Color(0xFFE6E9EE),
+  line: Color(0xFFDCE0E6),
+  line2: Color(0xFFC4CAD3),
+  text: Color(0xFF14171C),
+  text2: Color(0xFF2B313A),
+  muted: Color(0xFF4A5361),
+  faint: Color(0xFF5F6978),
+  dim: Color(0xFF7A8494),
+  canvasDot: Color(0xFFD5DAE1),
+  ai: Color(0xFF5B3BC4),
+  aiFg: Color(0xFFFFFFFF),
+  due: Color(0xFF7A5200),
+  ok: Color(0xFF0D6444),
+  bad: Color(0xFFAB2530),
+  info: Color(0xFF2556BB),
+);
+
+/// Bundles the colours that flip between the site's light and dark modes, so
+/// a section only has to ask "what's my background/ink/surface right now"
+/// instead of branching on [ThemeController.isDark] itself.
 class AppPalette {
   const AppPalette({required this.dark});
 
   final bool dark;
 
-  /// Page background, under the grid backdrop.
-  Color get bg => dark ? kHudBlack : kHudPaper;
+  _Tokens get _t => dark ? _dark : _light;
 
-  /// The side rail, top bar, drawer and CLI bar: pure black when dark.
-  Color get chrome => dark ? Colors.black : Colors.white;
+  /// Page background (`--bg`).
+  Color get bg => _t.bg;
 
-  /// Primary text colour.
-  Color get ink => dark ? Colors.white : const Color(0xFF0A0A0A);
+  /// The slightly offset band behind Projects and Contact (`--side`), so the
+  /// flat sections read as separate bands on one continuous page.
+  Color get altBg => _t.side;
 
-  /// Sections no longer paint their own bands — the grid runs behind the
-  /// whole page — so the "alternate" background is see-through.
-  Color get altBg => Colors.transparent;
+  /// Card / panel fill (`--panel`).
+  Color get card => _t.panel;
+  Color get panel => _t.panel;
+  Color get panelBg => _t.panel;
 
-  /// Raised card fill (cards, contact cards, tool chips).
-  Color get card => dark ? kHudPanel : Colors.white;
+  /// A step above [card] (`--raised`): chips, badges, inset tiles.
+  Color get raised => _t.raised;
 
-  /// Panel fill — the same as [card] in the HUD look.
-  Color get panel => card;
+  /// Hover fill (`--hover`).
+  Color get hover => _t.hover;
 
-  /// Body copy under a headline.
-  Color get secondary =>
-      dark ? const Color(0xFFB3B3B3) : const Color(0xFF3D3D3D);
+  /// Hairline border (`--line`) and its stronger sibling (`--line2`).
+  Color get line => _t.line;
+  Color get lineStrong => _t.line2;
 
-  /// Small labels and captions.
-  Color get tertiary =>
-      dark ? const Color(0xFF8A8A8A) : const Color(0xFF5E5E5E);
+  /// Primary text (`--text`).
+  Color get ink => _t.text;
 
-  /// Decorative, lowest-emphasis text.
-  Color get muted => dark ? const Color(0xFF6E6E6E) : const Color(0xFF8A8A8A);
+  /// Slightly softer primary text (`--text2`).
+  Color get ink2 => _t.text2;
 
-  /// The hazard accent. On paper pure yellow has no contrast, so the light
-  /// theme uses a dark amber for text, borders and fills.
-  Color get accent => dark ? kHudYellow : const Color(0xFF7A6300);
+  /// Body copy under a headline (`--muted`).
+  Color get secondary => _t.muted;
 
-  /// Text/icon colour that sits on top of [accent].
-  Color get onAccent => dark ? Colors.black : Colors.white;
+  /// Small labels and captions (`--faint`).
+  Color get tertiary => _t.faint;
 
-  /// Tinted accent text, e.g. a highlighted pill.
-  Color get accentText => accent;
+  /// Decorative, lowest-emphasis text (`--dim`).
+  Color get muted => _t.dim;
 
-  /// Kept for older call sites that tinted pills "blue"; now the accent.
-  Color get blue => accent;
+  /// The dot-grid colour behind the hero (`--canvas-dot`).
+  Color get canvasDot => _t.canvasDot;
 
-  /// "ONLINE" / healthy status.
-  Color get ok => dark ? kHudGreen : const Color(0xFF0F8A3A);
+  /// Lavender: reserved for AI and links, exactly like the app (`--ai`).
+  Color get accent => _t.ai;
+  Color get ai => _t.ai;
 
-  /// Secondary highlight ("OPERATOR", in-progress statuses).
-  Color get highlight => dark ? kHudOrange : const Color(0xFFB34700);
+  /// Text/icon colour that sits on a solid [accent] fill (`--ai-fg`).
+  Color get onAccent => _t.aiFg;
 
-  /// The accent at a given alpha, for panel borders and glows.
-  Color accentAlpha(double alpha) => accent.withValues(alpha: alpha);
+  /// Tinted accent text, e.g. the status pill.
+  Color get accentText => _t.ai;
 
-  /// A translucent fill/hairline, white-on-dark or black-on-light.
+  /// AI-card background / border / pill fill (`--ai-bg`, `--ai-line`).
+  Color get aiBg => _t.ai.withValues(alpha: dark ? 0.12 : 0.10);
+  Color get aiFaint => _t.ai.withValues(alpha: dark ? 0.05 : 0.04);
+  Color get aiLine => _t.ai.withValues(alpha: dark ? 0.50 : 0.45);
+
+  /// Status colours. They only ever mean state, never decoration.
+  Color get ok => _t.ok;
+  Color get due => _t.due;
+  Color get bad => _t.bad;
+  Color get info => _t.info;
+
+  /// A translucent fill, white-on-dark or black-on-light.
   Color surface(double alpha) =>
       (dark ? Colors.white : Colors.black).withValues(alpha: alpha);
 }

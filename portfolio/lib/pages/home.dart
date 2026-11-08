@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../theme/palette.dart';
-import '../widgets/cli_bar.dart';
-import '../widgets/section_layout.dart';
 import '../widgets/site_header.dart';
 import 'about_section.dart';
 import 'contact_section.dart';
-import 'synapse_os_section.dart';
+import 'hobbies_section.dart';
+import 'project_section.dart';
 
-/// The whole page, laid out like a HUD: a nav rail down the left (a top bar on
-/// a phone), one continuously scrolling column of sections over a grid
-/// backdrop, the CLI bar along the bottom and a hazard stripe down the right
-/// edge. Picking a section in the nav scrolls to it, and the nav highlights
-/// whichever section is currently at the top of the viewport.
+/// The whole page: a pinned header above one continuously scrolling column of
+/// sections. Picking a section in the header (or the drawer on a phone)
+/// scrolls to it, and the header highlights whichever section is currently
+/// at the top of the viewport.
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -80,13 +78,13 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final phone = isPhone(context);
-    final page = Stack(
-      children: [
-        const Positioned.fill(child: GridBackdrop()),
-        LayoutBuilder(
-          builder: (context, constraints) => ViewportHeight(
-            height: constraints.maxHeight,
+    return Scaffold(
+      drawer: NavDrawer(onSelected: _onSelected),
+      backgroundColor: paletteOf(context).bg,
+      body: Column(
+        children: [
+          SiteHeader(active: _active, onSelected: _onSelected),
+          Expanded(
             child: SingleChildScrollView(
               key: _viewportKey,
               controller: _scroll,
@@ -97,8 +95,12 @@ class _HomeState extends State<Home> {
                     child: AboutSection(onSelected: _onSelected),
                   ),
                   KeyedSubtree(
-                    key: _sectionKeys[SiteSection.synapseOs],
-                    child: const SynapseOsSection(),
+                    key: _sectionKeys[SiteSection.projects],
+                    child: const ProjectSection(),
+                  ),
+                  KeyedSubtree(
+                    key: _sectionKeys[SiteSection.hobbies],
+                    child: const HobbiesSection(),
                   ),
                   KeyedSubtree(
                     key: _sectionKeys[SiteSection.contact],
@@ -108,36 +110,8 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
-        ),
-      ],
-    );
-
-    return Scaffold(
-      drawer: phone ? NavDrawer(onSelected: _onSelected) : null,
-      backgroundColor: paletteOf(context).bg,
-      body: phone
-          ? Column(
-              children: [
-                PhoneHeader(active: _active, onSelected: _onSelected),
-                Expanded(child: page),
-                const CliBar(),
-              ],
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SideRail(active: _active, onSelected: _onSelected),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Expanded(child: page),
-                      const CliBar(),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10, child: HazardStripes()),
-              ],
-            ),
+        ],
+      ),
     );
   }
 }

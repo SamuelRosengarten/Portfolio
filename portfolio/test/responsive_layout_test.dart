@@ -36,11 +36,7 @@ void main() {
           }
           expect(tester.takeException(), isNull, reason: 'dark mode');
 
-          await tester.tap(
-            find.byTooltip(
-              french ? 'Passer au mode clair' : 'Switch to light mode',
-            ),
-          );
+          await tester.tap(find.byTooltip(french ? 'Passer au mode clair' : 'Switch to light mode'));
           await tester.pump();
           expect(tester.takeException(), isNull, reason: 'light mode');
         },
@@ -58,7 +54,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('COMMS').last);
+    await tester.tap(find.text('Contact').last);
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);

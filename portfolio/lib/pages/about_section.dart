@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/section_layout.dart';
 import '../widgets/site_header.dart';
 
-/// Hero ("MAINFRAME"): the operator ID — status readouts, the stacked name,
-/// role and calls to action — beside the language/tools spec panel, with the
-/// four-step career path underneath.
+/// Hero: greeting and calls to action beside the language/tools panel, with
+/// the four-step career path underneath.
 class AboutSection extends StatelessWidget {
   const AboutSection({super.key, required this.onSelected});
 
@@ -17,7 +15,33 @@ class AboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final palette = paletteOf(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: palette.line)),
+      ),
+      // The app's graph canvas as a hero backdrop: a quiet dot grid that
+      // fades away from the top centre.
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: DotGridPainter(color: palette.canvasDot),
+              ),
+            ),
+          ),
+          _content(context, width),
+        ],
+      ),
+    );
+  }
+
+  Widget _content(BuildContext context, double width) {
     return PageSection(
+      topPadding: isPhone(context) ? 40 : (width * 0.08).clamp(56.0, 104.0),
+      bottomPadding: isPhone(context) ? 48 : 56,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -65,122 +89,121 @@ class _Intro extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     final width = MediaQuery.sizeOf(context).width;
-
-    // Smaller on a phone: the section is shrunk to fit one screen, and a huge
-    // name would shrink everything else with it.
-    final nameSize = phone ? 40.0 : (width * 0.075).clamp(64.0, 116.0);
-    TextStyle name(Color color) => monoStyle(
-      size: nameSize,
-      color: color,
-      weight: FontWeight.w800,
-      height: 0.92,
-      letterSpacing: -nameSize * 0.02,
-    );
-    // GARTEN is drawn as an outline, like the design's third line.
-    final outline = GoogleFonts.jetBrainsMono(
-      fontSize: nameSize,
-      fontWeight: FontWeight.w800,
-      height: 0.92,
-      letterSpacing: -nameSize * 0.02,
-      foreground: Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = phone ? 1.4 : 2
-        ..color = palette.dark ? const Color(0xFFB8B8B8) : palette.tertiary,
-    );
-
-    final buttons = [
-      PillButton(
-        label: s.viewProcesses,
-        caption: s.execute,
-        filled: true,
-        expand: phone,
-        icon: Icons.arrow_forward,
-        onPressed: () => onSelected!(SiteSection.synapseOs),
-      ),
-      PillButton(
-        label: s.openComms,
-        expand: phone,
-        onPressed: () => onSelected!(SiteSection.contact),
-      ),
-    ];
-
+    final headline = phone ? 40.0 : (width * 0.05).clamp(44.0, 68.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MonoLabel(s.systemTitle, size: phone ? 10 : 11),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 18,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            StatusTag(s.openToInternships.toUpperCase(), color: palette.ok),
-            MonoLabel(
-              'QUEBEC_DEV_NODE // SESSION_${DateTime.now().year}',
-              color: palette.tertiary,
-              size: 11,
-            ),
-          ],
-        ),
-        SizedBox(height: phone ? 22 : 28),
-        Semantics(
-          header: true,
-          label: 'Samuel Rosengarten',
-          excludeSemantics: true,
-          // scaleDown keeps the longest line inside a narrow column instead
-          // of clipping it.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('SAMUEL', style: name(palette.ink)),
-                Text('ROSEN', style: name(palette.accent)),
-                Text('GARTEN', style: outline),
-              ],
-            ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: phone ? 12 : 13,
+            vertical: phone ? 6 : 7,
+          ),
+          decoration: BoxDecoration(
+            color: palette.aiFaint,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: palette.aiLine),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: palette.accent,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  s.openToInternships,
+                  style: monoStyle(
+                    size: phone ? 11.5 : 12.5,
+                    color: palette.accent,
+                    weight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        SizedBox(height: phone ? 20 : 26),
+        SizedBox(height: phone ? 24 : 28),
         Text(
-          s.heroRole,
-          style: monoStyle(
-            size: phone ? 13 : 16,
+          s.heroGreeting,
+          style: interStyle(
+            size: headline,
             color: palette.ink,
             weight: FontWeight.w700,
-            letterSpacing: 1.2,
+            height: 1.04,
+            letterSpacing: -headline * 0.035,
           ),
         ),
-        const SizedBox(height: 8),
-        MonoLabel(s.heroFocus, size: phone ? 11 : 12),
-        const SizedBox(height: 4),
-        MonoLabel(
-          'LONGUEUIL, QUÉBEC, CANADA',
-          color: palette.tertiary,
-          size: phone ? 11 : 12,
+        Padding(
+          padding: EdgeInsets.only(top: phone ? 8 : 0),
+          child: Text(
+            s.heroTagline,
+            style: interStyle(
+              // Two-thirds of the greeting's size (44 -> 30 on a phone), so
+              // the tagline reads as a subtitle rather than a third line of
+              // the headline when the column is only ~500px wide.
+              size: (headline * 0.68).roundToDouble(),
+              color: palette.muted,
+              weight: FontWeight.w700,
+              height: 1.1,
+              letterSpacing: -headline * 0.68 * 0.035,
+            ),
+          ),
         ),
-        SizedBox(height: phone ? 18 : 22),
+        SizedBox(height: phone ? 24 : 28),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Text(
             s.aboutBio,
             style: interStyle(
-              size: phone ? 15 : (width * 0.013).clamp(15.0, 17.0),
+              size: phone ? 16 : (width * 0.0125).clamp(16.0, 18.0),
               color: palette.secondary,
-              height: 1.6,
+              height: 1.55,
             ),
           ),
         ),
-        SizedBox(height: phone ? 22 : 28),
+        SizedBox(height: phone ? 24 : 28),
         if (onSelected != null)
           if (phone)
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [buttons[0], const SizedBox(height: 10), buttons[1]],
+              children: [
+                PillButton(
+                  label: s.seeMyWork,
+                  filled: true,
+                  expand: true,
+                  onPressed: () => onSelected!(SiteSection.projects),
+                ),
+                const SizedBox(height: 10),
+                PillButton(
+                  label: s.getInTouch,
+                  expand: true,
+                  onPressed: () => onSelected!(SiteSection.contact),
+                ),
+              ],
             )
           else
-            Wrap(spacing: 12, runSpacing: 12, children: buttons),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                PillButton(
+                  label: s.seeMyWork,
+                  filled: true,
+                  icon: Icons.arrow_downward_rounded,
+                  onPressed: () => onSelected!(SiteSection.projects),
+                ),
+                PillButton(
+                  label: s.getInTouch,
+                  onPressed: () => onSelected!(SiteSection.contact),
+                ),
+              ],
+            ),
       ],
     );
   }
@@ -195,14 +218,12 @@ class _Tool {
 }
 
 const _tools = [
-  _Tool('TS', 'TypeScript'),
-  _Tool('Nx', 'Next.js'),
-  _Tool('SQL', 'SQLite'),
-  _Tool('AI', 'Ollama'),
-  _Tool('Fl', 'Flutter'),
-  _Tool('Da', 'Dart'),
   _Tool('C#', 'C#'),
-  _Tool('Nd', 'Node.js'),
+  _Tool('Da', 'Dart'),
+  _Tool('Fl', 'Flutter'),
+  _Tool('Kt', 'Kotlin'),
+  _Tool('TS', 'TypeScript'),
+  _Tool('JS', 'JavaScript'),
 ];
 
 class _StackPanel extends StatelessWidget {
@@ -215,26 +236,34 @@ class _StackPanel extends StatelessWidget {
     final phone = isPhone(context);
     return Container(
       padding: EdgeInsets.all(phone ? 18 : 24),
-      decoration: hudDecoration(palette, highlighted: true),
+      decoration: BoxDecoration(
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.line),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            spacing: 12,
-            runSpacing: 4,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              MonoLabel(
-                'SYS_SPECS::${s.languagesAndTools}',
-                size: phone ? 11 : 12,
-                weight: FontWeight.w700,
+              Flexible(
+                child: Text(
+                  s.languagesAndTools,
+                  style: monoStyle(
+                    size: phone ? 11 : 12,
+                    color: palette.tertiary,
+                    weight: FontWeight.w500,
+                    letterSpacing: 0.9,
+                  ),
+                ),
               ),
-              MonoLabel(
-                '${s.modulesLoaded}: ${_tools.length.toString().padLeft(2, '0')}',
-                color: palette.ok,
-                size: 10.5,
-              ),
+              if (!phone)
+                Text(
+                  _tools.length.toString().padLeft(2, '0'),
+                  style: monoStyle(size: 11.5, color: palette.accent),
+                ),
             ],
           ),
           SizedBox(height: phone ? 16 : 20),
@@ -260,11 +289,11 @@ class _ToolChip extends StatelessWidget {
     final phone = isPhone(context);
     final badge = phone ? 30.0 : 36.0;
     return Container(
-      padding: EdgeInsets.all(phone ? 10 : 12),
+      padding: EdgeInsets.all(phone ? 10 : 14),
       decoration: BoxDecoration(
-        color: palette.surface(0.03),
-        borderRadius: BorderRadius.circular(kHudButtonRadius),
-        border: Border.all(color: palette.surface(0.12)),
+        color: palette.raised,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: palette.line),
       ),
       child: Row(
         children: [
@@ -273,16 +302,13 @@ class _ToolChip extends StatelessWidget {
             height: badge,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(3),
-              border: Border.all(color: palette.accent),
+              color: palette.panel,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: palette.line),
             ),
             child: Text(
               tool.badge,
-              style: monoStyle(
-                size: phone ? 11 : 12,
-                color: palette.accent,
-                weight: FontWeight.w700,
-              ),
+              style: monoStyle(size: phone ? 11 : 12, color: palette.ink2),
             ),
           ),
           SizedBox(width: phone ? 10 : 12),
@@ -290,10 +316,10 @@ class _ToolChip extends StatelessWidget {
             child: Text(
               tool.name,
               overflow: TextOverflow.ellipsis,
-              style: monoStyle(
-                size: phone ? 13 : 14,
+              style: interStyle(
+                size: phone ? 14 : 15,
                 color: palette.ink,
-                weight: FontWeight.w600,
+                weight: FontWeight.w500,
               ),
             ),
           ),
@@ -315,12 +341,7 @@ class _Path extends StatelessWidget {
     final phone = isPhone(context);
 
     final steps = [
-      _PathStep(
-        '01 · ${s.pathBefore}',
-        s.pathBeforeTitle,
-        s.pathBeforeBody,
-        false,
-      ),
+      _PathStep('01 · ${s.pathBefore}', s.pathBeforeTitle, s.pathBeforeBody, false),
       _PathStep(
         '02 · ${s.pathNow}',
         phone ? s.pathNowShort : s.pathNowTitle,
@@ -328,19 +349,14 @@ class _Path extends StatelessWidget {
         true,
       ),
       _PathStep('03 · ${s.pathNext}', s.pathNextTitle, s.pathNextBody, false),
-      _PathStep(
-        '04 · ${s.pathAfter}',
-        s.pathAfterTitle,
-        s.pathAfterBody,
-        false,
-      ),
+      _PathStep('04 · ${s.pathAfter}', s.pathAfterTitle, s.pathAfterBody, false),
     ];
 
     if (phone) {
       return Container(
         padding: const EdgeInsets.only(left: 20),
         decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: palette.surface(0.14))),
+          border: Border(left: BorderSide(color: palette.lineStrong)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +372,7 @@ class _Path extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(top: 32),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: palette.surface(0.1))),
+        border: Border(top: BorderSide(color: palette.line)),
       ),
       child: AutoFitGrid(minItemWidth: 220, spacing: 28, children: steps),
     );
@@ -389,10 +405,10 @@ class _PathStep extends StatelessWidget {
         SizedBox(height: phone ? 4 : 8),
         Text(
           title,
-          style: monoStyle(
-            size: phone ? 14 : 15,
-            color: current ? palette.accent : palette.ink,
-            weight: FontWeight.w700,
+          style: interStyle(
+            size: phone ? 16 : 17,
+            color: palette.ink,
+            weight: FontWeight.w600,
           ),
         ),
         if (body != null) ...[

@@ -7,30 +7,33 @@ import '../theme/palette.dart';
 import '../theme/theme_controller.dart';
 import 'section_layout.dart';
 
-/// The sections of the page, in the order they are stacked — the nav renders
+/// The sections of the page, in the order they are stacked — the header renders
 /// one item per value and [Home] anchors one section to each.
-enum SiteSection { about, synapseOs, contact }
+enum SiteSection { about, projects, hobbies, contact }
 
-/// Width of the desktop side rail.
-const double kRailWidth = 76;
+/// [SiteSection]'s label is small, closed data tied one-to-one to the enum
+/// itself, so it lives next to it as a plain switch rather than in the
+/// shared [Strings] class — putting it there would need [Strings] to import
+/// this file right back.
+String navLabel(AppLanguage lang, SiteSection section) {
+  final fr = lang == AppLanguage.fr;
+  return switch (section) {
+    SiteSection.about => fr ? 'À propos' : 'About',
+    SiteSection.projects => fr ? 'Projets' : 'Projects',
+    SiteSection.hobbies => fr ? 'Loisirs' : 'Hobbies',
+    SiteSection.contact => 'Contact',
+  };
+}
 
-/// The section's name in the HUD nav. They read the same in both languages
-/// (terminal-style identifiers), so this takes no language.
-String navLabel(SiteSection section) => switch (section) {
-  SiteSection.about => 'MAINFRAME',
-  SiteSection.synapseOs => 'SYNAPSE',
-  SiteSection.contact => 'COMMS',
-};
-
-/// "00", "01"... — the section's index as shown in the nav.
-String navNumber(SiteSection section) =>
-    section.index.toString().padLeft(2, '0');
-
-/// Desktop navigation: a black HUD rail down the left edge with the logo,
-/// one numbered item per section and the language/theme toggles at the
-/// bottom.
-class SideRail extends StatelessWidget {
-  const SideRail({super.key, required this.active, required this.onSelected});
+/// Pinned header. On desktop: logo, centred section links and the language and
+/// theme toggles in one row. On a phone: logo, toggles and a menu button, with
+/// a horizontally scrolling jump bar of section pills underneath.
+class SiteHeader extends StatelessWidget {
+  const SiteHeader({
+    super.key,
+    required this.active,
+    required this.onSelected,
+  });
 
   /// The section currently at the top of the viewport, highlighted in the nav.
   final ValueListenable<SiteSection> active;
@@ -41,169 +44,52 @@ class SideRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    return Container(
-      width: kRailWidth,
-      decoration: BoxDecoration(
-        color: palette.chrome,
-        border: Border(right: BorderSide(color: palette.accentAlpha(0.6))),
-      ),
-      child: SafeArea(
-        right: false,
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            _Logo(onTap: () => onSelected(SiteSection.about)),
-            const SizedBox(height: 20),
-            ValueListenableBuilder<SiteSection>(
-              valueListenable: active,
-              builder: (context, current, _) => Column(
-                children: [
-                  for (final section in SiteSection.values)
-                    _RailItem(
-                      section,
-                      selected: section == current,
-                      onTap: () => onSelected(section),
-                    ),
-                ],
-              ),
-            ),
-            const Spacer(),
-            const _LanguageToggleButton(),
-            const _ThemeToggleButton(),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    final phone = isPhone(context);
+    final width = MediaQuery.sizeOf(context).width;
 
-class _RailItem extends StatefulWidget {
-  const _RailItem(this.section, {required this.selected, required this.onTap});
-
-  final SiteSection section;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  State<_RailItem> createState() => _RailItemState();
-}
-
-class _RailItemState extends State<_RailItem> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = paletteOf(context);
-    final color = widget.selected
-        ? palette.accent
-        : palette.ink.withValues(alpha: _hovering ? 0.9 : 0.5);
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: widget.selected ? palette.accentAlpha(0.08) : null,
-            border: Border(
-              left: BorderSide(
-                width: 3,
-                color: widget.selected ? palette.accent : Colors.transparent,
-              ),
-            ),
-          ),
-          child: Column(
-            children: [
-              Text(
-                navNumber(widget.section),
-                style: monoStyle(
-                  size: 15,
-                  color: color,
-                  weight: widget.selected || _hovering
-                      ? FontWeight.w800
-                      : FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                navLabel(widget.section),
-                maxLines: 1,
-                softWrap: false,
-                overflow: TextOverflow.fade,
-                style: monoStyle(size: 8, color: color, letterSpacing: 0.6),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Phone navigation: a black bar across the top with the logo, toggles and a
-/// menu button, and a sideways-scrolling jump bar of numbered section chips
-/// underneath.
-class PhoneHeader extends StatelessWidget {
-  const PhoneHeader({
-    super.key,
-    required this.active,
-    required this.onSelected,
-  });
-
-  final ValueListenable<SiteSection> active;
-  final ValueChanged<SiteSection> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = paletteOf(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: palette.chrome,
-        border: Border(bottom: BorderSide(color: palette.accentAlpha(0.6))),
+        color: palette.bg.withValues(alpha: 0.94),
+        border: Border(bottom: BorderSide(color: palette.line)),
       ),
       child: SafeArea(
         bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              height: 56,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16, right: 4),
-                child: Row(
-                  children: [
-                    _Logo(onTap: () => onSelected(SiteSection.about)),
-                    const SizedBox(width: 10),
-                    // Takes whatever the toggles leave, so a large system
-                    // font shortens the name instead of pushing the toggles
-                    // off the edge.
-                    Expanded(
-                      child: Text(
-                        'SR_NEURAL_OS',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: monoStyle(
-                          size: 12,
-                          color: palette.ink,
-                          weight: FontWeight.w700,
-                          letterSpacing: 1,
-                        ),
-                      ),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: phone ? 16 : pageGutter(width),
+                    right: phone ? 8 : pageGutter(width),
+                  ),
+                  child: SizedBox(
+                    height: phone ? 60 : 64,
+                    child: Row(
+                      children: [
+                        _Logo(phone: phone, onTap: () => onSelected(SiteSection.about)),
+                        if (phone)
+                          const Spacer()
+                        else
+                          Expanded(
+                            child: _DesktopNav(
+                              active: active,
+                              onSelected: onSelected,
+                            ),
+                          ),
+                        const _LanguageToggleButton(),
+                        const _ThemeToggleButton(),
+                        if (phone) const _MenuButton(),
+                      ],
                     ),
-                    const _LanguageToggleButton(),
-                    const _ThemeToggleButton(),
-                    const _MenuButton(),
-                  ],
+                  ),
                 ),
               ),
             ),
-            _JumpBar(active: active, onSelected: onSelected),
+            if (phone)
+              _JumpBar(active: active, onSelected: onSelected),
           ],
         ),
       ),
@@ -212,8 +98,9 @@ class PhoneHeader extends StatelessWidget {
 }
 
 class _Logo extends StatelessWidget {
-  const _Logo({required this.onTap});
+  const _Logo({required this.phone, required this.onTap});
 
+  final bool phone;
   final VoidCallback onTap;
 
   @override
@@ -224,22 +111,21 @@ class _Logo extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Container(
-          width: 36,
-          height: 36,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: palette.accent,
-            borderRadius: BorderRadius.circular(kHudButtonRadius),
-          ),
-          child: Text(
-            'SR',
-            style: monoStyle(
-              size: 14,
-              color: palette.onAccent,
-              weight: FontWeight.w800,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SynapseMark(size: phone ? 28 : 30),
+            const SizedBox(width: 10),
+            Text(
+              phone ? 'Samuel' : 'Samuel Rosengarten',
+              style: interStyle(
+                size: 15,
+                color: palette.ink,
+                weight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -254,7 +140,7 @@ class _MenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.menu, color: paletteOf(context).ink),
+      icon: Icon(Icons.menu, color: paletteOf(context).secondary),
       tooltip: stringsOf(context).openNavigation,
       onPressed: () => Scaffold.of(context).openDrawer(),
     );
@@ -274,10 +160,8 @@ class _ThemeToggleButton extends StatelessWidget {
     final s = stringsOf(context);
     return IconButton(
       icon: Icon(
-        controller.isDark
-            ? Icons.light_mode_outlined
-            : Icons.dark_mode_outlined,
-        color: palette.ink.withValues(alpha: 0.8),
+        controller.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        color: palette.secondary,
         size: 20,
       ),
       tooltip: controller.isDark ? s.switchToLightMode : s.switchToDarkMode,
@@ -303,8 +187,8 @@ class _LanguageToggleButton extends StatelessWidget {
         togglesToFrench ? 'FR' : 'EN',
         style: monoStyle(
           size: 12,
-          color: palette.ink.withValues(alpha: 0.8),
-          weight: FontWeight.w700,
+          color: palette.secondary,
+          weight: FontWeight.w500,
           letterSpacing: 0.6,
         ),
       ),
@@ -314,7 +198,96 @@ class _LanguageToggleButton extends StatelessWidget {
   }
 }
 
-/// Phone-only strip of numbered section chips under the top bar.
+/// The row of nav links shown across the top of the header on wider screens.
+class _DesktopNav extends StatelessWidget {
+  const _DesktopNav({required this.active, required this.onSelected});
+
+  final ValueListenable<SiteSection> active;
+  final ValueChanged<SiteSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = languageOf(context);
+    // FittedBox + scaleDown is a safety net for widths just above the phone
+    // breakpoint: if the row would overflow, shrink it instead of clipping.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: ValueListenableBuilder<SiteSection>(
+        valueListenable: active,
+        builder: (context, current, _) => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (final section in SiteSection.values)
+              _HeaderItem(
+                navLabel(lang, section),
+                selected: section == current,
+                onTap: () => onSelected(section),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderItem extends StatefulWidget {
+  const _HeaderItem(this.label, {required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_HeaderItem> createState() => _HeaderItemState();
+}
+
+class _HeaderItemState extends State<_HeaderItem> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    // Same treatment as the app's sidebar rows: muted text, a raised fill on
+    // hover, and full-strength text on the current section.
+    final fg = widget.selected
+        ? palette.ink
+        : (_hovering ? palette.ink2 : palette.secondary);
+    final fill = widget.selected
+        ? palette.raised
+        : (_hovering ? palette.hover : Colors.transparent);
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: fill,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              widget.label,
+              style: interStyle(
+                size: 13.5,
+                color: fg,
+                weight: widget.selected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Phone-only strip of section pills under the header; scrolls sideways if the
+/// labels (French especially) don't fit.
 class _JumpBar extends StatelessWidget {
   const _JumpBar({required this.active, required this.onSelected});
 
@@ -324,21 +297,22 @@ class _JumpBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    final lang = languageOf(context);
     return Container(
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: palette.surface(0.08))),
+        border: Border(top: BorderSide(color: palette.line)),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: ValueListenableBuilder<SiteSection>(
           valueListenable: active,
           builder: (context, current, _) => Row(
             children: [
               for (final section in SiteSection.values) ...[
-                if (section.index > 0) const SizedBox(width: 8),
-                _JumpChip(
-                  section,
+                if (section != SiteSection.about) const SizedBox(width: 8),
+                _JumpPill(
+                  navLabel(lang, section),
                   selected: section == current,
                   onTap: () => onSelected(section),
                 ),
@@ -351,49 +325,46 @@ class _JumpBar extends StatelessWidget {
   }
 }
 
-class _JumpChip extends StatelessWidget {
-  const _JumpChip(this.section, {required this.selected, required this.onTap});
+class _JumpPill extends StatelessWidget {
+  const _JumpPill(this.label, {required this.selected, required this.onTap});
 
-  final SiteSection section;
+  final String label;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    final style = monoStyle(
-      size: 11,
-      color: selected ? palette.onAccent : palette.ink,
-      weight: selected ? FontWeight.w800 : FontWeight.w500,
-      letterSpacing: 0.6,
-    );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? palette.accent : null,
-          borderRadius: BorderRadius.circular(kHudButtonRadius),
-          border: selected ? null : Border.all(color: palette.surface(0.2)),
+          color: selected ? palette.raised : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? palette.lineStrong : palette.line,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('${navNumber(section)} ', style: style),
-            Text(navLabel(section), style: style),
-          ],
+        child: Text(
+          label,
+          style: interStyle(
+            size: 13,
+            color: selected ? palette.ink : palette.secondary,
+            weight: selected ? FontWeight.w600 : FontWeight.w500,
+          ),
         ),
       ),
     );
   }
 }
 
-/// Phone-size nav drawer: the same numbered sections as the rail, laid out as
-/// a vertical list. Opened via the hamburger [_MenuButton] and registered as
-/// `Scaffold.drawer` by `Home`.
+/// Phone-size nav drawer: the same section names as the desktop header, laid
+/// out as a vertical list. Opened via the hamburger [_MenuButton] and
+/// registered as `Scaffold.drawer` by `Home`.
 class NavDrawer extends StatelessWidget {
   const NavDrawer({super.key, required this.onSelected});
 
@@ -404,36 +375,36 @@ class NavDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
+    final lang = languageOf(context);
     return Drawer(
-      backgroundColor: palette.chrome,
-      shape: const RoundedRectangleBorder(),
+      backgroundColor: palette.altBg,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 28),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: MonoLabel('NAV_HUD'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'MENU',
+                style: monoStyle(
+                  size: 11,
+                  color: palette.tertiary,
+                  weight: FontWeight.w500,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             for (final section in SiteSection.values)
               ListTile(
-                leading: Text(
-                  navNumber(section),
-                  style: monoStyle(
-                    size: 14,
-                    color: palette.accent,
-                    weight: FontWeight.w800,
-                  ),
-                ),
                 title: Text(
-                  navLabel(section),
-                  style: monoStyle(
-                    size: 16,
+                  navLabel(lang, section),
+                  style: interStyle(
+                    size: 18,
                     color: palette.ink,
-                    weight: FontWeight.w600,
-                    letterSpacing: 1,
+                    weight: FontWeight.w500,
+                    letterSpacing: -0.3,
                   ),
                 ),
                 onTap: () {
