@@ -4,24 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../i18n/app_language.dart';
 import '../i18n/strings.dart';
+import '../theme/palette.dart';
 import '../widgets/section_layout.dart';
-
-// The two hobby cards are self-contained "objects" (a dot-grid notebook and a
-// stitched leather patch), so they keep their own dark palettes in light mode
-// too rather than flipping with the site theme.
-const Color _kInkBg = Color(0xFF0A1020);
-const Color _kInkAccent = Color(0xFF7CC0FF);
-const Color _kInkBody = Color(0xFFB4BCCB);
-const Color _kInkMuted = Color(0xFFA9B1C0);
-const Color _kInkTagText = Color(0xFFA8D3FF);
-const Color _kLeatherBg = Color(0xFF2A1B12);
-const Color _kLeatherStitch = Color(0xFFD6A36E);
-const Color _kLeatherAccent = Color(0xFFE0B07F);
-const Color _kLeatherHeading = Color(0xFFFBEFE3);
-const Color _kLeatherBody = Color(0xFFD9C3AE);
-const Color _kLeatherTile = Color(0xFF3A271B);
-const Color _kLeatherTileText = Color(0xFFB98E66);
-const Color _kLeatherLabel = Color(0xFFF1DFCC);
 
 class HobbiesSection extends StatelessWidget {
   const HobbiesSection({super.key});
@@ -62,8 +46,9 @@ class _InkCard extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     final width = MediaQuery.sizeOf(context).width;
-    final padding = phone ? 22.0 : (width * 0.034).clamp(24.0, 44.0);
-    final hairline = _kInkAccent.withValues(alpha: 0.16);
+    final palette = paletteOf(context);
+    final padding = phone ? 20.0 : (width * 0.03).clamp(24.0, 40.0);
+    final hairline = palette.line;
 
     final goals = [
       (s.goalConnectionsTitle, s.goalConnectionsBody),
@@ -73,27 +58,27 @@ class _InkCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: _kInkBg,
-        borderRadius: BorderRadius.circular(phone ? 22 : 28),
+        color: palette.card,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: CustomPaint(
-        painter: _DotGridPainter(color: _kInkAccent.withValues(alpha: 0.16), step: phone ? 20 : 22),
+        painter: _DotGridPainter(color: palette.canvasDot, step: phone ? 20 : 22),
         child: Padding(
           padding: EdgeInsets.all(padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              MonoLabel(s.goalLabel, color: _kInkAccent, size: phone ? 11 : 12),
+              Eyebrow(s.goalLabel, size: phone ? 11 : 12),
               SizedBox(height: phone ? 16 : 22),
               Text(
                 s.buildHeadline,
                 style: interStyle(
-                  size: phone ? 30 : 36,
-                  color: Colors.white,
-                  weight: FontWeight.w800,
-                  letterSpacing: phone ? -0.8 : -1,
+                  size: phone ? 28 : 34,
+                  color: palette.ink,
+                  weight: FontWeight.w700,
+                  letterSpacing: phone ? -0.9 : -1.2,
                 ),
               ),
               SizedBox(height: phone ? 16 : 22),
@@ -101,7 +86,7 @@ class _InkCard extends StatelessWidget {
                 s.buildParagraph,
                 style: interStyle(
                   size: phone ? 15 : 16,
-                  color: _kInkBody,
+                  color: palette.secondary,
                   height: phone ? 1.55 : 1.6,
                 ),
               ),
@@ -151,6 +136,7 @@ class _GoalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final phone = isPhone(context);
+    final palette = paletteOf(context);
     return Container(
       padding: EdgeInsets.symmetric(vertical: phone ? 12 : 14),
       decoration: BoxDecoration(
@@ -163,7 +149,7 @@ class _GoalRow extends StatelessWidget {
             padding: const EdgeInsets.only(top: 3),
             child: Text(
               index.toString().padLeft(2, '0'),
-              style: monoStyle(size: phone ? 11 : 12, color: _kInkAccent),
+              style: monoStyle(size: phone ? 11 : 12, color: palette.tertiary),
             ),
           ),
           SizedBox(width: phone ? 14 : 16),
@@ -175,14 +161,14 @@ class _GoalRow extends StatelessWidget {
                   title,
                   style: interStyle(
                     size: phone ? 15 : 16,
-                    color: Colors.white,
+                    color: palette.ink,
                     weight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   body,
-                  style: interStyle(size: 14, color: _kInkMuted, height: 1.5),
+                  style: interStyle(size: 14, color: palette.tertiary, height: 1.5),
                 ),
               ],
             ),
@@ -200,12 +186,13 @@ class _TutoringPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = stringsOf(context);
     final phone = isPhone(context);
+    final palette = paletteOf(context);
     return Container(
-      padding: EdgeInsets.all(phone ? 18 : 22),
+      padding: EdgeInsets.all(phone ? 16 : 20),
       decoration: BoxDecoration(
-        color: _kInkBg.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(phone ? 16 : 18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: palette.altBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: palette.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,14 +202,14 @@ class _TutoringPanel extends StatelessWidget {
             s.tutoringTitle,
             style: interStyle(
               size: phone ? 16 : 17,
-              color: Colors.white,
+              color: palette.ink,
               weight: FontWeight.w600,
             ),
           ),
           SizedBox(height: phone ? 10 : 12),
           Text(
             s.tutoringParagraph,
-            style: interStyle(size: 14, color: _kInkMuted, height: 1.55),
+            style: interStyle(size: 14, color: palette.tertiary, height: 1.55),
           ),
           SizedBox(height: phone ? 10 : 12),
           Wrap(
@@ -232,11 +219,11 @@ class _TutoringPanel extends StatelessWidget {
               for (final tag in [s.tagPatience, s.tagEmpathy, s.tagTeamPlayer])
                 Pill(
                   tag,
-                  background: Colors.transparent,
-                  color: _kInkTagText,
-                  borderColor: _kInkAccent.withValues(alpha: 0.35),
-                  vertical: phone ? 5 : 6,
-                  horizontal: phone ? 10 : 12,
+                  background: palette.raised,
+                  color: palette.secondary,
+                  borderColor: palette.line,
+                  vertical: phone ? 4 : 5,
+                  horizontal: phone ? 10 : 11,
                 ),
             ],
           ),
@@ -246,7 +233,7 @@ class _TutoringPanel extends StatelessWidget {
   }
 }
 
-/// Faint dot grid behind the goal card, like the page of a dot-grid notebook.
+/// Faint dot grid behind the goal card: the same canvas the app's graph uses.
 class _DotGridPainter extends CustomPainter {
   const _DotGridPainter({required this.color, required this.step});
 
@@ -258,7 +245,7 @@ class _DotGridPainter extends CustomPainter {
     final paint = Paint()..color = color;
     for (var y = step / 2; y < size.height; y += step) {
       for (var x = step / 2; x < size.width; x += step) {
-        canvas.drawCircle(Offset(x, y), 0.6, paint);
+        canvas.drawCircle(Offset(x, y), 1.1, paint);
       }
     }
   }
@@ -276,76 +263,78 @@ class _LeatherCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = stringsOf(context);
+    final palette = paletteOf(context);
     final phone = isPhone(context);
     final width = MediaQuery.sizeOf(context).width;
-    final padding = phone ? 18.0 : (width * 0.03).clamp(18.0, 34.0);
-    return Container(
-      padding: EdgeInsets.all(phone ? 8 : 10),
-      decoration: BoxDecoration(
-        color: _kLeatherBg,
-        borderRadius: BorderRadius.circular(phone ? 22 : 28),
+    final padding = phone ? 20.0 : (width * 0.03).clamp(24.0, 40.0);
+    // Dashed lavender outline on a faint lavender fill: the app's "AI
+    // suggestion" card, standing in for the old stitched-leather seam.
+    return CustomPaint(
+      foregroundPainter: DashedRRectPainter(
+        color: palette.aiLine,
+        radius: 12,
       ),
-      child: CustomPaint(
-        // The stitched seam, drawn just inside the patch's edge.
-        painter: _DashedRRectPainter(
-          color: _kLeatherStitch.withValues(alpha: 0.55),
-          radius: phone ? 16 : 22,
+      child: Container(
+        padding: EdgeInsets.all(padding),
+        decoration: BoxDecoration(
+          color: palette.aiFaint,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(padding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        MonoLabel(
-                          s.hobbyLabel,
-                          color: _kLeatherAccent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s.hobbyLabel,
+                        style: monoStyle(
                           size: phone ? 11 : 12,
+                          color: palette.accent,
+                          weight: FontWeight.w500,
+                          letterSpacing: 0.9,
                         ),
-                        SizedBox(height: phone ? 16 : 22),
-                        Text(
-                          s.craftHeadline,
-                          style: interStyle(
-                            size: phone ? 30 : 36,
-                            color: _kLeatherHeading,
-                            weight: FontWeight.w800,
-                            letterSpacing: phone ? -0.8 : -1,
-                          ),
+                      ),
+                      SizedBox(height: phone ? 16 : 22),
+                      Text(
+                        s.craftHeadline,
+                        style: interStyle(
+                          size: phone ? 28 : 34,
+                          color: palette.ink,
+                          weight: FontWeight.w700,
+                          letterSpacing: phone ? -0.9 : -1.2,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  _BenchPhoto(size: phone ? 72 : 88),
-                ],
-              ),
-              SizedBox(height: phone ? 16 : 22),
-              Text(
-                s.craftParagraph,
-                style: interStyle(
-                  size: phone ? 15 : 16,
-                  color: _kLeatherBody,
-                  height: phone ? 1.55 : 1.6,
                 ),
+                const SizedBox(width: 12),
+                _BenchPhoto(size: phone ? 72 : 88),
+              ],
+            ),
+            SizedBox(height: phone ? 16 : 22),
+            Text(
+              s.craftParagraph,
+              style: interStyle(
+                size: phone ? 15 : 16,
+                color: palette.secondary,
+                height: phone ? 1.55 : 1.6,
               ),
-              SizedBox(height: phone ? 16 : 22),
-              MonoLabel(
-                phone ? s.pastPiecesSwipeLabel : s.pastPiecesLabel,
-                color: _kLeatherAccent,
-                size: phone ? 11 : 12,
-              ),
-              SizedBox(height: phone ? 16 : 22),
-              phone ? const _PiecesStrip() : const _PiecesGrid(),
-            ],
-          ),
+            ),
+            SizedBox(height: phone ? 16 : 22),
+            MonoLabel(
+              phone ? s.pastPiecesSwipeLabel : s.pastPiecesLabel,
+              size: phone ? 11 : 12,
+            ),
+            SizedBox(height: phone ? 16 : 22),
+            phone ? const _PiecesStrip() : const _PiecesGrid(),
+          ],
         ),
       ),
     );
@@ -361,20 +350,21 @@ class _BenchPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final phone = size < 80;
+    final palette = paletteOf(context);
     return SizedBox(
       width: size,
       height: size,
       child: CustomPaint(
         painter: _DashedCirclePainter(
-          color: _kLeatherAccent.withValues(alpha: 0.6),
+          color: palette.aiLine,
         ),
         child: Center(
           child: Text(
             phone ? stringsOf(context).photoPlaceholder : stringsOf(context).photoAtTheBench,
             textAlign: TextAlign.center,
-            style: interStyle(
+            style: monoStyle(
               size: phone ? 10 : 11,
-              color: _kLeatherAccent,
+              color: palette.accent,
               height: 1.3,
             ),
           ),
@@ -408,23 +398,25 @@ class _PieceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = paletteOf(context);
     final label = Text(
       _pieceTitle(languageOf(context), piece),
       style: interStyle(
         size: 13,
-        color: _kLeatherLabel,
+        color: palette.ink2,
         weight: FontWeight.w500,
       ),
     );
     final tile = Container(
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: _kLeatherTile,
-        borderRadius: BorderRadius.circular(height == null ? 14 : 12),
+        color: palette.raised,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: palette.line),
       ),
       child: Text(
         stringsOf(context).photoPlaceholder,
-        style: monoStyle(size: 11, color: _kLeatherTileText),
+        style: monoStyle(size: 11, color: palette.tertiary),
       ),
     );
     return Column(
@@ -488,25 +480,6 @@ class _PiecesStrip extends StatelessWidget {
   }
 }
 
-/// A dashed rounded rectangle just inside its box — the stitched seam.
-class _DashedRRectPainter extends CustomPainter {
-  const _DashedRRectPainter({required this.color, required this.radius});
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = (Offset.zero & size).deflate(1);
-    final path = Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)));
-    _drawDashed(canvas, path, color);
-  }
-
-  @override
-  bool shouldRepaint(_DashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
-}
-
 class _DashedCirclePainter extends CustomPainter {
   const _DashedCirclePainter({required this.color});
 
@@ -524,12 +497,12 @@ class _DashedCirclePainter extends CustomPainter {
 }
 
 void _drawDashed(Canvas canvas, Path path, Color color) {
-  const dash = 6.0;
+  const dash = 5.0;
   const gap = 4.0;
   final paint = Paint()
     ..color = color
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2;
+    ..strokeWidth = 1.2;
   for (final PathMetric metric in path.computeMetrics()) {
     var distance = 0.0;
     while (distance < metric.length) {

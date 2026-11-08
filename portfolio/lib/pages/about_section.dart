@@ -16,8 +16,31 @@ class AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    final palette = paletteOf(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: palette.line)),
+      ),
+      // The app's graph canvas as a hero backdrop: a quiet dot grid that
+      // fades away from the top centre.
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: DotGridPainter(color: palette.canvasDot),
+              ),
+            ),
+          ),
+          _content(context, width),
+        ],
+      ),
+    );
+  }
+
+  Widget _content(BuildContext context, double width) {
     return PageSection(
-      topPadding: isPhone(context) ? 40 : (width * 0.09).clamp(56.0, 120.0),
+      topPadding: isPhone(context) ? 40 : (width * 0.08).clamp(56.0, 104.0),
       bottomPadding: isPhone(context) ? 48 : 56,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -66,18 +89,19 @@ class _Intro extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     final width = MediaQuery.sizeOf(context).width;
-    final headline = phone ? 44.0 : (width * 0.064).clamp(44.0, 88.0);
+    final headline = phone ? 40.0 : (width * 0.05).clamp(44.0, 68.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: EdgeInsets.symmetric(
-            horizontal: phone ? 12 : 14,
-            vertical: phone ? 7 : 8,
+            horizontal: phone ? 12 : 13,
+            vertical: phone ? 6 : 7,
           ),
           decoration: BoxDecoration(
+            color: palette.aiFaint,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: palette.surface(0.14)),
+            border: Border.all(color: palette.aiLine),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -94,9 +118,10 @@ class _Intro extends StatelessWidget {
               Flexible(
                 child: Text(
                   s.openToInternships,
-                  style: interStyle(
-                    size: phone ? 12 : 13,
-                    color: palette.ink.withValues(alpha: 0.82),
+                  style: monoStyle(
+                    size: phone ? 11.5 : 12.5,
+                    color: palette.accent,
+                    weight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -109,9 +134,9 @@ class _Intro extends StatelessWidget {
           style: interStyle(
             size: headline,
             color: palette.ink,
-            weight: FontWeight.w800,
-            height: 1.02,
-            letterSpacing: phone ? -1.6 : -2.4,
+            weight: FontWeight.w700,
+            height: 1.04,
+            letterSpacing: -headline * 0.035,
           ),
         ),
         Padding(
@@ -124,9 +149,9 @@ class _Intro extends StatelessWidget {
               // the headline when the column is only ~500px wide.
               size: (headline * 0.68).roundToDouble(),
               color: palette.muted,
-              weight: FontWeight.w800,
+              weight: FontWeight.w700,
               height: 1.1,
-              letterSpacing: phone ? -0.9 : -1.6,
+              letterSpacing: -headline * 0.68 * 0.035,
             ),
           ),
         ),
@@ -136,7 +161,7 @@ class _Intro extends StatelessWidget {
           child: Text(
             s.aboutBio,
             style: interStyle(
-              size: phone ? 16 : (width * 0.015).clamp(17.0, 20.0),
+              size: phone ? 16 : (width * 0.0125).clamp(16.0, 18.0),
               color: palette.secondary,
               height: 1.55,
             ),
@@ -210,11 +235,11 @@ class _StackPanel extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     return Container(
-      padding: EdgeInsets.all(phone ? 20 : 28),
+      padding: EdgeInsets.all(phone ? 18 : 24),
       decoration: BoxDecoration(
         color: palette.panel,
-        borderRadius: BorderRadius.circular(phone ? 20 : 24),
-        border: Border.all(color: palette.surface(0.08)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: palette.line),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -229,14 +254,15 @@ class _StackPanel extends StatelessWidget {
                   style: monoStyle(
                     size: phone ? 11 : 12,
                     color: palette.tertiary,
-                    letterSpacing: 1.2,
+                    weight: FontWeight.w500,
+                    letterSpacing: 0.9,
                   ),
                 ),
               ),
               if (!phone)
                 Text(
                   _tools.length.toString().padLeft(2, '0'),
-                  style: monoStyle(size: 12, color: palette.muted),
+                  style: monoStyle(size: 11.5, color: palette.accent),
                 ),
             ],
           ),
@@ -265,9 +291,9 @@ class _ToolChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(phone ? 10 : 14),
       decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: BorderRadius.circular(phone ? 12 : 14),
-        border: palette.dark ? null : Border.all(color: palette.surface(0.06)),
+        color: palette.raised,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: palette.line),
       ),
       child: Row(
         children: [
@@ -276,12 +302,13 @@ class _ToolChip extends StatelessWidget {
             height: badge,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: palette.surface(0.06),
-              borderRadius: BorderRadius.circular(phone ? 8 : 10),
+              color: palette.panel,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: palette.line),
             ),
             child: Text(
               tool.badge,
-              style: monoStyle(size: phone ? 11 : 12, color: palette.accent),
+              style: monoStyle(size: phone ? 11 : 12, color: palette.ink2),
             ),
           ),
           SizedBox(width: phone ? 10 : 12),
@@ -329,7 +356,7 @@ class _Path extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.only(left: 20),
         decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: palette.surface(0.14))),
+          border: Border(left: BorderSide(color: palette.lineStrong)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +372,7 @@ class _Path extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(top: 32),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: palette.surface(0.1))),
+        border: Border(top: BorderSide(color: palette.line)),
       ),
       child: AutoFitGrid(minItemWidth: 220, spacing: 28, children: steps),
     );

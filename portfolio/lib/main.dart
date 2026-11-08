@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:portfolio/i18n/app_language.dart';
 import 'package:portfolio/pages/home.dart';
+import 'package:portfolio/theme/palette.dart';
 import 'package:portfolio/theme/theme_controller.dart';
 
 void main() => runApp(const MyApp());
@@ -44,17 +45,36 @@ class _MyAppState extends State<MyApp> {
           builder: (context, _) => MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Samuel Rosengarten',
-            theme: ThemeData(
-              brightness: _controller.isDark ? Brightness.dark : Brightness.light,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple,
-                brightness: _controller.isDark ? Brightness.dark : Brightness.light,
-              ),
-            ),
+            theme: _themeFor(AppPalette(dark: _controller.isDark)),
             home: const Home(),
           ),
         ),
       ),
     );
   }
+}
+
+/// Material theme derived from the Synapse OS tokens in `palette.dart`, so the
+/// stock widgets (the nav drawer, tooltips, ripples) match the rest of the
+/// site instead of showing Material's default purple.
+ThemeData _themeFor(AppPalette p) {
+  final brightness = p.dark ? Brightness.dark : Brightness.light;
+  return ThemeData(
+    brightness: brightness,
+    useMaterial3: true,
+    scaffoldBackgroundColor: p.bg,
+    canvasColor: p.altBg,
+    dividerColor: p.line,
+    hoverColor: p.hover,
+    splashFactory: NoSplash.splashFactory,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: p.accent,
+      brightness: brightness,
+    ).copyWith(
+      primary: p.accent,
+      onPrimary: p.onAccent,
+      surface: p.card,
+      onSurface: p.ink,
+    ),
+  );
 }

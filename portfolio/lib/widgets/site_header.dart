@@ -50,7 +50,7 @@ class SiteHeader extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: palette.bg.withValues(alpha: 0.94),
-        border: Border(bottom: BorderSide(color: palette.surface(0.08))),
+        border: Border(bottom: BorderSide(color: palette.line)),
       ),
       child: SafeArea(
         bottom: false,
@@ -114,23 +114,7 @@ class _Logo extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: phone ? 30 : 32,
-              height: phone ? 30 : 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: palette.accent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'SR',
-                style: monoStyle(
-                  size: phone ? 12 : 13,
-                  color: palette.onAccent,
-                  weight: FontWeight.w500,
-                ),
-              ),
-            ),
+            SynapseMark(size: phone ? 28 : 30),
             const SizedBox(width: 10),
             Text(
               phone ? 'Samuel' : 'Samuel Rosengarten',
@@ -138,7 +122,7 @@ class _Logo extends StatelessWidget {
                 size: 15,
                 color: palette.ink,
                 weight: FontWeight.w700,
-                letterSpacing: -0.2,
+                letterSpacing: -0.3,
               ),
             ),
           ],
@@ -156,7 +140,7 @@ class _MenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.menu, color: paletteOf(context).ink.withValues(alpha: 0.87)),
+      icon: Icon(Icons.menu, color: paletteOf(context).secondary),
       tooltip: stringsOf(context).openNavigation,
       onPressed: () => Scaffold.of(context).openDrawer(),
     );
@@ -177,7 +161,7 @@ class _ThemeToggleButton extends StatelessWidget {
     return IconButton(
       icon: Icon(
         controller.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-        color: palette.ink.withValues(alpha: 0.87),
+        color: palette.secondary,
         size: 20,
       ),
       tooltip: controller.isDark ? s.switchToLightMode : s.switchToDarkMode,
@@ -201,11 +185,11 @@ class _LanguageToggleButton extends StatelessWidget {
     return IconButton(
       icon: Text(
         togglesToFrench ? 'FR' : 'EN',
-        style: interStyle(
+        style: monoStyle(
           size: 12,
-          color: palette.ink.withValues(alpha: 0.87),
-          weight: FontWeight.w700,
-          letterSpacing: 0.4,
+          color: palette.secondary,
+          weight: FontWeight.w500,
+          letterSpacing: 0.6,
         ),
       ),
       tooltip: togglesToFrench ? s.switchToFrench : s.switchToEnglish,
@@ -262,8 +246,15 @@ class _HeaderItemState extends State<_HeaderItem> {
 
   @override
   Widget build(BuildContext context) {
-    final ink = paletteOf(context).ink;
-    final emphasis = widget.selected ? 1.0 : (_hovering ? 0.9 : 0.65);
+    final palette = paletteOf(context);
+    // Same treatment as the app's sidebar rows: muted text, a raised fill on
+    // hover, and full-strength text on the current section.
+    final fg = widget.selected
+        ? palette.ink
+        : (_hovering ? palette.ink2 : palette.secondary);
+    final fill = widget.selected
+        ? palette.raised
+        : (_hovering ? palette.hover : Colors.transparent);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
@@ -272,15 +263,22 @@ class _HeaderItemState extends State<_HeaderItem> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: AnimatedDefaultTextStyle(
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
+          child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
-            style: interStyle(
-              size: 14,
-              color: ink.withValues(alpha: emphasis),
-              weight: widget.selected ? FontWeight.w600 : FontWeight.w400,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: fill,
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(widget.label),
+            child: Text(
+              widget.label,
+              style: interStyle(
+                size: 13.5,
+                color: fg,
+                weight: widget.selected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),
@@ -302,7 +300,7 @@ class _JumpBar extends StatelessWidget {
     final lang = languageOf(context);
     return Container(
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: palette.surface(0.06))),
+        border: Border(top: BorderSide(color: palette.line)),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -345,15 +343,17 @@ class _JumpPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? palette.ink : palette.card,
+          color: selected ? palette.raised : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
-          border: selected ? null : Border.all(color: palette.surface(0.06)),
+          border: Border.all(
+            color: selected ? palette.lineStrong : palette.line,
+          ),
         ),
         child: Text(
           label,
           style: interStyle(
             size: 13,
-            color: selected ? palette.bg : palette.ink,
+            color: selected ? palette.ink : palette.secondary,
             weight: selected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -377,7 +377,7 @@ class NavDrawer extends StatelessWidget {
     final palette = paletteOf(context);
     final lang = languageOf(context);
     return Drawer(
-      backgroundColor: palette.dark ? kDarkPanelBg : Colors.white,
+      backgroundColor: palette.altBg,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,11 +387,11 @@ class NavDrawer extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'MENU',
-                style: interStyle(
-                  size: 12,
-                  color: palette.ink.withValues(alpha: 0.4),
-                  weight: FontWeight.w600,
-                  letterSpacing: 1.4,
+                style: monoStyle(
+                  size: 11,
+                  color: palette.tertiary,
+                  weight: FontWeight.w500,
+                  letterSpacing: 1.2,
                 ),
               ),
             ),
@@ -401,10 +401,10 @@ class NavDrawer extends StatelessWidget {
                 title: Text(
                   navLabel(lang, section),
                   style: interStyle(
-                    size: 19,
+                    size: 18,
                     color: palette.ink,
                     weight: FontWeight.w500,
-                    letterSpacing: -0.2,
+                    letterSpacing: -0.3,
                   ),
                 ),
                 onTap: () {
