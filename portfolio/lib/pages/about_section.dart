@@ -89,16 +89,32 @@ class _Intro extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Pill(
-              s.openToInternships,
-              background: palette.card,
-              color: palette.ink2,
-              borderColor: palette.line,
-              dot: true,
-              dotColor: palette.ok,
-              size: phone ? 13 : 14,
-              horizontal: 14,
-              vertical: 7,
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                Pill(
+                  s.openToInternships,
+                  background: palette.card,
+                  color: palette.ink2,
+                  borderColor: palette.line,
+                  dot: true,
+                  dotColor: palette.ok,
+                  size: phone ? 13 : 14,
+                  horizontal: 14,
+                  vertical: 7,
+                ),
+                Pill(
+                  s.founderPill,
+                  background: palette.accent.withValues(alpha: 0.10),
+                  color: palette.accent,
+                  borderColor: palette.accent.withValues(alpha: 0.5),
+                  dot: true,
+                  size: phone ? 13 : 14,
+                  horizontal: 14,
+                  vertical: 7,
+                ),
+              ],
             ),
             SizedBox(height: phone ? 22 : 28),
             FitHeadline(s.heroTagline, size: headline, color: palette.ink),

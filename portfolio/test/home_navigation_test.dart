@@ -39,6 +39,8 @@ void main() {
     expect(find.byType(HobbiesSection), findsOneWidget);
     expect(find.byType(ContactSection), findsOneWidget);
     expect(find.text("Hi, I'm Samuel."), findsOneWidget);
+    expect(find.text('Founder, Synapse OS'), findsOneWidget);
+    expect(find.text('BUILT AS A BUSINESS'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

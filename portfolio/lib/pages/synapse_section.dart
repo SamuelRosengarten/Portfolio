@@ -69,6 +69,8 @@ class SynapseSection extends StatelessWidget {
           const _IphoneGallery(),
           SizedBox(height: phone ? 56 : 96),
           const _MacBlock(),
+          SizedBox(height: phone ? 56 : 96),
+          const _BusinessCard(),
         ],
       ),
     );
@@ -466,6 +468,116 @@ class _MacBlock extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// The founder's side of Synapse OS: how it is run as a business.
+class _BusinessCard extends StatelessWidget {
+  const _BusinessCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    final s = stringsOf(context);
+    final phone = isPhone(context);
+    final lead = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          s.businessTitle.toUpperCase(),
+          style: displayStyle(size: phone ? 38 : 48, color: palette.ink),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          s.businessLead,
+          style: bodyStyle(size: 16, color: palette.secondary, height: 1.6),
+        ),
+      ],
+    );
+    final facts = AutoFitGrid(
+      minItemWidth: 180,
+      spacing: 28,
+      runSpacing: 24,
+      children: [
+        _Fact(s.businessModelTitle, s.businessModelBody),
+        _Fact(s.businessPrivacyTitle, s.businessPrivacyBody),
+        _Fact(s.businessLaunchTitle, s.businessLaunchBody),
+      ],
+    );
+    return Container(
+      padding: EdgeInsets.all(phone ? 22 : 40),
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: palette.line),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= 960) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 340, child: lead),
+                const SizedBox(width: 56),
+                Expanded(child: facts),
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              lead,
+              SizedBox(height: phone ? 24 : 32),
+              facts,
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// One business fact, under a straw rule (the founder's colour, not
+/// Synapse lavender).
+class _Fact extends StatelessWidget {
+  const _Fact(this.title, this.body);
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Container(
+      padding: const EdgeInsets.only(top: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: palette.accent.withValues(alpha: 0.6),
+            width: 2,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: bodyStyle(
+              size: 17,
+              color: palette.ink,
+              weight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            body,
+            style: bodyStyle(size: 15, color: palette.secondary, height: 1.55),
+          ),
+        ],
+      ),
     );
   }
 }

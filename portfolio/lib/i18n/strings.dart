@@ -40,11 +40,17 @@ class Strings {
             "à la recherche d'un stage en mars 2027 qui mènera à mon premier "
             "emploi de développeur junior. Avant le code, c'était la "
             "soudure et la mécanique — j'ai gardé la même exigence de bien "
-            "faire le travail."
+            "faire le travail. Aujourd'hui, je bâtis aussi mon propre "
+            "produit, Synapse OS, du code jusqu'à la page des prix."
       : 'Computer programming student at Cégep Édouard-Montpetit, looking '
             'for an internship in March 2027 that leads to my first job as '
             'a junior developer. Before code it was welding and mechanics — '
-            'I kept the same insistence on doing the work properly.';
+            'I kept the same insistence on doing the work properly. Today '
+            "I'm also building my own product, Synapse OS, from the code to "
+            'the pricing page.';
+
+  String get founderPill =>
+      _fr ? 'Fondateur, Synapse OS' : 'Founder, Synapse OS';
 
   String get seeSynapse => _fr ? 'Voir Synapse OS' : 'See Synapse OS';
   String get getInTouch => _fr ? 'Me contacter' : 'Get in touch';
@@ -182,6 +188,39 @@ class Strings {
       ? "Synapse sur Mac et sur iPhone : l'écran Aujourd'hui"
       : 'Synapse on Mac and iPhone: the Today screen';
 
+  String get businessTitle =>
+      _fr ? 'Bâti comme une entreprise' : 'Built as a business';
+  String get businessLead => _fr
+      ? "Je mène Synapse OS de bout en bout comme fondateur : le produit, le "
+            "design, le code, la sortie sur l'App Store, les prix et la "
+            "politique de confidentialité."
+      : 'I run Synapse OS end to end as its founder: the product, the '
+            'design, the code, the App Store release, the pricing and the '
+            'privacy policy.';
+  String get businessModelTitle =>
+      _fr ? 'Un modèle d\'affaires simple' : 'A simple business model';
+  String get businessModelBody => _fr
+      ? "Gratuit pour les équipes de 3 personnes ou moins. Le forfait Équipe "
+            "coûte 8 \$ CA par personne, par mois."
+      : 'Free for teams of up to 3 people. The Team plan is 8 CAD per '
+            'person, per month.';
+  String get businessPrivacyTitle =>
+      _fr ? 'La confidentialité est le produit' : 'Privacy is the product';
+  String get businessPrivacyBody => _fr
+      ? "Données hébergées à Montréal, conçu autour de la Loi 25 du Québec et "
+            "de la LPRPDE. L'IA tourne sur les appareils des gens : elle ne "
+            "coûte rien à servir."
+      : "Data hosted in Montréal and designed around Québec's Law 25 and "
+            "PIPEDA. The AI runs on people's own devices, so it costs nothing "
+            'to serve.';
+  String get businessLaunchTitle =>
+      _fr ? 'En route vers le lancement' : 'On the way to launch';
+  String get businessLaunchBody => _fr
+      ? "Bêta sur invitation à app.synapse-os.ca, et les apps iPhone, iPad et "
+            "Mac en préparation pour l'App Store."
+      : 'Invite-only beta at app.synapse-os.ca, with the iPhone, iPad and '
+            'Mac apps being prepared for the App Store.';
+
   // Work ---------------------------------------------------------------------
 
   String get tagVsCodeExtension =>
@@ -209,12 +248,12 @@ class Strings {
   String get contactHeadline => _fr ? 'Discutons.' : "Let's talk.";
 
   String get contactSubhead => _fr
-      ? "À la recherche d'un stage en mars 2027 — aussi ouvert aux "
-            "collaborations, ou simplement à discuter de ce que vous "
-            "construisez."
-      : 'Looking for an internship in March 2027 — also open to '
-            'collaborations, or a conversation about something you are '
-            'building.';
+      ? "À la recherche d'un stage en mars 2027 — et toujours partant pour "
+            "parler de création de produit, d'une collaboration ou de ce que "
+            "vous construisez."
+      : 'Looking for an internship in March 2027 — and always happy to talk '
+            'about building a product, a collaboration, or something you are '
+            'working on.';
 
   String get locationLabel => _fr ? 'Localisation' : 'Location';
   String get builtWithFlutter =>
