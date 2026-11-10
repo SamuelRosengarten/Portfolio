@@ -2,97 +2,103 @@ import 'package:flutter/material.dart';
 
 import 'theme_controller.dart';
 
-/// The Synapse OS design tokens, ported from the app's `src/styles/tokens.css`
-/// so the portfolio and the app read as one product: quiet graphite surfaces,
-/// hairline borders, lavender reserved for AI/links, and status colours that
-/// only ever mean state. Dark is the default; light mirrors the app's light
-/// theme. Change colours here, not in the sections.
+/// The "Tempered steel" design tokens. They mirror the `Tempered steel`
+/// variable collection in the Figma file
+/// (https://www.figma.com/design/OGWIDIf19lEsgXTltUo4sq), which has one Dark
+/// and one Light mode: blued-steel darks, a brushed-steel light mode, a straw
+/// accent taken from the first temper colour, and Synapse lavender kept only
+/// for the Synapse OS showcase. Change colours here, not in the sections.
 class _Tokens {
   const _Tokens({
     required this.bg,
-    required this.side,
-    required this.panel,
+    required this.band,
+    required this.card,
     required this.raised,
     required this.hover,
     required this.line,
-    required this.line2,
-    required this.text,
-    required this.text2,
+    required this.lineStrong,
+    required this.ink,
+    required this.ink2,
+    required this.secondary,
+    required this.tertiary,
     required this.muted,
-    required this.faint,
-    required this.dim,
-    required this.canvasDot,
+    required this.accent,
+    required this.onAccent,
     required this.ai,
-    required this.aiFg,
-    required this.due,
     required this.ok,
-    required this.bad,
-    required this.info,
+    required this.temper,
   });
 
   final Color bg;
-  final Color side;
-  final Color panel;
+  final Color band;
+  final Color card;
   final Color raised;
   final Color hover;
   final Color line;
-  final Color line2;
-  final Color text;
-  final Color text2;
+  final Color lineStrong;
+  final Color ink;
+  final Color ink2;
+  final Color secondary;
+  final Color tertiary;
   final Color muted;
-  final Color faint;
-  final Color dim;
-  final Color canvasDot;
+  final Color accent;
+  final Color onAccent;
   final Color ai;
-  final Color aiFg;
-  final Color due;
   final Color ok;
-  final Color bad;
-  final Color info;
+
+  /// The heat tint of tempered steel, straw to blue: the site's one
+  /// signature element (the bead under the headlines, the logo tile).
+  final List<Color> temper;
 }
 
 const _dark = _Tokens(
-  bg: Color(0xFF0A0C10),
-  side: Color(0xFF0D1015),
-  panel: Color(0xFF11151B),
-  raised: Color(0xFF171C24),
-  hover: Color(0xFF1D232D),
-  line: Color(0xFF252C37),
-  line2: Color(0xFF3A4352),
-  text: Color(0xFFEEF0F4),
-  text2: Color(0xFFDFE3EA),
-  muted: Color(0xFFA6AFBD),
-  faint: Color(0xFF8B95A6),
-  dim: Color(0xFF6B7586),
-  canvasDot: Color(0xFF181D26),
+  bg: Color(0xFF0D131C),
+  band: Color(0xFF111925),
+  card: Color(0xFF162130),
+  raised: Color(0xFF1C2A3B),
+  hover: Color(0xFF213246),
+  line: Color(0xFF24344A),
+  lineStrong: Color(0xFF3A4F68),
+  ink: Color(0xFFEEF2F7),
+  ink2: Color(0xFFD7DEE8),
+  secondary: Color(0xFFA3B0C2),
+  tertiary: Color(0xFF8494A9),
+  muted: Color(0xFF66768C),
+  accent: Color(0xFFF0B657),
+  onAccent: Color(0xFF1A1205),
   ai: Color(0xFFB9A6FF),
-  aiFg: Color(0xFF15102A),
-  due: Color(0xFFF2C277),
   ok: Color(0xFF5DD3A9),
-  bad: Color(0xFFFF9090),
-  info: Color(0xFF86B4FF),
+  temper: [
+    Color(0xFFF2C46B),
+    Color(0xFFD9853B),
+    Color(0xFFA85BC4),
+    Color(0xFF6B7FF0),
+  ],
 );
 
 const _light = _Tokens(
-  bg: Color(0xFFF7F8FA),
-  side: Color(0xFFF1F3F6),
-  panel: Color(0xFFFFFFFF),
-  raised: Color(0xFFEEF0F4),
-  hover: Color(0xFFE6E9EE),
-  line: Color(0xFFDCE0E6),
-  line2: Color(0xFFC4CAD3),
-  text: Color(0xFF14171C),
-  text2: Color(0xFF2B313A),
-  muted: Color(0xFF4A5361),
-  faint: Color(0xFF5F6978),
-  dim: Color(0xFF7A8494),
-  canvasDot: Color(0xFFD5DAE1),
+  bg: Color(0xFFEEF1F5),
+  band: Color(0xFFE4E9EF),
+  card: Color(0xFFFFFFFF),
+  raised: Color(0xFFE8EDF3),
+  hover: Color(0xFFDDE4EC),
+  line: Color(0xFFD2DAE4),
+  lineStrong: Color(0xFFB7C3D1),
+  ink: Color(0xFF0D131C),
+  ink2: Color(0xFF1F2A38),
+  secondary: Color(0xFF435064),
+  tertiary: Color(0xFF566378),
+  muted: Color(0xFF738096),
+  accent: Color(0xFF94560A),
+  onAccent: Color(0xFFFFFFFF),
   ai: Color(0xFF5B3BC4),
-  aiFg: Color(0xFFFFFFFF),
-  due: Color(0xFF7A5200),
   ok: Color(0xFF0D6444),
-  bad: Color(0xFFAB2530),
-  info: Color(0xFF2556BB),
+  temper: [
+    Color(0xFFD9A441),
+    Color(0xFFC06A26),
+    Color(0xFF8E45AE),
+    Color(0xFF4C62D8),
+  ],
 );
 
 /// Bundles the colours that flip between the site's light and dark modes, so
@@ -105,70 +111,61 @@ class AppPalette {
 
   _Tokens get _t => dark ? _dark : _light;
 
-  /// Page background (`--bg`).
+  /// Page background.
   Color get bg => _t.bg;
 
-  /// The slightly offset band behind Projects and Contact (`--side`), so the
-  /// flat sections read as separate bands on one continuous page.
-  Color get altBg => _t.side;
+  /// The slightly offset band behind the tools strip, Work and Contact, so the
+  /// sections read as separate bands on one continuous page.
+  Color get altBg => _t.band;
 
-  /// Card / panel fill (`--panel`).
-  Color get card => _t.panel;
-  Color get panel => _t.panel;
-  Color get panelBg => _t.panel;
+  /// Card / panel fill.
+  Color get card => _t.card;
+  Color get panel => _t.card;
 
-  /// A step above [card] (`--raised`): chips, badges, inset tiles.
+  /// A step above [card]: chips, badges, inset tiles.
   Color get raised => _t.raised;
 
-  /// Hover fill (`--hover`).
+  /// Hover fill.
   Color get hover => _t.hover;
 
-  /// Hairline border (`--line`) and its stronger sibling (`--line2`).
+  /// Hairline border and its stronger sibling.
   Color get line => _t.line;
-  Color get lineStrong => _t.line2;
+  Color get lineStrong => _t.lineStrong;
 
-  /// Primary text (`--text`).
-  Color get ink => _t.text;
+  /// Primary text, and a slightly softer version of it.
+  Color get ink => _t.ink;
+  Color get ink2 => _t.ink2;
 
-  /// Slightly softer primary text (`--text2`).
-  Color get ink2 => _t.text2;
+  /// Body copy under a headline.
+  Color get secondary => _t.secondary;
 
-  /// Body copy under a headline (`--muted`).
-  Color get secondary => _t.muted;
+  /// Small labels and captions.
+  Color get tertiary => _t.tertiary;
 
-  /// Small labels and captions (`--faint`).
-  Color get tertiary => _t.faint;
+  /// Decorative, lowest-emphasis marks (future steps on the path).
+  Color get muted => _t.muted;
 
-  /// Decorative, lowest-emphasis text (`--dim`).
-  Color get muted => _t.dim;
+  /// Straw: links, the primary button and the current step.
+  Color get accent => _t.accent;
 
-  /// The dot-grid colour behind the hero (`--canvas-dot`).
-  Color get canvasDot => _t.canvasDot;
+  /// Text/icon colour that sits on a solid [accent] fill.
+  Color get onAccent => _t.onAccent;
 
-  /// Lavender: reserved for AI and links, exactly like the app (`--ai`).
-  Color get accent => _t.ai;
+  /// Synapse lavender, only inside the Synapse OS showcase and for AI hints,
+  /// so the product keeps its own colour.
   Color get ai => _t.ai;
-
-  /// Text/icon colour that sits on a solid [accent] fill (`--ai-fg`).
-  Color get onAccent => _t.aiFg;
-
-  /// Tinted accent text, e.g. the status pill.
-  Color get accentText => _t.ai;
-
-  /// AI-card background / border / pill fill (`--ai-bg`, `--ai-line`).
-  Color get aiBg => _t.ai.withValues(alpha: dark ? 0.12 : 0.10);
-  Color get aiFaint => _t.ai.withValues(alpha: dark ? 0.05 : 0.04);
+  Color get aiFaint => _t.ai.withValues(alpha: dark ? 0.06 : 0.05);
+  Color get aiTint => _t.ai.withValues(alpha: dark ? 0.12 : 0.10);
   Color get aiLine => _t.ai.withValues(alpha: dark ? 0.50 : 0.45);
 
-  /// Status colours. They only ever mean state, never decoration.
+  /// "Open", "Published": state, never decoration.
   Color get ok => _t.ok;
-  Color get due => _t.due;
-  Color get bad => _t.bad;
-  Color get info => _t.info;
 
-  /// A translucent fill, white-on-dark or black-on-light.
-  Color surface(double alpha) =>
-      (dark ? Colors.white : Colors.black).withValues(alpha: alpha);
+  /// The temper colours, straw to blue.
+  List<Color> get temper => _t.temper;
+
+  LinearGradient get temperGradient =>
+      LinearGradient(colors: _t.temper, stops: const [0, 0.36, 0.7, 1]);
 }
 
 AppPalette paletteOf(BuildContext context) =>

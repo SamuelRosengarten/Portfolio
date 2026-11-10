@@ -9,7 +9,7 @@ import 'section_layout.dart';
 
 /// The sections of the page, in the order they are stacked — the header renders
 /// one item per value and [Home] anchors one section to each.
-enum SiteSection { about, projects, hobbies, contact }
+enum SiteSection { about, synapse, work, beyond, contact }
 
 /// [SiteSection]'s label is small, closed data tied one-to-one to the enum
 /// itself, so it lives next to it as a plain switch rather than in the
@@ -19,8 +19,9 @@ String navLabel(AppLanguage lang, SiteSection section) {
   final fr = lang == AppLanguage.fr;
   return switch (section) {
     SiteSection.about => fr ? 'À propos' : 'About',
-    SiteSection.projects => fr ? 'Projets' : 'Projects',
-    SiteSection.hobbies => fr ? 'Loisirs' : 'Hobbies',
+    SiteSection.synapse => 'Synapse OS',
+    SiteSection.work => fr ? 'Projets' : 'Work',
+    SiteSection.beyond => fr ? 'Hors du code' : 'Beyond code',
     SiteSection.contact => 'Contact',
   };
 }
@@ -29,11 +30,7 @@ String navLabel(AppLanguage lang, SiteSection section) {
 /// theme toggles in one row. On a phone: logo, toggles and a menu button, with
 /// a horizontally scrolling jump bar of section pills underneath.
 class SiteHeader extends StatelessWidget {
-  const SiteHeader({
-    super.key,
-    required this.active,
-    required this.onSelected,
-  });
+  const SiteHeader({super.key, required this.active, required this.onSelected});
 
   /// The section currently at the top of the viewport, highlighted in the nav.
   final ValueListenable<SiteSection> active;
@@ -49,7 +46,7 @@ class SiteHeader extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: palette.bg.withValues(alpha: 0.94),
+        color: palette.bg.withValues(alpha: 0.96),
         border: Border(bottom: BorderSide(color: palette.line)),
       ),
       child: SafeArea(
@@ -66,10 +63,13 @@ class SiteHeader extends StatelessWidget {
                     right: phone ? 8 : pageGutter(width),
                   ),
                   child: SizedBox(
-                    height: phone ? 60 : 64,
+                    height: phone ? 64 : 72,
                     child: Row(
                       children: [
-                        _Logo(phone: phone, onTap: () => onSelected(SiteSection.about)),
+                        _Logo(
+                          phone: phone,
+                          onTap: () => onSelected(SiteSection.about),
+                        ),
                         if (phone)
                           const Spacer()
                         else
@@ -80,16 +80,19 @@ class SiteHeader extends StatelessWidget {
                             ),
                           ),
                         const _LanguageToggleButton(),
+                        const SizedBox(width: 6),
                         const _ThemeToggleButton(),
-                        if (phone) const _MenuButton(),
+                        if (phone) ...[
+                          const SizedBox(width: 6),
+                          const _MenuButton(),
+                        ],
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-            if (phone)
-              _JumpBar(active: active, onSelected: onSelected),
+            if (phone) _JumpBar(active: active, onSelected: onSelected),
           ],
         ),
       ),
@@ -114,15 +117,14 @@ class _Logo extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SynapseMark(size: phone ? 28 : 30),
-            const SizedBox(width: 10),
+            InitialsMark(size: phone ? 32 : 36),
+            const SizedBox(width: 12),
             Text(
               phone ? 'Samuel' : 'Samuel Rosengarten',
-              style: interStyle(
-                size: 15,
+              style: bodyStyle(
+                size: 16,
                 color: palette.ink,
-                weight: FontWeight.w700,
-                letterSpacing: -0.3,
+                weight: FontWeight.w600,
               ),
             ),
           ],
@@ -139,10 +141,10 @@ class _MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.menu, color: paletteOf(context).secondary),
+    return _RoundButton(
       tooltip: stringsOf(context).openNavigation,
       onPressed: () => Scaffold.of(context).openDrawer(),
+      child: Icon(Icons.menu, color: paletteOf(context).ink2, size: 20),
     );
   }
 }
@@ -158,14 +160,16 @@ class _ThemeToggleButton extends StatelessWidget {
     final controller = AppTheme.of(context);
     final palette = paletteOf(context);
     final s = stringsOf(context);
-    return IconButton(
-      icon: Icon(
-        controller.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-        color: palette.secondary,
-        size: 20,
-      ),
+    return _RoundButton(
       tooltip: controller.isDark ? s.switchToLightMode : s.switchToDarkMode,
       onPressed: controller.toggle,
+      child: Icon(
+        controller.isDark
+            ? Icons.light_mode_outlined
+            : Icons.dark_mode_outlined,
+        color: palette.ink2,
+        size: 18,
+      ),
     );
   }
 }
@@ -182,18 +186,46 @@ class _LanguageToggleButton extends StatelessWidget {
     final palette = paletteOf(context);
     final s = stringsOf(context);
     final togglesToFrench = controller.language == AppLanguage.en;
-    return IconButton(
-      icon: Text(
-        togglesToFrench ? 'FR' : 'EN',
-        style: monoStyle(
-          size: 12,
-          color: palette.secondary,
-          weight: FontWeight.w500,
-          letterSpacing: 0.6,
-        ),
-      ),
+    return _RoundButton(
       tooltip: togglesToFrench ? s.switchToFrench : s.switchToEnglish,
       onPressed: controller.toggle,
+      child: Text(
+        togglesToFrench ? 'FR' : 'EN',
+        style: bodyStyle(
+          size: 13,
+          color: palette.ink2,
+          weight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// The header's round, outlined icon button.
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    required this.tooltip,
+    required this.onPressed,
+    required this.child,
+  });
+
+  final String tooltip;
+  final VoidCallback onPressed;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: child,
+      style: IconButton.styleFrom(
+        fixedSize: const Size(42, 42),
+        minimumSize: const Size(42, 42),
+        shape: CircleBorder(side: BorderSide(color: palette.line)),
+        hoverColor: palette.hover,
+      ),
     );
   }
 }
@@ -247,14 +279,11 @@ class _HeaderItemState extends State<_HeaderItem> {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    // Same treatment as the app's sidebar rows: muted text, a raised fill on
-    // hover, and full-strength text on the current section.
+    // Muted text that lifts on hover; the current section gets full-strength
+    // text and a short straw rule underneath.
     final fg = widget.selected
         ? palette.ink
         : (_hovering ? palette.ink2 : palette.secondary);
-    final fill = widget.selected
-        ? palette.raised
-        : (_hovering ? palette.hover : Colors.transparent);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovering = true),
@@ -263,22 +292,30 @@ class _HeaderItemState extends State<_HeaderItem> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: fill,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              widget.label,
-              style: interStyle(
-                size: 13.5,
-                color: fg,
-                weight: widget.selected ? FontWeight.w600 : FontWeight.w500,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                widget.label,
+                style: bodyStyle(
+                  size: 15,
+                  color: fg,
+                  weight: widget.selected ? FontWeight.w600 : FontWeight.w500,
+                ),
               ),
-            ),
+              const SizedBox(height: 4),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                height: 2,
+                width: widget.selected ? 18 : 0,
+                decoration: BoxDecoration(
+                  color: palette.accent,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -351,8 +388,8 @@ class _JumpPill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: interStyle(
-            size: 13,
+          style: bodyStyle(
+            size: 13.5,
             color: selected ? palette.ink : palette.secondary,
             weight: selected ? FontWeight.w600 : FontWeight.w500,
           ),
@@ -383,29 +420,21 @@ class NavDrawer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 28),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'MENU',
-                style: monoStyle(
-                  size: 11,
-                  color: palette.tertiary,
-                  weight: FontWeight.w500,
-                  letterSpacing: 1.2,
-                ),
-              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: InitialsMark(size: 36),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             for (final section in SiteSection.values)
               ListTile(
                 title: Text(
                   navLabel(lang, section),
-                  style: interStyle(
-                    size: 18,
+                  style: displayStyle(
+                    size: 30,
                     color: palette.ink,
-                    weight: FontWeight.w500,
-                    letterSpacing: -0.3,
-                  ),
+                    weight: FontWeight.w700,
+                    height: 1.1,
+                  ).copyWith(letterSpacing: 0.5),
                 ),
                 onTap: () {
                   Navigator.of(context).pop();
