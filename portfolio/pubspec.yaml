@@ -1,5 +1,5 @@
 name: portfolio
-description: "A new Flutter project."
+description: "Samuel Rosengarten's portfolio site."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -61,6 +61,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Synapse OS screens (2x renders from the app's Figma design file), framed
+  # in lib/widgets/devices.dart.
+  assets:
+    - assets/synapse/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

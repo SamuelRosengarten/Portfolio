@@ -1,3 +1,17 @@
+# Design
+
+The site uses the **Tempered steel** theme: blued-steel darks, a brushed-steel
+light mode and the heat-tint gradient of tempered steel (straw to blue) as its
+one signature element, with Big Shoulders for headlines and IBM Plex Sans for
+text. It was designed in Figma:
+[Portfolio — Tempered steel redesign + Synapse OS showcase](https://www.figma.com/design/OGWIDIf19lEsgXTltUo4sq)
+(the colour variables there match `portfolio/lib/theme/palette.dart`).
+
+The Synapse OS section shows the real iPhone and Mac screens from the app's own
+design file, as 2x WebP renders in `portfolio/assets/synapse/`. The device
+frames are drawn in `portfolio/lib/widgets/devices.dart` to match the Figma
+"Device" components, so their shadows stay transparent in both themes.
+
 # Deploying to GitHub Pages
 
 This project is served from the `gh-pages` branch at:

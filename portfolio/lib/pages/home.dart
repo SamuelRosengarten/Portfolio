@@ -6,6 +6,7 @@ import 'about_section.dart';
 import 'contact_section.dart';
 import 'hobbies_section.dart';
 import 'project_section.dart';
+import 'synapse_section.dart';
 
 /// The whole page: a pinned header above one continuously scrolling column of
 /// sections. Picking a section in the header (or the drawer on a phone)
@@ -95,11 +96,15 @@ class _HomeState extends State<Home> {
                     child: AboutSection(onSelected: _onSelected),
                   ),
                   KeyedSubtree(
-                    key: _sectionKeys[SiteSection.projects],
+                    key: _sectionKeys[SiteSection.synapse],
+                    child: const SynapseSection(),
+                  ),
+                  KeyedSubtree(
+                    key: _sectionKeys[SiteSection.work],
                     child: const ProjectSection(),
                   ),
                   KeyedSubtree(
-                    key: _sectionKeys[SiteSection.hobbies],
+                    key: _sectionKeys[SiteSection.beyond],
                     child: const HobbiesSection(),
                   ),
                   KeyedSubtree(

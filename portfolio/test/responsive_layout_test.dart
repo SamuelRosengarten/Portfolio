@@ -36,7 +36,11 @@ void main() {
           }
           expect(tester.takeException(), isNull, reason: 'dark mode');
 
-          await tester.tap(find.byTooltip(french ? 'Passer au mode clair' : 'Switch to light mode'));
+          await tester.tap(
+            find.byTooltip(
+              french ? 'Passer au mode clair' : 'Switch to light mode',
+            ),
+          );
           await tester.pump();
           expect(tester.takeException(), isNull, reason: 'light mode');
         },
@@ -58,6 +62,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.text("Let's talk."), findsOneWidget);
+    expect(find.text("LET'S TALK."), findsOneWidget);
   });
 }
