@@ -143,7 +143,7 @@ void main() {
     ]) {
       expect(
         tester.getSemantics(find.bySemanticsLabel(label)),
-        containsSemantics(
+        isSemantics(
           label: label,
           isLink: true,
           isFocusable: true,
