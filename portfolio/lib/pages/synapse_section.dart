@@ -164,12 +164,27 @@ class _Intro extends StatelessWidget {
       children: [
         platforms,
         const SizedBox(height: 14),
-        Text(
-          'synapse-os.ca',
-          style: bodyStyle(
-            size: 15,
-            color: palette.ai,
-            weight: FontWeight.w600,
+        ExternalLink(
+          url: 'https://synapse-os.ca',
+          label: 'synapse-os.ca',
+          builder: (context, active) => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'synapse-os.ca',
+                style:
+                    bodyStyle(
+                      size: 15,
+                      color: palette.ai,
+                      weight: FontWeight.w600,
+                    ).copyWith(
+                      decoration: active ? TextDecoration.underline : null,
+                      decorationColor: palette.ai,
+                    ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.north_east_rounded, size: 16, color: palette.ai),
+            ],
           ),
         ),
       ],

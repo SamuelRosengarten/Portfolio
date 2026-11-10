@@ -16,12 +16,14 @@ class ThemeController extends ValueNotifier<bool> {
 /// widget to rebuild whenever the mode flips, the same way `Theme.of` or
 /// `MediaQuery.of` do.
 class AppTheme extends InheritedNotifier<ThemeController> {
-  const AppTheme({super.key, required ThemeController controller, required super.child})
-    : super(notifier: controller);
+  const AppTheme({
+    super.key,
+    required ThemeController controller,
+    required super.child,
+  }) : super(notifier: controller);
 
   static ThemeController of(BuildContext context) {
-    final widget = context
-        .dependOnInheritedWidgetOfExactType<AppTheme>();
+    final widget = context.dependOnInheritedWidgetOfExactType<AppTheme>();
     assert(widget != null, 'No AppTheme found in context');
     return widget!.notifier!;
   }

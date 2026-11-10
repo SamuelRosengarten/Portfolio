@@ -3,6 +3,7 @@ import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/palette.dart';
 
@@ -64,6 +65,62 @@ TextStyle codeStyle({
   fontWeight: weight,
   height: height,
 );
+
+/// Makes [builder]'s output an external link: opens [url] (a new tab on the
+/// web) on click, tap or Enter, shows the pointer, and tells [builder] when
+/// it is hovered or keyboard-focused so it can show that.
+class ExternalLink extends StatefulWidget {
+  const ExternalLink({
+    super.key,
+    required this.url,
+    required this.label,
+    required this.builder,
+  });
+
+  final String url;
+
+  /// What a screen reader announces for the link.
+  final String label;
+  final Widget Function(BuildContext context, bool active) builder;
+
+  @override
+  State<ExternalLink> createState() => _ExternalLinkState();
+}
+
+class _ExternalLinkState extends State<ExternalLink> {
+  bool _hovering = false;
+  bool _focused = false;
+
+  void _open() => launchUrl(Uri.parse(widget.url), webOnlyWindowName: '_blank');
+
+  @override
+  Widget build(BuildContext context) {
+    return FocusableActionDetector(
+      mouseCursor: SystemMouseCursors.click,
+      onShowHoverHighlight: (v) => setState(() => _hovering = v),
+      onShowFocusHighlight: (v) => setState(() => _focused = v),
+      actions: {
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            _open();
+            return null;
+          },
+        ),
+      },
+      child: Semantics(
+        link: true,
+        label: widget.label,
+        onTap: _open,
+        excludeSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _open,
+          child: widget.builder(context, _hovering || _focused),
+        ),
+      ),
+    );
+  }
+}
 
 /// A display headline that never wraps mid-line: each line keeps its words,
 /// and the block shrinks to fit when the column is narrower than [size]
@@ -336,6 +393,7 @@ class _PillButtonState extends State<PillButton> {
       child: Semantics(
         button: true,
         label: widget.label,
+        onTap: widget.onPressed,
         excludeSemantics: true,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,

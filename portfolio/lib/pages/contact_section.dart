@@ -17,14 +17,25 @@ class ContactSection extends StatelessWidget {
     final width = MediaQuery.sizeOf(context).width;
 
     final entries = [
-      ('Email', 'samrosengarten2@pm.me', Icons.mail_outline_rounded),
-      ('GitHub', 'github.com/SamuelRosengarten', Icons.code_rounded),
+      (
+        'Email',
+        'samrosengarten2@pm.me',
+        Icons.mail_outline_rounded,
+        'mailto:samrosengarten2@pm.me',
+      ),
+      (
+        'GitHub',
+        'github.com/SamuelRosengarten',
+        Icons.code_rounded,
+        'https://github.com/SamuelRosengarten',
+      ),
       (
         'LinkedIn',
         'linkedin.com/in/samuel-rosengarten',
         Icons.work_outline_rounded,
+        'https://www.linkedin.com/in/samuel-rosengarten',
       ),
-      (s.locationLabel, 'Longueuil, QC', Icons.place_outlined),
+      (s.locationLabel, 'Longueuil, QC', Icons.place_outlined, null),
     ];
 
     final intro = Column(
@@ -55,8 +66,8 @@ class ContactSection extends StatelessWidget {
     final list = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (label, value, icon) in entries)
-          _ContactRow(label: label, value: value, icon: icon),
+        for (final (label, value, icon, url) in entries)
+          _ContactRow(label: label, value: value, icon: icon, url: url),
       ],
     );
 
@@ -103,6 +114,7 @@ class ContactSection extends StatelessWidget {
                   phone ? 28 : 40,
                 ),
                 child: Container(
+                  width: double.infinity,
                   padding: EdgeInsets.only(top: phone ? 18 : 22),
                   decoration: BoxDecoration(
                     border: Border(top: BorderSide(color: palette.line)),
@@ -132,19 +144,33 @@ class ContactSection extends StatelessWidget {
   }
 }
 
+/// One contact method. Rows with a [url] are links: the value turns straw and
+/// underlines on hover or keyboard focus, with an arrow at the end.
 class _ContactRow extends StatelessWidget {
   const _ContactRow({
     required this.label,
     required this.value,
     required this.icon,
+    this.url,
   });
 
   final String label;
   final String value;
   final IconData icon;
+  final String? url;
 
   @override
   Widget build(BuildContext context) {
+    final url = this.url;
+    if (url == null) return _row(context, active: false);
+    return ExternalLink(
+      url: url,
+      label: '$label: $value',
+      builder: (context, active) => _row(context, active: active),
+    );
+  }
+
+  Widget _row(BuildContext context, {required bool active}) {
     final palette = paletteOf(context);
     final phone = isPhone(context);
     return Container(
@@ -170,13 +196,25 @@ class _ContactRow extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: bodyStyle(
-                size: phone ? 15 : 18,
-                color: palette.ink,
-                weight: FontWeight.w600,
-              ),
+              style:
+                  bodyStyle(
+                    size: phone ? 15 : 18,
+                    color: active ? palette.accent : palette.ink,
+                    weight: FontWeight.w600,
+                  ).copyWith(
+                    decoration: active ? TextDecoration.underline : null,
+                    decorationColor: palette.accent,
+                  ),
             ),
           ),
+          if (url != null) ...[
+            const SizedBox(width: 12),
+            Icon(
+              Icons.north_east_rounded,
+              size: 18,
+              color: active ? palette.accent : palette.tertiary,
+            ),
+          ],
         ],
       ),
     );
