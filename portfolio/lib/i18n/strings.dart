@@ -41,13 +41,13 @@ class Strings {
             "emploi de développeur junior. Avant le code, c'était la "
             "soudure et la mécanique — j'ai gardé la même exigence de bien "
             "faire le travail. Aujourd'hui, je bâtis aussi mon propre "
-            "produit, Synapse OS, du code jusqu'à la page des prix."
+            "produit, Synapse OS, du code jusqu'à l'App Store."
       : 'Computer programming student at Cégep Édouard-Montpetit, looking '
             'for an internship in March 2027 that leads to my first job as '
             'a junior developer. Before code it was welding and mechanics — '
             'I kept the same insistence on doing the work properly. Today '
             "I'm also building my own product, Synapse OS, from the code to "
-            'the pricing page.';
+            'the App Store.';
 
   String get founderPill =>
       _fr ? 'Fondateur, Synapse OS' : 'Founder, Synapse OS';
@@ -101,8 +101,8 @@ class Strings {
   // Synapse OS -------------------------------------------------------------
 
   String get synapseBadge => _fr
-      ? 'Mon projet principal, en bêta sur invitation'
-      : 'My main project, in invite-only beta';
+      ? 'Mon projet principal, bientôt sur l\'App Store'
+      : 'My main project, launching on the App Store';
   String get synapseTagline =>
       _fr ? 'Votre esprit, votre machine.' : 'Your mind, your machine.';
   String get synapseLead => _fr
@@ -192,18 +192,18 @@ class Strings {
       _fr ? 'Bâti comme une entreprise' : 'Built as a business';
   String get businessLead => _fr
       ? "Je mène Synapse OS de bout en bout comme fondateur : le produit, le "
-            "design, le code, la sortie sur l'App Store, les prix et la "
-            "politique de confidentialité."
+            "design, le code, la sortie sur l'App Store et la politique de "
+            "confidentialité."
       : 'I run Synapse OS end to end as its founder: the product, the '
-            'design, the code, the App Store release, the pricing and the '
-            'privacy policy.';
+            'design, the code, the App Store release and the privacy '
+            'policy.';
   String get businessModelTitle =>
-      _fr ? 'Un modèle d\'affaires simple' : 'A simple business model';
+      _fr ? 'Vos données restent à vous' : 'Your data stays yours';
   String get businessModelBody => _fr
-      ? "Gratuit pour les équipes de 3 personnes ou moins. Le forfait Équipe "
-            "coûte 8 \$ CA par personne, par mois."
-      : 'Free for teams of up to 3 people. The Team plan is 8 CAD per '
-            'person, per month.';
+      ? "Les notes sont en Markdown simple, un espace de travail s'exporte en "
+            "fichiers .md et JSON, et rien n'est supprimé en silence."
+      : 'Notes are plain Markdown, a workspace exports as .md and JSON '
+            'files, and nothing is deleted silently.';
   String get businessPrivacyTitle =>
       _fr ? 'La confidentialité est le produit' : 'Privacy is the product';
   String get businessPrivacyBody => _fr
@@ -216,10 +216,11 @@ class Strings {
   String get businessLaunchTitle =>
       _fr ? 'En route vers le lancement' : 'On the way to launch';
   String get businessLaunchBody => _fr
-      ? "Bêta sur invitation à app.synapse-os.ca, et les apps iPhone, iPad et "
-            "Mac en préparation pour l'App Store."
-      : 'Invite-only beta at app.synapse-os.ca, with the iPhone, iPad and '
-            'Mac apps being prepared for the App Store.';
+      ? "L'app iPhone et iPad arrive sur l'App Store, et celle du Mac suivra. "
+            "L'app web est en bêta sur invitation à app.synapse-os.ca."
+      : 'The iPhone and iPad app is launching on the App Store, with the Mac '
+            'app to follow. The web app is in invite-only beta at '
+            'app.synapse-os.ca.';
 
   // Work ---------------------------------------------------------------------
 
