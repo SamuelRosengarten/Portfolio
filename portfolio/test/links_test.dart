@@ -125,7 +125,7 @@ void main() {
   });
 
   testWidgets('the Synapse OS address is a keyboard link too', (tester) async {
-    await _openSection(tester, 'Projects');
+    await _openSection(tester, 'Synapse OS');
     final links = await _tabThroughLinks(tester);
     expect(links, contains(Uri.parse('https://synapse-os.ca')));
   });

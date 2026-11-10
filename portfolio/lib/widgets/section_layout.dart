@@ -8,25 +8,37 @@ import '../theme/palette.dart';
 
 /// Below this width the page switches to its phone layouts: the header gets a
 /// menu button and a jump bar, grids collapse to one column, and the contact
-/// cards become a single grouped list.
+/// rows tighten up.
 const double kPhoneBreakpoint = 720;
 
 /// Widest the page content ever gets, so lines stay readable on a big monitor.
-const double kMaxContentWidth = 1180;
+const double kMaxContentWidth = 1240;
 
 bool isPhone(BuildContext context) =>
     MediaQuery.sizeOf(context).width < kPhoneBreakpoint;
 
+/// Whether the header should use its compact form (menu button and a jump
+/// bar of section pills). That is the phone layout, and also any window that
+/// would be narrower than a phone once the person's text size is applied:
+/// at 200% text a 768px window has room for what a 384px one does, so the
+/// full row of links would not fit.
+bool useCompactHeader(BuildContext context) {
+  final width = MediaQuery.sizeOf(context).width;
+  final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
+  return width / scale < kPhoneBreakpoint;
+}
+
 /// Side padding that grows with the window, from 20px on a phone to 64px.
 double pageGutter(double width) => (width * 0.05).clamp(20.0, 64.0);
 
-TextStyle interStyle({
+/// Body copy and UI text: IBM Plex Sans.
+TextStyle bodyStyle({
   required double size,
   required Color color,
   FontWeight weight = FontWeight.w400,
   double? height,
   double letterSpacing = 0,
-}) => GoogleFonts.inter(
+}) => GoogleFonts.ibmPlexSans(
   fontSize: size,
   color: color,
   fontWeight: weight,
@@ -34,19 +46,68 @@ TextStyle interStyle({
   letterSpacing: letterSpacing,
 );
 
-TextStyle monoStyle({
+/// Headlines: Big Shoulders, the condensed industrial face that carries the
+/// "torch to keyboard" story (Google Fonts now ships Big Shoulders Display as
+/// this one family; the Figma file uses the Display cut). Always capitals.
+TextStyle displayStyle({
   required double size,
   required Color color,
-  FontWeight weight = FontWeight.w400,
-  double? height,
+  FontWeight weight = FontWeight.w800,
+  double height = 0.9,
   double letterSpacing = 0,
-}) => GoogleFonts.jetBrainsMono(
+}) => GoogleFonts.bigShoulders(
   fontSize: size,
   color: color,
   fontWeight: weight,
   height: height,
   letterSpacing: letterSpacing,
 );
+
+/// Only for code, inside the editor mock-up.
+TextStyle codeStyle({
+  required double size,
+  required Color color,
+  FontWeight weight = FontWeight.w400,
+  double? height,
+}) => GoogleFonts.ibmPlexMono(
+  fontSize: size,
+  color: color,
+  fontWeight: weight,
+  height: height,
+);
+
+/// A display headline that never wraps mid-line: each line keeps its words,
+/// and the block shrinks to fit when the column is narrower than [size]
+/// allows (the web font's widths differ from the design tool's, and French
+/// lines run longer).
+class FitHeadline extends StatelessWidget {
+  const FitHeadline(
+    this.text, {
+    super.key,
+    required this.size,
+    required this.color,
+    this.height = 0.88,
+  });
+
+  final String text;
+  final double size;
+  final Color color;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    alignment: Alignment.centerLeft,
+    child: Text(
+      text.toUpperCase(),
+      softWrap: false,
+      style: displayStyle(size: size, color: color, height: height),
+    ),
+  );
+}
+
+/// Display size for a section headline at this window width.
+double sectionHeadlineSize(double width) => (width * 0.062).clamp(48.0, 88.0);
 
 /// One full-width band of the page. Paints [background] edge to edge and
 /// holds [child] in a column capped at [kMaxContentWidth] with responsive
@@ -56,6 +117,7 @@ class PageSection extends StatelessWidget {
     super.key,
     required this.child,
     this.background,
+    this.decoration,
     this.bordered = false,
     this.topPadding,
     this.bottomPadding,
@@ -64,7 +126,10 @@ class PageSection extends StatelessWidget {
   final Widget child;
   final Color? background;
 
-  /// Hairline above and below, for the alternate-background bands.
+  /// Extra paint over [background] (the Synapse section's violet glow).
+  final Gradient? decoration;
+
+  /// Hairline along the top edge, between bands.
   final bool bordered;
 
   /// Overrides for the default vertical padding.
@@ -74,30 +139,28 @@ class PageSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final vertical = (width * 0.08).clamp(64.0, 112.0);
+    final vertical = (width * 0.08).clamp(64.0, 120.0);
     final hairline = paletteOf(context).line;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: background,
-        border: bordered
-            ? Border(
-                top: BorderSide(color: hairline),
-                bottom: BorderSide(color: hairline),
-              )
-            : null,
+        border: bordered ? Border(top: BorderSide(color: hairline)) : null,
       ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              pageGutter(width),
-              topPadding ?? vertical,
-              pageGutter(width),
-              bottomPadding ?? vertical,
+      child: DecoratedBox(
+        decoration: BoxDecoration(gradient: decoration),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                pageGutter(width),
+                topPadding ?? vertical,
+                pageGutter(width),
+                bottomPadding ?? vertical,
+              ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),
@@ -105,65 +168,30 @@ class PageSection extends StatelessWidget {
   }
 }
 
-/// Small monospace caps label ("GOAL", "PAST PIECES"...).
-class MonoLabel extends StatelessWidget {
-  const MonoLabel(this.text, {super.key, this.color, this.size = 12});
+/// The temper bead: a short bar in the heat-tint gradient, drawn under the
+/// two biggest headlines (hero and contact) and nowhere else.
+class TemperBead extends StatelessWidget {
+  const TemperBead({super.key, this.width = 320, this.height = 6});
 
-  final String text;
-  final Color? color;
-  final double size;
+  final double width;
+  final double height;
 
   @override
-  Widget build(BuildContext context) => Text(
-    text,
-    style: monoStyle(
-      size: size,
-      color: color ?? paletteOf(context).tertiary,
-      weight: FontWeight.w500,
-      letterSpacing: size * 0.08,
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      gradient: paletteOf(context).temperGradient,
+      borderRadius: BorderRadius.circular(height / 2),
     ),
   );
 }
 
-/// The app's mono kicker: a small lavender square, then an uppercase label in
-/// the faint text colour (`.eyebrow` on the Synapse site).
-class Eyebrow extends StatelessWidget {
-  const Eyebrow(this.text, {super.key, this.size = 12});
-
-  final String text;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = paletteOf(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: palette.accent,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 9),
-        Flexible(child: MonoLabel(text.toUpperCase(), size: size)),
-      ],
-    );
-  }
-}
-
-/// Eyebrow, headline and optional subhead — the opening beat of a section.
+/// Headline (display face, capitals) and optional subhead — the opening beat
+/// of a section.
 class SectionHeading extends StatelessWidget {
-  const SectionHeading({
-    super.key,
-    required this.eyebrow,
-    required this.headline,
-    this.subhead,
-  });
+  const SectionHeading({super.key, required this.headline, this.subhead});
 
-  final String eyebrow;
   final String headline;
   final String? subhead;
 
@@ -177,30 +205,28 @@ class SectionHeading extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 680),
+        constraints: const BoxConstraints(maxWidth: 760),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Eyebrow(eyebrow, size: phone ? 11 : 12),
-            SizedBox(height: phone ? 14 : 16),
             Text(
-              headline,
-              style: interStyle(
-                size: (width * 0.036).clamp(32.0, 48.0),
+              headline.toUpperCase(),
+              style: displayStyle(
+                size: sectionHeadlineSize(width),
                 color: palette.ink,
-                weight: FontWeight.w700,
-                height: 1.08,
-                letterSpacing: phone ? -1.0 : -1.5,
               ),
             ),
             if (subhead != null) ...[
-              SizedBox(height: phone ? 12 : 14),
-              Text(
-                subhead!,
-                style: interStyle(
-                  size: (width * 0.013).clamp(16.0, 18.0),
-                  color: palette.secondary,
-                  height: 1.6,
+              SizedBox(height: phone ? 12 : 16),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: Text(
+                  subhead!,
+                  style: bodyStyle(
+                    size: phone ? 16 : 18,
+                    color: palette.secondary,
+                    height: 1.6,
+                  ),
                 ),
               ),
             ],
@@ -211,8 +237,7 @@ class SectionHeading extends StatelessWidget {
   }
 }
 
-/// A fully rounded mono status pill, like the app's `.pill`. [dot] adds the
-/// small state dot the app puts in front of "done"/"iterating" pills.
+/// A fully rounded label pill. [dot] adds a small state dot in front.
 class Pill extends StatelessWidget {
   const Pill(
     this.label, {
@@ -220,12 +245,17 @@ class Pill extends StatelessWidget {
     required this.background,
     required this.color,
     this.borderColor,
-    this.vertical = 5,
-    this.horizontal = 11,
+    this.vertical = 6,
+    this.horizontal = 12,
     this.dot = false,
+    this.dotColor,
+    this.size = 13,
   });
 
   final bool dot;
+
+  /// The dot's colour when it means something other than the label colour.
+  final Color? dotColor;
 
   final String label;
   final Color background;
@@ -233,6 +263,7 @@ class Pill extends StatelessWidget {
   final Color? borderColor;
   final double vertical;
   final double horizontal;
+  final double size;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -247,16 +278,19 @@ class Pill extends StatelessWidget {
       children: [
         if (dot) ...[
           Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: dotColor ?? color,
+              shape: BoxShape.circle,
+            ),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 8),
         ],
         Flexible(
           child: Text(
             label,
-            style: monoStyle(size: 11.5, color: color, weight: FontWeight.w500),
+            style: bodyStyle(size: size, color: color, weight: FontWeight.w500),
           ),
         ),
       ],
@@ -264,8 +298,7 @@ class Pill extends StatelessWidget {
   );
 }
 
-/// Primary (inverted text colour) or ghost (hairline) button used by the hero,
-/// matching the app's `.sb-btn-primary` / `.sb-btn-secondary`.
+/// Primary (straw fill) or secondary (outline) button.
 class PillButton extends StatefulWidget {
   const PillButton({
     super.key,
@@ -290,57 +323,72 @@ class PillButton extends StatefulWidget {
 
 class _PillButtonState extends State<PillButton> {
   bool _hovering = false;
+  bool _focused = false;
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    // Primary inverts the page: ink fill, page-coloured text. Ghost is a
-    // hairline outline with muted text that lifts on hover.
-    final fg = widget.filled
-        ? palette.bg
-        : (_hovering ? palette.ink : palette.secondary);
+    final fg = widget.filled ? palette.onAccent : palette.ink;
     final bg = widget.filled
-        ? palette.ink.withValues(alpha: _hovering ? 0.9 : 1)
+        ? Color.lerp(palette.accent, palette.ink, _hovering ? 0.12 : 0)!
         : (_hovering ? palette.hover : Colors.transparent);
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
+    return FocusableActionDetector(
+      mouseCursor: SystemMouseCursors.click,
+      onShowHoverHighlight: (v) => setState(() => _hovering = v),
+      onShowFocusHighlight: (v) => setState(() => _focused = v),
+      actions: {
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            widget.onPressed();
+            return null;
+          },
+        ),
+      },
       child: Semantics(
         button: true,
         label: widget.label,
+        onTap: widget.onPressed,
         excludeSemantics: true,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onPressed,
           child: Container(
             constraints: BoxConstraints(
-              minHeight: 44,
+              minHeight: 48,
               minWidth: widget.expand ? double.infinity : 0,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 22),
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: widget.filled ? Colors.transparent : palette.line,
+                color: _focused
+                    ? palette.ink
+                    : (widget.filled ? Colors.transparent : palette.lineStrong),
+                width: _focused ? 2 : 1,
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  widget.label,
-                  style: interStyle(
-                    size: 14.5,
-                    color: fg,
-                    weight: widget.filled ? FontWeight.w600 : FontWeight.w500,
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      widget.label,
+                      textAlign: TextAlign.center,
+                      style: bodyStyle(
+                        size: 15,
+                        color: fg,
+                        weight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
                 if (widget.icon != null) ...[
                   const SizedBox(width: 8),
-                  Icon(widget.icon, size: 16, color: fg),
+                  Icon(widget.icon, size: 17, color: fg),
                 ],
               ],
             ),
@@ -351,37 +399,33 @@ class _PillButtonState extends State<PillButton> {
   }
 }
 
-/// A card with the app's dashed lavender "AI suggestion" border and faint
-/// lavender fill: used wherever the site shows something the AI proposes.
-class AiCard extends StatelessWidget {
-  const AiCard({
+/// A card with a dashed border and faint fill: used for the one suggestion
+/// the Code Coach mock-up shows.
+class DashedCard extends StatelessWidget {
+  const DashedCard({
     super.key,
     required this.child,
+    required this.color,
     this.padding = const EdgeInsets.all(14),
     this.radius = 12,
-    this.palette,
   });
 
-  /// Overrides the surrounding theme, for mock-ups that stay dark in both
-  /// site themes (the VS Code window).
-  final AppPalette? palette;
   final Widget child;
+  final Color color;
   final EdgeInsetsGeometry padding;
   final double radius;
 
   @override
   Widget build(BuildContext context) {
-    final palette = this.palette ?? paletteOf(context);
     return CustomPaint(
       foregroundPainter: DashedRRectPainter(
-        color: palette.aiLine,
+        color: color.withValues(alpha: 0.55),
         radius: radius,
-        strokeWidth: 1,
       ),
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          color: palette.aiFaint,
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(radius),
         ),
         child: child,
@@ -434,37 +478,37 @@ class DashedRRectPainter extends CustomPainter {
       old.gap != gap;
 }
 
-/// The app's graph canvas: a quiet dot grid that fades out away from the top
-/// centre (the website hero's `radial-gradient` mask).
-class DotGridPainter extends CustomPainter {
-  const DotGridPainter({required this.color, this.step = 22});
+/// The site's mark: initials on a temper-gradient tile.
+class InitialsMark extends StatelessWidget {
+  const InitialsMark({super.key, this.size = 36});
 
-  final Color color;
-  final double step;
+  final double size;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    // Elliptical falloff: full strength near the top centre, gone by ~80%.
-    final cx = size.width / 2;
-    final rx = size.width * 0.8;
-    final ry = size.height * 0.7 + 1;
-    final paint = Paint();
-    for (var y = step / 2; y < size.height; y += step) {
-      for (var x = step / 2; x < size.width; x += step) {
-        final dx = (x - cx) / rx;
-        final dy = y / ry;
-        final d = math.sqrt(dx * dx + dy * dy);
-        final fade = d <= 0.2 ? 1.0 : (1 - (d - 0.2) / 0.6).clamp(0.0, 1.0);
-        if (fade <= 0) continue;
-        paint.color = color.withValues(alpha: color.a * fade);
-        canvas.drawCircle(Offset(x, y), 1.2, paint);
-      }
-    }
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: palette.temper,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(size * 0.24),
+      ),
+      child: Text(
+        'SR',
+        style: displayStyle(
+          size: size * 0.56,
+          color: const Color(0xFF1A1205),
+          height: 1,
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(DotGridPainter old) =>
-      old.color != color || old.step != step;
 }
 
 /// The Synapse mark: three linked nodes on a deep-violet tile (the app's
@@ -475,10 +519,8 @@ class SynapseMark extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    size: Size.square(size),
-    painter: const _MarkPainter(),
-  );
+  Widget build(BuildContext context) =>
+      CustomPaint(size: Size.square(size), painter: const _MarkPainter());
 }
 
 class _MarkPainter extends CustomPainter {

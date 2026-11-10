@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:portfolio/i18n/app_language.dart';
 import 'package:portfolio/pages/home.dart';
 import 'package:portfolio/theme/palette.dart';
@@ -54,7 +55,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-/// Material theme derived from the Synapse OS tokens in `palette.dart`, so the
+/// Material theme derived from the Tempered steel tokens in `palette.dart`, so the
 /// stock widgets (the nav drawer, tooltips, ripples) match the rest of the
 /// site instead of showing Material's default purple.
 ThemeData _themeFor(AppPalette p) {
@@ -67,14 +68,18 @@ ThemeData _themeFor(AppPalette p) {
     dividerColor: p.line,
     hoverColor: p.hover,
     splashFactory: NoSplash.splashFactory,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: p.accent,
-      brightness: brightness,
-    ).copyWith(
-      primary: p.accent,
-      onPrimary: p.onAccent,
-      surface: p.card,
-      onSurface: p.ink,
+    textTheme: GoogleFonts.ibmPlexSansTextTheme(
+      ThemeData(brightness: brightness).textTheme,
     ),
+    colorScheme:
+        ColorScheme.fromSeed(
+          seedColor: p.accent,
+          brightness: brightness,
+        ).copyWith(
+          primary: p.accent,
+          onPrimary: p.onAccent,
+          surface: p.card,
+          onSurface: p.ink,
+        ),
   );
 }

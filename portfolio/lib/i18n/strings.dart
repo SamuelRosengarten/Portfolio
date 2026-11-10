@@ -16,8 +16,7 @@ class Strings {
 
   // Header ---------------------------------------------------------------
 
-  String get openNavigation =>
-      _fr ? 'Ouvrir la navigation' : 'Open navigation';
+  String get openNavigation => _fr ? 'Ouvrir la navigation' : 'Open navigation';
   String get switchToLightMode =>
       _fr ? 'Passer au mode clair' : 'Switch to light mode';
   String get switchToDarkMode =>
@@ -27,35 +26,42 @@ class Strings {
 
   // About ------------------------------------------------------------------
 
-  String get openToInternships => _fr
-      ? 'Ouvert aux stages · mars 2027'
-      : 'Open to internships · March 2027';
+  String get openToInternships =>
+      _fr ? 'Ouvert aux stages, mars 2027' : 'Open to internships, March 2027';
 
   String get heroGreeting => _fr ? "Salut, je suis Samuel." : "Hi, I'm Samuel.";
+
+  /// The hero headline, broken where it reads best on two lines.
   String get heroTagline =>
-      _fr ? 'De la torche au clavier.' : 'From the torch to the keyboard.';
+      _fr ? 'De la torche\nau clavier.' : 'From the torch\nto the keyboard.';
 
   String get aboutBio => _fr
       ? "Étudiant en programmation informatique au Cégep Édouard-Montpetit, "
             "à la recherche d'un stage en mars 2027 qui mènera à mon premier "
             "emploi de développeur junior. Avant le code, c'était la "
             "soudure et la mécanique — j'ai gardé la même exigence de bien "
-            "faire le travail."
+            "faire le travail. Aujourd'hui, je bâtis aussi mon propre "
+            "produit, Synapse OS, du code jusqu'à l'App Store."
       : 'Computer programming student at Cégep Édouard-Montpetit, looking '
             'for an internship in March 2027 that leads to my first job as '
             'a junior developer. Before code it was welding and mechanics — '
-            'I kept the same insistence on doing the work properly.';
+            'I kept the same insistence on doing the work properly. Today '
+            "I'm also building my own product, Synapse OS, from the code to "
+            'the App Store.';
 
-  String get seeMyWork => _fr ? 'Voir mes projets' : 'See my work';
+  String get founderPill =>
+      _fr ? 'Fondateur, Synapse OS' : 'Founder, Synapse OS';
+
+  String get seeSynapse => _fr ? 'Voir Synapse OS' : 'See Synapse OS';
   String get getInTouch => _fr ? 'Me contacter' : 'Get in touch';
 
-  String get languagesAndTools =>
-      _fr ? 'LANGAGES & OUTILS' : 'LANGUAGES & TOOLS';
+  String get languagesAndTools => _fr ? 'Ce que j\'utilise' : 'What I work in';
 
-  String get pathBefore => _fr ? 'AVANT' : 'BEFORE';
-  String get pathNow => _fr ? 'MAINTENANT' : 'NOW';
-  String get pathNext => _fr ? 'ENSUITE' : 'NEXT';
-  String get pathAfter => _fr ? 'APRÈS' : 'AFTER';
+  String get pathTitle => _fr ? 'Le parcours jusqu\'ici' : 'The path so far';
+  String get pathBefore => _fr ? 'Avant' : 'Before';
+  String get pathNow => _fr ? 'Maintenant' : 'Now';
+  String get pathNext => _fr ? 'Ensuite' : 'Next';
+  String get pathAfter => _fr ? 'Après' : 'After';
 
   String get pathBeforeTitle =>
       _fr ? 'Soudure et mécanique' : 'Welding & mechanics';
@@ -66,9 +72,6 @@ class Strings {
   String get pathNowBody => _fr
       ? "Cégep Édouard-Montpetit, et tutorat auprès d'autres étudiants."
       : 'Cégep Édouard-Montpetit, and tutoring other students.';
-  String get pathNowShort => _fr
-      ? 'Diplôme en programmation + tutorat'
-      : 'Programming diploma + tutoring';
   String get pathNextTitle =>
       _fr ? 'Stage, mars 2027' : 'Internship, March 2027';
   String get pathNextBody =>
@@ -80,14 +83,7 @@ class Strings {
 
   // Projects -----------------------------------------------------------------
 
-  String get projectEyebrow => _fr ? 'Projet' : 'Work';
-
-  String get projectsHeadline => _fr ? 'Ce que je construis.' : 'What I build.';
-  String get projectsSubhead => _fr
-      ? "Une extension VS Code publiée et un espace de travail à IA privée "
-            "pour les petites équipes de développement."
-      : 'A published VS Code extension and a private-AI workspace for '
-            'small dev teams.';
+  String get projectsHeadline => _fr ? 'Aussi publié' : 'Also shipped';
 
   String get projectSubhead => _fr
       ? "Une extension VS Code maintenant publiée sur le Marketplace — née "
@@ -102,38 +98,131 @@ class Strings {
             "d'utile."
       : 'Turns the mistakes you make while coding into something useful.';
 
-  String get tagWebApp => _fr ? 'Application web' : 'Web app';
-  String get tagBeta => _fr ? 'Bêta sur invitation' : 'Invite-only beta';
+  // Synapse OS -------------------------------------------------------------
 
-  String get synapseDescription => _fr
-      ? "Un espace de travail partagé pour les petites équipes de "
-            "développement — notes Markdown, tâches, projets et réunions — "
-            "avec une IA qui tourne sur votre propre ordinateur plutôt que "
-            "sur les serveurs de quelqu'un d'autre."
-      : 'A shared workspace for small dev teams — Markdown notes, tasks, '
-            'projects and meetings — with AI that runs on your own computer '
-            "instead of someone else's servers.";
+  String get synapseBadge => _fr
+      ? 'Mon projet principal, bientôt sur l\'App Store'
+      : 'My main project, launching on the App Store';
+  String get synapseTagline =>
+      _fr ? 'Votre esprit, votre machine.' : 'Your mind, your machine.';
+  String get synapseLead => _fr
+      ? "Un seul endroit calme pour les tâches, les notes, les réunions et "
+            "la discussion d'une petite équipe — sur iPhone, iPad, Mac et le "
+            "web — avec une IA qui tourne sur votre propre appareil plutôt "
+            "que sur les serveurs de quelqu'un d'autre."
+      : "One calm place for a small team's tasks, notes, meetings and chat "
+            "— on iPhone, iPad, Mac and the web — with an AI that runs on "
+            "your own device instead of someone else's servers.";
+  String get platformIphone => 'iPhone & iPad';
+  String get platformMac => 'Mac';
+  String get platformWeb => 'Web';
 
-  String get featurePrivateAiTitle => _fr ? 'IA privée' : 'Private AI';
+  String get featurePrivateAiTitle =>
+      _fr ? 'Une IA privée sur votre appareil' : 'A private AI on your device';
   String get featurePrivateAiBody => _fr
-      ? 'Tourne sur votre machine via Synapse Bridge. Aucune requête ne '
-            'passe par un serveur.'
-      : 'Runs on your own machine through Synapse Bridge. Prompts never '
-            'reach a server.';
+      ? "Posez des questions sur votre travail, sortez les actions d'une note "
+            "de réunion et planifiez la journée avec un modèle qui tourne sur "
+            "votre iPhone, votre Mac ou votre ordinateur. Aucune requête "
+            "n'atteint un serveur."
+      : 'Ask questions about your work, pull action items out of a meeting '
+            'note and plan the day with a model that runs on your iPhone, '
+            'Mac or own computer. Prompts never reach a server.';
   String get featureApproveTitle =>
       _fr ? 'Vous approuvez tout' : 'You approve everything';
   String get featureApproveBody => _fr
       ? "Les suggestions de l'IA attendent dans une file de révision. Rien "
-            "ne change avant votre accord."
-      : 'AI suggestions wait in a review queue. Nothing changes until you '
-            'accept.';
+            "n'est ajouté, modifié ou envoyé avant votre accord — et ce qui "
+            "est supprimé passe d'abord par la corbeille."
+      : 'AI suggestions wait in a review queue. Nothing is added, changed '
+            'or sent until you accept it — and deleted work goes to the '
+            'trash first.';
   String get featureTeamsTitle =>
-      _fr ? 'Pensé pour les équipes' : 'Built for teams';
+      _fr ? 'Pensé pour les petites équipes' : 'Built for small teams';
   String get featureTeamsBody => _fr
-      ? "Espaces de travail, rôles, synchronisation en direct, et conflits "
-            "conservés plutôt qu'écrasés."
-      : 'Workspaces, roles, live sync, and edit conflicts that are kept, '
-            'not overwritten.';
+      ? "Espaces de travail, rôles et discussion d'équipe, synchronisation "
+            "en direct entre appareils, et conflits conservés pour être "
+            "fusionnés plutôt qu'écrasés."
+      : 'Workspaces, roles and team chat, live sync between devices, and '
+            'edit conflicts that are kept for you to merge, not overwritten.';
+
+  String get onIphone => _fr ? 'Sur iPhone' : 'On iPhone';
+  String get onIphoneBody => _fr
+      ? 'En SwiftUI, en clair et en sombre, avec VoiceOver et le texte '
+            'agrandi partout.'
+      : 'Built in SwiftUI, light and dark, with VoiceOver and large text '
+            'throughout.';
+  String get shotTodayTitle => _fr ? "Aujourd'hui" : 'Today';
+  String get shotTodayBody => _fr
+      ? "Ce qui est dû, vos réunions et la prochaine action, d'un coup d'œil."
+      : 'What is due, your meetings and the next action, at a glance.';
+  String get shotAskTitle => _fr ? 'Demander à Nova' : 'Ask Nova';
+  String get shotAskBody => _fr
+      ? 'Des questions sur vos propres notes et tâches, répondues sur le '
+            'téléphone.'
+      : 'Questions about your own notes and tasks, answered on the phone.';
+  String get shotReviewTitle =>
+      _fr ? 'Réviser avec l\'IA locale' : 'Review with local AI';
+  String get shotReviewBody => _fr
+      ? "Des modifications proposées pour une note, appliquées seulement "
+            "quand vous le décidez."
+      : 'Suggested edits to a note, applied only when you say so.';
+  String get shotChatTitle => _fr ? "Discussion d'équipe" : 'Team chat';
+  String get shotChatBody => _fr
+      ? 'Canaux, messages privés et tâches liées directement dans le fil.'
+      : 'Channels, direct messages and tasks linked right in the thread.';
+  String get onMac => _fr ? 'Et sur Mac' : 'And on the Mac';
+  String get onMacBody => _fr
+      ? "Une vraie fenêtre native avec une barre latérale, des raccourcis "
+            "clavier, les réunions dans la barre des menus et la même "
+            "discussion d'équipe. Même compte, mêmes données, synchronisées "
+            "en direct."
+      : 'A native window with a sidebar, keyboard shortcuts, upcoming '
+            'meetings in the menu bar and the same team chat. Same account, '
+            'same data, synced live.';
+  String get macShotLabel => _fr
+      ? "Synapse sur Mac : la discussion d'équipe"
+      : 'Synapse on Mac: team chat';
+  String get iphoneShotLabel =>
+      _fr ? 'Synapse sur iPhone : ' : 'Synapse on iPhone: ';
+  String get heroShotLabel => _fr
+      ? "Synapse sur Mac et sur iPhone : l'écran Aujourd'hui"
+      : 'Synapse on Mac and iPhone: the Today screen';
+
+  String get businessTitle =>
+      _fr ? 'Bâti comme une entreprise' : 'Built as a business';
+  String get businessLead => _fr
+      ? "Je mène Synapse OS de bout en bout comme fondateur : le produit, le "
+            "design, le code, la sortie sur l'App Store et la politique de "
+            "confidentialité."
+      : 'I run Synapse OS end to end as its founder: the product, the '
+            'design, the code, the App Store release and the privacy '
+            'policy.';
+  String get businessModelTitle =>
+      _fr ? 'Vos données restent à vous' : 'Your data stays yours';
+  String get businessModelBody => _fr
+      ? "Les notes sont en Markdown simple, un espace de travail s'exporte en "
+            "fichiers .md et JSON, et rien n'est supprimé en silence."
+      : 'Notes are plain Markdown, a workspace exports as .md and JSON '
+            'files, and nothing is deleted silently.';
+  String get businessPrivacyTitle =>
+      _fr ? 'La confidentialité est le produit' : 'Privacy is the product';
+  String get businessPrivacyBody => _fr
+      ? "Données hébergées à Montréal, conçu autour de la Loi 25 du Québec et "
+            "de la LPRPDE. L'IA tourne sur les appareils des gens : elle ne "
+            "coûte rien à servir."
+      : "Data hosted in Montréal and designed around Québec's Law 25 and "
+            "PIPEDA. The AI runs on people's own devices, so it costs nothing "
+            'to serve.';
+  String get businessLaunchTitle =>
+      _fr ? 'En route vers le lancement' : 'On the way to launch';
+  String get businessLaunchBody => _fr
+      ? "L'app iPhone et iPad arrive sur l'App Store, et celle du Mac suivra. "
+            "L'app web est en bêta sur invitation à app.synapse-os.ca."
+      : 'The iPhone and iPad app is launching on the App Store, with the Mac '
+            'app to follow. The web app is in invite-only beta at '
+            'app.synapse-os.ca.';
+
+  // Work ---------------------------------------------------------------------
 
   String get tagVsCodeExtension =>
       _fr ? 'Extension VS Code' : 'VS Code Extension';
@@ -160,12 +249,12 @@ class Strings {
   String get contactHeadline => _fr ? 'Discutons.' : "Let's talk.";
 
   String get contactSubhead => _fr
-      ? "À la recherche d'un stage en mars 2027 — aussi ouvert aux "
-            "collaborations, ou simplement à discuter de ce que vous "
-            "construisez."
-      : 'Looking for an internship in March 2027 — also open to '
-            'collaborations, or a conversation about something you are '
-            'building.';
+      ? "À la recherche d'un stage en mars 2027 — et toujours partant pour "
+            "parler de création de produit, d'une collaboration ou de ce que "
+            "vous construisez."
+      : 'Looking for an internship in March 2027 — and always happy to talk '
+            'about building a product, a collaboration, or something you are '
+            'working on.';
 
   String get locationLabel => _fr ? 'Localisation' : 'Location';
   String get builtWithFlutter =>
@@ -173,10 +262,10 @@ class Strings {
 
   // Hobbies ------------------------------------------------------------------
 
-  String get beyondTheCode => _fr ? 'AU-DELÀ DU CODE' : 'BEYOND THE CODE';
+  String get beyondTheCode => _fr ? 'Au-delà du code' : 'Beyond the code';
 
-  String get goalLabel => _fr ? 'OBJECTIF' : 'GOAL';
   String get buildHeadline => _fr ? 'Construire.' : 'Build.';
+  String get teachHeadline => _fr ? 'Enseigner.' : 'Teach.';
 
   String get buildParagraph => _fr
       ? "Terminer l'école, puis me mettre au travail — et continuer à "
@@ -188,8 +277,9 @@ class Strings {
   String get goalConnectionsBody => _fr
       ? "Rencontrer des gens de l'industrie à la fin de mes études."
       : 'Meet people in the industry once school wraps up.';
-  String get goalJuniorTitle =>
-      _fr ? 'Commencer comme développeur junior' : 'Start as a junior developer';
+  String get goalJuniorTitle => _fr
+      ? 'Commencer comme développeur junior'
+      : 'Start as a junior developer';
   String get goalJuniorBody => _fr
       ? 'Lancer ma carrière en écrivant du code tous les jours.'
       : 'Begin my career writing code every day.';
@@ -215,7 +305,6 @@ class Strings {
   String get tagEmpathy => _fr ? 'Empathie' : 'Empathy';
   String get tagTeamPlayer => _fr ? "Esprit d'équipe" : 'Team player';
 
-  String get hobbyLabel => _fr ? 'PASSE-TEMPS' : 'HOBBY';
   String get craftHeadline => _fr ? 'Créer.' : 'Craft.';
 
   String get craftParagraph => _fr
@@ -226,13 +315,7 @@ class Strings {
             'get better with every one. The saddle stitch taught me more '
             'about patience than any deadline ever did.';
 
-  String get pastPiecesLabel => _fr ? 'CRÉATIONS PASSÉES' : 'PAST PIECES';
-  String get pastPiecesSwipeLabel =>
-      _fr ? 'CRÉATIONS PASSÉES · GLISSER' : 'PAST PIECES · SWIPE';
-  String get addPhotoLabel => _fr ? 'Ajouter une photo' : 'Add photo';
-  String get photoAtTheBench =>
-      _fr ? '[PHOTO À\nL\'ÉTABLI]' : '[PHOTO AT\nTHE BENCH]';
-  String get photoPlaceholder => '[PHOTO]';
+  String get pastPiecesLabel => _fr ? 'Créations passées' : 'Past pieces';
 }
 
 Strings stringsOf(BuildContext context) => Strings(languageOf(context));

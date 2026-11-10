@@ -5,8 +5,9 @@ import '../theme/palette.dart';
 import '../widgets/section_layout.dart';
 import '../widgets/site_header.dart';
 
-/// Hero: greeting and calls to action beside the language/tools panel, with
-/// the four-step career path underneath.
+/// Hero: the "from the torch to the keyboard" headline over a temper bead,
+/// the short bio and calls to action, beside the four-step path. A strip of
+/// languages and tools closes it off.
 class AboutSection extends StatelessWidget {
   const AboutSection({super.key, required this.onSelected});
 
@@ -16,47 +17,23 @@ class AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final palette = paletteOf(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: palette.line)),
-      ),
-      // The app's graph canvas as a hero backdrop: a quiet dot grid that
-      // fades away from the top centre.
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: IgnorePointer(
-              child: CustomPaint(
-                painter: DotGridPainter(color: palette.canvasDot),
-              ),
-            ),
-          ),
-          _content(context, width),
-        ],
-      ),
-    );
-  }
-
-  Widget _content(BuildContext context, double width) {
-    return PageSection(
-      topPadding: isPhone(context) ? 40 : (width * 0.08).clamp(56.0, 104.0),
-      bottomPadding: isPhone(context) ? 48 : 56,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LayoutBuilder(
+    final phone = isPhone(context);
+    return Column(
+      children: [
+        PageSection(
+          topPadding: phone ? 40 : (width * 0.075).clamp(56.0, 104.0),
+          bottomPadding: phone ? 48 : (width * 0.065).clamp(56.0, 96.0),
+          child: LayoutBuilder(
             builder: (context, constraints) {
               final intro = _Intro(onSelected: onSelected);
-              const panel = _StackPanel();
-              // Side by side once there is room for two ~440px columns.
-              if (constraints.maxWidth >= 440 * 2 + 56) {
+              // Side by side once the intro still gets ~520px next to the card.
+              if (constraints.maxWidth >= 520 + 64 + 400) {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(child: intro),
-                    const SizedBox(width: 56),
-                    const Expanded(child: panel),
+                    const SizedBox(width: 64),
+                    const SizedBox(width: 400, child: _PathCard()),
                   ],
                 );
               }
@@ -64,24 +41,23 @@ class AboutSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   intro,
-                  SizedBox(height: isPhone(context) ? 32 : 56),
-                  panel,
+                  SizedBox(height: phone ? 40 : 56),
+                  const _PathCard(),
                 ],
               );
             },
           ),
-          SizedBox(height: isPhone(context) ? 40 : 72),
-          const _Path(),
-        ],
-      ),
+        ),
+        const _ToolsStrip(),
+      ],
     );
   }
 }
 
 class _Intro extends StatelessWidget {
-  const _Intro({this.onSelected});
+  const _Intro({required this.onSelected});
 
-  final ValueChanged<SiteSection>? onSelected;
+  final ValueChanged<SiteSection> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -89,336 +65,271 @@ class _Intro extends StatelessWidget {
     final s = stringsOf(context);
     final phone = isPhone(context);
     final width = MediaQuery.sizeOf(context).width;
-    final headline = phone ? 40.0 : (width * 0.05).clamp(44.0, 68.0);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: phone ? 12 : 13,
-            vertical: phone ? 6 : 7,
-          ),
-          decoration: BoxDecoration(
-            color: palette.aiFaint,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: palette.aiLine),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: palette.accent,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  s.openToInternships,
-                  style: monoStyle(
-                    size: phone ? 11.5 : 12.5,
-                    color: palette.accent,
-                    weight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: phone ? 24 : 28),
-        Text(
-          s.heroGreeting,
-          style: interStyle(
-            size: headline,
-            color: palette.ink,
-            weight: FontWeight.w700,
-            height: 1.04,
-            letterSpacing: -headline * 0.035,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: phone ? 8 : 0),
-          child: Text(
-            s.heroTagline,
-            style: interStyle(
-              // Two-thirds of the greeting's size (44 -> 30 on a phone), so
-              // the tagline reads as a subtitle rather than a third line of
-              // the headline when the column is only ~500px wide.
-              size: (headline * 0.68).roundToDouble(),
-              color: palette.muted,
-              weight: FontWeight.w700,
-              height: 1.1,
-              letterSpacing: -headline * 0.68 * 0.035,
-            ),
-          ),
-        ),
-        SizedBox(height: phone ? 24 : 28),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Text(
-            s.aboutBio,
-            style: interStyle(
-              size: phone ? 16 : (width * 0.0125).clamp(16.0, 18.0),
-              color: palette.secondary,
-              height: 1.55,
-            ),
-          ),
-        ),
-        SizedBox(height: phone ? 24 : 28),
-        if (onSelected != null)
-          if (phone)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PillButton(
-                  label: s.seeMyWork,
-                  filled: true,
-                  expand: true,
-                  onPressed: () => onSelected!(SiteSection.projects),
-                ),
-                const SizedBox(height: 10),
-                PillButton(
-                  label: s.getInTouch,
-                  expand: true,
-                  onPressed: () => onSelected!(SiteSection.contact),
-                ),
-              ],
-            )
-          else
+
+    final buttons = [
+      PillButton(
+        label: s.seeSynapse,
+        filled: true,
+        expand: phone,
+        icon: phone ? null : Icons.arrow_downward_rounded,
+        onPressed: () => onSelected(SiteSection.synapse),
+      ),
+      PillButton(
+        label: s.getInTouch,
+        expand: phone,
+        onPressed: () => onSelected(SiteSection.contact),
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The headline is sized from the column it sits in, so its longest
+        // line ("FROM THE TORCH") always fits on one line.
+        final headline = phone ? 64.0 : 132.0;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Wrap(
-              spacing: 12,
-              runSpacing: 12,
+              spacing: 10,
+              runSpacing: 10,
               children: [
-                PillButton(
-                  label: s.seeMyWork,
-                  filled: true,
-                  icon: Icons.arrow_downward_rounded,
-                  onPressed: () => onSelected!(SiteSection.projects),
+                Pill(
+                  s.openToInternships,
+                  background: palette.card,
+                  color: palette.ink2,
+                  borderColor: palette.line,
+                  dot: true,
+                  dotColor: palette.ok,
+                  size: phone ? 13 : 14,
+                  horizontal: 14,
+                  vertical: 7,
                 ),
-                PillButton(
-                  label: s.getInTouch,
-                  onPressed: () => onSelected!(SiteSection.contact),
+                Pill(
+                  s.founderPill,
+                  background: palette.accent.withValues(alpha: 0.10),
+                  color: palette.accent,
+                  borderColor: palette.accent.withValues(alpha: 0.5),
+                  dot: true,
+                  size: phone ? 13 : 14,
+                  horizontal: 14,
+                  vertical: 7,
                 ),
               ],
             ),
-      ],
+            SizedBox(height: phone ? 22 : 28),
+            FitHeadline(s.heroTagline, size: headline, color: palette.ink),
+            SizedBox(height: phone ? 22 : 30),
+            TemperBead(
+              width: phone
+                  ? 200
+                  : (constraints.maxWidth * 0.62).clamp(240.0, 560.0),
+            ),
+            SizedBox(height: phone ? 26 : 34),
+            Text(
+              s.heroGreeting,
+              style: bodyStyle(
+                size: phone ? 21 : 26,
+                color: palette.ink,
+                weight: FontWeight.w600,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Text(
+                s.aboutBio,
+                style: bodyStyle(
+                  size: phone ? 16 : (width * 0.0125).clamp(16.0, 18.0),
+                  color: palette.secondary,
+                  height: 1.6,
+                ),
+              ),
+            ),
+            SizedBox(height: phone ? 26 : 32),
+            if (phone)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [buttons[0], const SizedBox(height: 10), buttons[1]],
+              )
+            else
+              Wrap(spacing: 12, runSpacing: 12, children: buttons),
+          ],
+        );
+      },
     );
   }
 }
 
-/// A language or tool: its full name and the short badge shown in its chip.
-class _Tool {
-  const _Tool(this.badge, this.name);
-
-  final String badge;
-  final String name;
-}
-
-const _tools = [
-  _Tool('C#', 'C#'),
-  _Tool('Da', 'Dart'),
-  _Tool('Fl', 'Flutter'),
-  _Tool('Kt', 'Kotlin'),
-  _Tool('TS', 'TypeScript'),
-  _Tool('JS', 'JavaScript'),
-];
-
-class _StackPanel extends StatelessWidget {
-  const _StackPanel();
+/// Before / now / next / after, numbered because it is a real sequence.
+class _PathCard extends StatelessWidget {
+  const _PathCard();
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     final s = stringsOf(context);
     final phone = isPhone(context);
+    final steps = [
+      (s.pathBefore, s.pathBeforeTitle, s.pathBeforeBody),
+      (s.pathNow, s.pathNowTitle, s.pathNowBody),
+      (s.pathNext, s.pathNextTitle, s.pathNextBody),
+      (s.pathAfter, s.pathAfterTitle, s.pathAfterBody),
+    ];
+    const current = 1;
     return Container(
-      padding: EdgeInsets.all(phone ? 18 : 24),
+      padding: EdgeInsets.fromLTRB(
+        phone ? 20 : 28,
+        phone ? 22 : 28,
+        phone ? 20 : 28,
+        10,
+      ),
       decoration: BoxDecoration(
-        color: palette.panel,
-        borderRadius: BorderRadius.circular(12),
+        color: palette.card,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: palette.line),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  s.languagesAndTools,
-                  style: monoStyle(
-                    size: phone ? 11 : 12,
-                    color: palette.tertiary,
-                    weight: FontWeight.w500,
-                    letterSpacing: 0.9,
+          Text(
+            s.pathTitle,
+            style: bodyStyle(
+              size: 15,
+              color: palette.tertiary,
+              weight: FontWeight.w600,
+            ),
+          ),
+          for (var i = 0; i < steps.length; i++)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              decoration: BoxDecoration(
+                border: i == steps.length - 1
+                    ? null
+                    : Border(bottom: BorderSide(color: palette.line)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    child: Text(
+                      '${i + 1}',
+                      style: displayStyle(
+                        size: 32,
+                        weight: FontWeight.w700,
+                        height: 1,
+                        color: i == current
+                            ? palette.accent
+                            : (i < current ? palette.tertiary : palette.muted),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          steps[i].$1,
+                          style: bodyStyle(
+                            size: 13,
+                            weight: FontWeight.w500,
+                            color: i == current
+                                ? palette.accent
+                                : palette.tertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          steps[i].$2,
+                          style: bodyStyle(
+                            size: 17,
+                            color: palette.ink,
+                            weight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          steps[i].$3,
+                          style: bodyStyle(
+                            size: 14,
+                            color: palette.secondary,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              if (!phone)
-                Text(
-                  _tools.length.toString().padLeft(2, '0'),
-                  style: monoStyle(size: 11.5, color: palette.accent),
-                ),
-            ],
-          ),
-          SizedBox(height: phone ? 16 : 20),
-          AutoFitGrid(
-            minItemWidth: phone ? 120 : 150,
-            spacing: phone ? 8 : 10,
-            children: [for (final tool in _tools) _ToolChip(tool: tool)],
-          ),
+            ),
         ],
       ),
     );
   }
 }
 
-class _ToolChip extends StatelessWidget {
-  const _ToolChip({required this.tool});
+const _tools = [
+  'C#',
+  'Dart & Flutter',
+  'Swift & SwiftUI',
+  'TypeScript',
+  'Kotlin',
+  'JavaScript',
+  'SQL',
+];
 
-  final _Tool tool;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = paletteOf(context);
-    final phone = isPhone(context);
-    final badge = phone ? 30.0 : 36.0;
-    return Container(
-      padding: EdgeInsets.all(phone ? 10 : 14),
-      decoration: BoxDecoration(
-        color: palette.raised,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: palette.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: badge,
-            height: badge,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: palette.panel,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: palette.line),
-            ),
-            child: Text(
-              tool.badge,
-              style: monoStyle(size: phone ? 11 : 12, color: palette.ink2),
-            ),
-          ),
-          SizedBox(width: phone ? 10 : 12),
-          Flexible(
-            child: Text(
-              tool.name,
-              overflow: TextOverflow.ellipsis,
-              style: interStyle(
-                size: phone ? 14 : 15,
-                color: palette.ink,
-                weight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Before / now / next / after: a row of four on desktop, a vertical rail on
-/// a phone.
-class _Path extends StatelessWidget {
-  const _Path();
+/// A full-width band naming the languages and tools, set in the display face
+/// like stamped plates.
+class _ToolsStrip extends StatelessWidget {
+  const _ToolsStrip();
 
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
     final s = stringsOf(context);
     final phone = isPhone(context);
-
-    final steps = [
-      _PathStep('01 · ${s.pathBefore}', s.pathBeforeTitle, s.pathBeforeBody, false),
-      _PathStep(
-        '02 · ${s.pathNow}',
-        phone ? s.pathNowShort : s.pathNowTitle,
-        phone ? null : s.pathNowBody,
-        true,
-      ),
-      _PathStep('03 · ${s.pathNext}', s.pathNextTitle, s.pathNextBody, false),
-      _PathStep('04 · ${s.pathAfter}', s.pathAfterTitle, s.pathAfterBody, false),
-    ];
-
-    if (phone) {
-      return Container(
-        padding: const EdgeInsets.only(left: 20),
-        decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: palette.lineStrong)),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: palette.altBg,
+        border: Border(
+          top: BorderSide(color: palette.line),
+          bottom: BorderSide(color: palette.line),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      child: PageSection(
+        topPadding: phone ? 20 : 24,
+        bottomPadding: phone ? 20 : 24,
+        child: Wrap(
+          spacing: phone ? 18 : 30,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            for (var i = 0; i < steps.length; i++) ...[
-              if (i > 0) const SizedBox(height: 22),
-              steps[i],
-            ],
+            Text(
+              s.languagesAndTools,
+              style: bodyStyle(
+                size: 14,
+                color: palette.tertiary,
+                weight: FontWeight.w500,
+              ),
+            ),
+            for (final tool in _tools)
+              Text(
+                tool.toUpperCase(),
+                style: displayStyle(
+                  size: phone ? 21 : 25,
+                  color: palette.ink2,
+                  weight: FontWeight.w700,
+                  height: 1.2,
+                  letterSpacing: 0.6,
+                ),
+              ),
           ],
         ),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.only(top: 32),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: palette.line)),
       ),
-      child: AutoFitGrid(minItemWidth: 220, spacing: 28, children: steps),
-    );
-  }
-}
-
-class _PathStep extends StatelessWidget {
-  const _PathStep(this.label, this.title, this.body, this.current);
-
-  final String label;
-  final String title;
-  final String? body;
-  final bool current;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = paletteOf(context);
-    final phone = isPhone(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: monoStyle(
-            size: phone ? 11 : 12,
-            color: current ? palette.accent : palette.tertiary,
-          ),
-        ),
-        SizedBox(height: phone ? 4 : 8),
-        Text(
-          title,
-          style: interStyle(
-            size: phone ? 16 : 17,
-            color: palette.ink,
-            weight: FontWeight.w600,
-          ),
-        ),
-        if (body != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            body!,
-            style: interStyle(size: 14, color: palette.tertiary, height: 1.5),
-          ),
-        ],
-      ],
     );
   }
 }
