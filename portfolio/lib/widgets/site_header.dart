@@ -41,7 +41,7 @@ class SiteHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = paletteOf(context);
-    final phone = isPhone(context);
+    final phone = useCompactHeader(context);
     final width = MediaQuery.sizeOf(context).width;
 
     return DecoratedBox(
@@ -66,19 +66,31 @@ class SiteHeader extends StatelessWidget {
                     height: phone ? 64 : 72,
                     child: Row(
                       children: [
-                        _Logo(
-                          phone: phone,
-                          onTap: () => onSelected(SiteSection.about),
-                        ),
                         if (phone)
-                          const Spacer()
-                        else
+                          // Takes whatever the three buttons leave, and the
+                          // name shortens with an ellipsis at large text sizes
+                          // instead of pushing the buttons off screen.
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: _Logo(
+                                phone: phone,
+                                onTap: () => onSelected(SiteSection.about),
+                              ),
+                            ),
+                          )
+                        else ...[
+                          _Logo(
+                            phone: phone,
+                            onTap: () => onSelected(SiteSection.about),
+                          ),
                           Expanded(
                             child: _DesktopNav(
                               active: active,
                               onSelected: onSelected,
                             ),
                           ),
+                        ],
                         const _LanguageToggleButton(),
                         const SizedBox(width: 6),
                         const _ThemeToggleButton(),
@@ -119,12 +131,16 @@ class _Logo extends StatelessWidget {
           children: [
             InitialsMark(size: phone ? 32 : 36),
             const SizedBox(width: 12),
-            Text(
-              phone ? 'Samuel' : 'Samuel Rosengarten',
-              style: bodyStyle(
-                size: 16,
-                color: palette.ink,
-                weight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                phone ? 'Samuel' : 'Samuel Rosengarten',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: bodyStyle(
+                  size: 16,
+                  color: palette.ink,
+                  weight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -416,13 +432,19 @@ class NavDrawer extends StatelessWidget {
     return Drawer(
       backgroundColor: palette.altBg,
       child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        // A list, not a column: at large text sizes the five links are taller
+        // than a short screen, so the drawer has to scroll.
+        child: ListView(
           children: [
             const SizedBox(height: 28),
+            // Aligned, because a ListView gives its children the full width
+            // and the mark would stretch to fill it.
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
-              child: InitialsMark(size: 36),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: InitialsMark(size: 36),
+              ),
             ),
             const SizedBox(height: 16),
             for (final section in SiteSection.values)

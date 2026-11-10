@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
+import '../widgets/link_target.dart';
 import '../widgets/section_layout.dart';
 
 /// "Let's talk." over the second temper bead, beside a ruled list of the ways
@@ -19,21 +20,21 @@ class ContactSection extends StatelessWidget {
     final entries = [
       (
         'Email',
-        'samrosengarten2@pm.me',
+        'samrosengarten1@gmail.com',
         Icons.mail_outline_rounded,
-        'mailto:samrosengarten2@pm.me',
+        Uri(scheme: 'mailto', path: 'samrosengarten1@gmail.com'),
       ),
       (
         'GitHub',
         'github.com/SamuelRosengarten',
         Icons.code_rounded,
-        'https://github.com/SamuelRosengarten',
+        Uri.parse('https://github.com/SamuelRosengarten'),
       ),
       (
         'LinkedIn',
         'linkedin.com/in/samuel-rosengarten',
         Icons.work_outline_rounded,
-        'https://www.linkedin.com/in/samuel-rosengarten',
+        Uri.parse('https://linkedin.com/in/samuel-rosengarten'),
       ),
       (s.locationLabel, 'Longueuil, QC', Icons.place_outlined, null),
     ];
@@ -157,15 +158,15 @@ class _ContactRow extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
-  final String? url;
+  final Uri? url;
 
   @override
   Widget build(BuildContext context) {
     final url = this.url;
     if (url == null) return _row(context, active: false);
-    return ExternalLink(
-      url: url,
-      label: '$label: $value',
+    return LinkTarget(
+      uri: url,
+      semanticLabel: '$label: $value',
       builder: (context, active) => _row(context, active: active),
     );
   }

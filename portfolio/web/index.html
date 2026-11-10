@@ -18,9 +18,47 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Samuel Rosengarten — computer programming student in Longueuil, QC, looking for an internship in March 2027. Projects: Code Coach and Synapse OS.">
-  <meta name="theme-color" content="#0d131c">
-  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Samuel Rosengarten — computer programming student in Longueuil, QC, open to internships from March 2027. Projects: Code Coach, a VS Code extension, and Synapse OS, a private-AI workspace for small dev teams.">
+
+  <!-- Open Graph / social link previews -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Samuel Rosengarten">
+  <meta property="og:title" content="Samuel Rosengarten — Portfolio">
+  <meta property="og:description" content="Samuel Rosengarten — computer programming student in Longueuil, QC, open to internships from March 2027. Projects: Code Coach, a VS Code extension, and Synapse OS, a private-AI workspace for small dev teams.">
+  <meta property="og:url" content="https://samuelrosengarten.github.io/Portfolio/">
+  <meta property="og:image" content="https://samuelrosengarten.github.io/Portfolio/social-banner.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Samuel Rosengarten — Portfolio">
+  <meta name="twitter:description" content="Samuel Rosengarten — computer programming student in Longueuil, QC, open to internships from March 2027. Projects: Code Coach, a VS Code extension, and Synapse OS, a private-AI workspace for small dev teams.">
+  <meta name="twitter:image" content="https://samuelrosengarten.github.io/Portfolio/social-banner.png">
+
+  <!-- Structured data: lets search engines show a richer result (name,
+       role, profile links) instead of a plain blue link. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Samuel Rosengarten",
+    "url": "https://samuelrosengarten.github.io/Portfolio/",
+    "image": "https://samuelrosengarten.github.io/Portfolio/social-banner.png",
+    "jobTitle": "Computer programming student",
+    "description": "Samuel Rosengarten — computer programming student in Longueuil, QC, open to internships from March 2027. Projects: Code Coach, a VS Code extension, and Synapse OS, a private-AI workspace for small dev teams.",
+    "email": "mailto:samrosengarten1@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Longueuil",
+      "addressRegion": "QC",
+      "addressCountry": "CA"
+    },
+    "sameAs": [
+      "https://github.com/SamuelRosengarten",
+      "https://linkedin.com/in/samuel-rosengarten"
+    ]
+  }
+  </script>
   <!--
     Without this, mobile Safari renders the page at a default desktop-width
     viewport (~980px) and scales it down to fit the screen, so Flutter's
@@ -29,6 +67,8 @@
     real device, even though it works fine when a desktop browser window is
     resized narrow.
   -->
+  <meta name="theme-color" content="#0d131c">
+  <meta name="color-scheme" content="dark light">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <!-- iOS meta tags & icons -->
@@ -40,7 +80,7 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Samuel Rosengarten — Developer</title>
+  <title>Samuel Rosengarten — Portfolio</title>
   <link rel="manifest" href="manifest.json">
 
   <!--
@@ -56,19 +96,13 @@
     or a desktop browser window — untouched.
   -->
   <style>
-    /* Paint the page in the Synapse OS background colour from the first
-       frame, so the dark theme does not flash white while Flutter loads. */
-    html, body { margin: 0; background: #0a0c10; }
-    @media (prefers-color-scheme: light) {
-      html, body { background: #f7f8fa; }
-    }
     #rotate-overlay {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: #0a0c10;
-      color: #eef0f4;
+      background: #0d131c;
+      color: #eef2f7;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -95,6 +129,38 @@
     @media screen and (orientation: landscape) and (max-height: 500px) {
       #rotate-overlay { display: flex; }
     }
+
+    /*
+      Flutter web has nothing to paint until its engine (CanvasKit/Wasm) has
+      downloaded and booted, which can take a beat on a slow connection —
+      without this, that gap is just a blank page. #app-loading fills the
+      same blued steel (#0d131c) the site opens in by default (ThemeController defaults
+      to dark mode) so there's no flash, and script below removes it the
+      moment Flutter dispatches "flutter-first-frame".
+    */
+    #app-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d131c;
+    }
+    @media (prefers-color-scheme: light) {
+      #app-loading { background: #eef1f5; }
+    }
+    #app-loading .spinner {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid #24344a;
+      border-top-color: #f0b657;
+      animation: app-loading-spin 0.8s linear infinite;
+    }
+    @keyframes app-loading-spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -105,6 +171,14 @@
     </svg>
     <p>This site is designed for portrait mode. Please rotate your device back.</p>
   </div>
+
+  <div id="app-loading"><div class="spinner"></div></div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('app-loading');
+      if (el) el.remove();
+    });
+  </script>
 
   <!--
     You can customize the "flutter_bootstrap.js" script.

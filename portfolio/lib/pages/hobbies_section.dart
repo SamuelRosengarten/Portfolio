@@ -23,50 +23,106 @@ class HobbiesSection extends StatelessWidget {
         children: [
           SectionHeading(headline: s.beyondTheCode, subhead: s.buildParagraph),
           SizedBox(height: phone ? 28 : 44),
-          AutoFitGrid(
-            minItemWidth: 330,
-            spacing: 20,
-            children: [
-              _Card(
-                title: s.buildHeadline,
-                children: [
-                  for (final (title, body) in [
-                    (s.goalConnectionsTitle, s.goalConnectionsBody),
-                    (s.goalJuniorTitle, s.goalJuniorBody),
-                    (s.goalHomeTitle, s.goalHomeBody),
-                  ])
-                    _GoalRow(title: title, body: body),
-                ],
-              ),
-              _Card(
-                title: s.teachHeadline,
-                children: [
-                  _Paragraph(s.tutoringTitle, s.tutoringParagraph),
-                  const SizedBox(height: 18),
-                  _Tags([s.tagPatience, s.tagEmpathy, s.tagTeamPlayer]),
-                ],
-              ),
-              _Card(
-                title: s.craftHeadline,
-                children: [
-                  _Paragraph(null, s.craftParagraph),
-                  const SizedBox(height: 20),
-                  Text(
-                    s.pastPiecesLabel,
-                    style: bodyStyle(
-                      size: 14,
-                      color: paletteOf(context).tertiary,
-                      weight: FontWeight.w600,
-                    ),
+          _CardsLayout(
+            first: _Card(
+              title: s.buildHeadline,
+              children: [
+                for (final (title, body) in [
+                  (s.goalConnectionsTitle, s.goalConnectionsBody),
+                  (s.goalJuniorTitle, s.goalJuniorBody),
+                  (s.goalHomeTitle, s.goalHomeBody),
+                ])
+                  _GoalRow(title: title, body: body),
+              ],
+            ),
+            second: _Card(
+              title: s.teachHeadline,
+              children: [
+                _Paragraph(s.tutoringTitle, s.tutoringParagraph),
+                const SizedBox(height: 18),
+                _Tags([s.tagPatience, s.tagEmpathy, s.tagTeamPlayer]),
+              ],
+            ),
+            tall: _Card(
+              title: s.craftHeadline,
+              children: [
+                _Paragraph(null, s.craftParagraph),
+                const SizedBox(height: 20),
+                Text(
+                  s.pastPiecesLabel,
+                  style: bodyStyle(
+                    size: 14,
+                    color: paletteOf(context).tertiary,
+                    weight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 12),
-                  const _Pieces(),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 12),
+                const _Pieces(),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Build and Teach stacked in one column beside the taller Craft card (with
+/// its four photos) on a wide screen, so the two columns end at about the
+/// same height; one column of three cards on a narrow one.
+class _CardsLayout extends StatelessWidget {
+  const _CardsLayout({
+    required this.first,
+    required this.second,
+    required this.tall,
+  });
+
+  /// The two short cards (stacked in the left column on a wide screen).
+  final Widget first;
+  final Widget second;
+
+  /// The taller card, in the right column.
+  final Widget tall;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 20.0;
+        if (constraints.maxWidth >= 680) {
+          // Not an AutoFitGrid: it is built on a LayoutBuilder-free
+          // IntrinsicHeight row, which is all this needs too.
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: first),
+                      const SizedBox(height: gap),
+                      Expanded(child: second),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: gap),
+                Expanded(child: tall),
+              ],
+            ),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            first,
+            const SizedBox(height: gap),
+            second,
+            const SizedBox(height: gap),
+            tall,
+          ],
+        );
+      },
     );
   }
 }
@@ -201,65 +257,108 @@ class _Tags extends StatelessWidget {
   }
 }
 
-/// Past pieces: [_Piece] in order.
-enum _Piece { cardHolder, bifoldWallet, belt }
+/// Past pieces, each with its photo in `assets/leather/`.
+enum _Piece { cardHolder, bifoldWallet, flapWallet, embroideredSleeve }
 
 String _pieceTitle(AppLanguage lang, _Piece piece) {
   final fr = lang == AppLanguage.fr;
   return switch (piece) {
     _Piece.cardHolder => fr ? 'Porte-cartes' : 'Card holder',
-    _Piece.bifoldWallet => fr ? 'Portefeuille' : 'Bifold wallet',
-    _Piece.belt => fr ? 'Ceinture' : 'Belt',
+    _Piece.bifoldWallet => fr ? 'Portefeuille bifold' : 'Bifold wallet',
+    _Piece.flapWallet => fr ? 'Portefeuille à rabat' : 'Flap wallet',
+    _Piece.embroideredSleeve => fr ? 'Manchon brodé' : 'Embroidered sleeve',
   };
 }
 
-/// Three photo slots, waiting for pictures of the pieces.
+String _pieceAsset(_Piece piece) => switch (piece) {
+  _Piece.cardHolder => 'assets/leather/card_holder.jpg',
+  _Piece.bifoldWallet => 'assets/leather/bifold_wallet.jpg',
+  _Piece.flapWallet => 'assets/leather/flap_wallet.jpg',
+  _Piece.embroideredSleeve => 'assets/leather/embroidered_sleeve.jpg',
+};
+
+/// The four pieces as photos in a two-by-two grid, each captioned.
 class _Pieces extends StatelessWidget {
   const _Pieces();
 
   @override
   Widget build(BuildContext context) {
-    final palette = paletteOf(context);
     final lang = languageOf(context);
     // Not an AutoFitGrid: this sits inside the outer grid's IntrinsicHeight
     // row, which can't measure the LayoutBuilder an AutoFitGrid contains.
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    Widget tile(_Piece piece) => Expanded(
+      child: _PieceTile(piece: piece, lang: lang),
+    );
+    return Column(
       children: [
-        for (var i = 0; i < _Piece.values.length; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: CustomPaint(
-                    foregroundPainter: DashedRRectPainter(
-                      color: palette.lineStrong,
-                      radius: 10,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: palette.raised,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            tile(_Piece.cardHolder),
+            const SizedBox(width: 12),
+            tile(_Piece.bifoldWallet),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            tile(_Piece.flapWallet),
+            const SizedBox(width: 12),
+            tile(_Piece.embroideredSleeve),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PieceTile extends StatelessWidget {
+  const _PieceTile({required this.piece, required this.lang});
+
+  final _Piece piece;
+  final AppLanguage lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = paletteOf(context);
+    final title = _pieceTitle(lang, piece);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          image: true,
+          label: title,
+          excludeSemantics: true,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: palette.line),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: Image.asset(
+                  _pieceAsset(piece),
+                  fit: BoxFit.cover,
+                  // The piece sits in the lower half of each photo.
+                  alignment: const Alignment(0, 0.4),
+                  filterQuality: FilterQuality.medium,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _pieceTitle(lang, _Piece.values[i]),
-                  style: bodyStyle(
-                    size: 13,
-                    color: palette.secondary,
-                    weight: FontWeight.w500,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          style: bodyStyle(
+            size: 13,
+            color: palette.secondary,
+            weight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }

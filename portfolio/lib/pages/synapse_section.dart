@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../i18n/strings.dart';
 import '../theme/palette.dart';
 import '../widgets/devices.dart';
+import '../widgets/link_target.dart';
 import '../widgets/section_layout.dart';
 
 /// The Synapse OS showcase: the product pitch, the Mac + iPhone hero shot (in
@@ -166,23 +167,25 @@ class _Intro extends StatelessWidget {
       children: [
         platforms,
         const SizedBox(height: 14),
-        ExternalLink(
-          url: 'https://synapse-os.ca',
-          label: 'synapse-os.ca',
+        LinkTarget(
+          uri: Uri.parse('https://synapse-os.ca'),
+          semanticLabel: 'synapse-os.ca',
           builder: (context, active) => Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'synapse-os.ca',
-                style:
-                    bodyStyle(
-                      size: 15,
-                      color: palette.ai,
-                      weight: FontWeight.w600,
-                    ).copyWith(
-                      decoration: active ? TextDecoration.underline : null,
-                      decorationColor: palette.ai,
-                    ),
+              Flexible(
+                child: Text(
+                  'synapse-os.ca',
+                  style:
+                      bodyStyle(
+                        size: 15,
+                        color: palette.ai,
+                        weight: FontWeight.w600,
+                      ).copyWith(
+                        decoration: active ? TextDecoration.underline : null,
+                        decorationColor: palette.ai,
+                      ),
+                ),
               ),
               const SizedBox(width: 6),
               Icon(Icons.north_east_rounded, size: 16, color: palette.ai),

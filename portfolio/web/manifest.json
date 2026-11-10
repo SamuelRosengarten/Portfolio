@@ -1,11 +1,11 @@
 {
-    "name": "Samuel Rosengarten",
-    "short_name": "Samuel",
+    "name": "Samuel Rosengarten — Portfolio",
+    "short_name": "Samuel Rosengarten",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0a0c10",
-    "theme_color": "#0a0c10",
-    "description": "Portfolio of Samuel Rosengarten: Code Coach, Synapse OS and more.",
+    "background_color": "#0d131c",
+    "theme_color": "#0d131c",
+    "description": "Samuel Rosengarten — computer programming student in Longueuil, QC, open to internships from March 2027. Projects: Code Coach, a VS Code extension, and Synapse OS, a private-AI workspace for small dev teams.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

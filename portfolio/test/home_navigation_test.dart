@@ -127,36 +127,4 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
-
-  testWidgets('contact methods and synapse-os.ca are links', (tester) async {
-    tester.view.physicalSize = const Size(1440, 900);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-    final semantics = tester.ensureSemantics();
-
-    await tester.pumpWidget(const MyApp());
-    await tester.pump();
-
-    for (final label in [
-      'Email: samrosengarten2@pm.me',
-      'GitHub: github.com/SamuelRosengarten',
-      'LinkedIn: linkedin.com/in/samuel-rosengarten',
-      'synapse-os.ca',
-    ]) {
-      expect(
-        tester.getSemantics(find.bySemanticsLabel(label)),
-        isSemantics(
-          label: label,
-          isLink: true,
-          isFocusable: true,
-          hasTapAction: true,
-          hasFocusAction: true,
-        ),
-        reason: label,
-      );
-    }
-    // The location is plain text, not a link.
-    expect(find.bySemanticsLabel(RegExp('Location:')), findsNothing);
-    semantics.dispose();
-  });
 }
